@@ -33,4 +33,14 @@ enum CalendarDay {
             calendar.date(byAdding: .day, value: -offset, to: end)
         }
     }
+
+    static func endOfDay(_ date: Date, calendar: Calendar = .current) -> Date {
+        let start = startOfDay(date, calendar: calendar)
+        return calendar.date(byAdding: .day, value: 1, to: start) ?? start
+    }
+
+    static func addingDays(_ value: Int, to date: Date, calendar: Calendar = .current) -> Date {
+        calendar.date(byAdding: .day, value: value, to: startOfDay(date, calendar: calendar))
+            ?? startOfDay(date, calendar: calendar)
+    }
 }

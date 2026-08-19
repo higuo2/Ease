@@ -205,6 +205,18 @@
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%.1f%%" } }
       }
     },
+    "format.kcal" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%.0f kcal" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%.0f 千卡" } }
+      }
+    },
+    "format.hours" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%.1f h" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%.1f 小时" } }
+      }
+    },
     "dashboard.fab" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Log today" } },
@@ -275,6 +287,54 @@
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "7-day average" } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "7 日均线" } }
+      }
+    },
+    "chart.axis.energy" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Energy" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "活动消耗" } }
+      }
+    },
+    "chart.axis.sleep" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sleep" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "睡眠" } }
+      }
+    },
+    "chart.preview.ma" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "7-day %.1f kg" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "7 日均线 %.1f kg" } }
+      }
+    },
+    "chart.preview.a11y" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Day preview" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当日预览" } }
+      }
+    },
+    "notify.weight" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today’s weight is still empty." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日体重待记录。" } }
+      }
+    },
+    "notify.diet" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today’s diet is still empty." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日饮食状态待打卡。" } }
+      }
+    },
+    "notify.period" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Period data is synced. Water retention can cause normal weight swings." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "经期数据已同步。水分滞留可能引发正常体重波动。" } }
+      }
+    },
+    "notify.sleep" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Last night’s sleep was under 6 hours. Cortisol can affect the numbers." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "昨晚睡眠不足 6 小时。皮质醇升高可能影响数据表现。" } }
       }
     },
     "today.dietPending" : {

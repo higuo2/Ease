@@ -88,17 +88,28 @@ struct SettingsSheet: View {
             errorKey = "onboarding.error.invalid"
             return
         }
-        do {
-            try UserProfileRepository(context: modelContext).update(
-                heightCm: height,
-                startWeight: start,
-                targetWeight: target,
-                notificationsEnabled: notificationsEnabled
-            )
-            errorKey = nil
-            dismiss()
-        } catch {
-            errorKey = "onboarding.error.invalid"
+        Task {
+            var enabled = notificationsEnabled
+            if enabled {
+                enabled = await PermissionsService.requestNotifications()
+            }
+            do {
+                try UserProfileRepository(context: modelContext).update(
+                    heightCm: height,
+                    startWeight: start,
+                    targetWeight: target,
+                    notificationsEnabled: enabled
+                )
+                await NotificationScheduler.refresh(enabled: enabled, context: modelContext)
+                await MainActor.run {
+                    errorKey = nil
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    errorKey = "onboarding.error.invalid"
+                }
+            }
         }
     }
 
@@ -114,6 +125,9 @@ struct SettingsSheet: View {
     }
 
     private func deleteAll() {
+        Task {
+            await NotificationScheduler.refresh(enabled: false, todayRecord: nil, healthToday: nil)
+        }
         withAnimation(.easeInOut(duration: 0.25)) {
             try? UserProfileRepository(context: modelContext).resetAll()
         }

@@ -5,6 +5,7 @@ struct LogSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \DailyRecord.date, order: .forward) private var records: [DailyRecord]
+    @Query(sort: \UserProfile.updatedAt, order: .reverse) private var profiles: [UserProfile]
 
     @State private var selectedDate: Date
     @State private var weightText: String
@@ -209,6 +210,7 @@ struct LogSheetView: View {
         patch.note = .set(note.isEmpty ? nil : note)
         do {
             try DailyRecordRepository(context: modelContext).upsert(on: selectedDate, patch: patch)
+            refreshReminders()
             dismiss()
         } catch let error as EaseDataError {
             switch error {
@@ -231,6 +233,14 @@ struct LogSheetView: View {
 
     private func deleteRecord() {
         try? DailyRecordRepository(context: modelContext).delete(on: selectedDate)
+        refreshReminders()
         dismiss()
+    }
+
+    private func refreshReminders() {
+        let enabled = profiles.first?.notificationsEnabled == true
+        Task {
+            await NotificationScheduler.refresh(enabled: enabled, context: modelContext)
+        }
     }
 }

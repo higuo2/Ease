@@ -78,6 +78,9 @@ final class OnboardingViewModel {
                 targetWeight: target,
                 notificationsEnabled: notificationsEnabled
             )
+            Task {
+                await NotificationScheduler.refresh(enabled: notificationsEnabled, context: context)
+            }
         } catch {
             errorKey = "onboarding.error.invalid"
             step = .measurements

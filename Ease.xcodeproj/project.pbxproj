@@ -43,6 +43,8 @@
 		A10000000000000000000033 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000093 /* SettingsSheet.swift */; };
 		A10000000000000000000034 /* LogSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000094 /* LogSheetView.swift */; };
 		A10000000000000000000035 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000097 /* InfoPlist.xcstrings */; };
+		A10000000000000000000036 /* HealthKitReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000098 /* HealthKitReader.swift */; };
+		A10000000000000000000037 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000099 /* NotificationScheduler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -84,6 +86,8 @@
 		A10000000000000000000093 /* SettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSheet.swift; sourceTree = "<group>"; };
 		A10000000000000000000094 /* LogSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSheetView.swift; sourceTree = "<group>"; };
 		A10000000000000000000097 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		A10000000000000000000098 /* HealthKitReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitReader.swift; sourceTree = "<group>"; };
+		A10000000000000000000099 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,6 +156,8 @@
 				A1000000000000000000004B /* EaseModelContainer.swift */,
 				A1000000000000000000004C /* CSVExporter.swift */,
 				A1000000000000000000008A /* PermissionsService.swift */,
+				A10000000000000000000098 /* HealthKitReader.swift */,
+				A10000000000000000000099 /* NotificationScheduler.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -318,6 +324,8 @@
 				A10000000000000000000032 /* TrendChartCard.swift in Sources */,
 				A10000000000000000000033 /* SettingsSheet.swift in Sources */,
 				A10000000000000000000034 /* LogSheetView.swift in Sources */,
+				A10000000000000000000036 /* HealthKitReader.swift in Sources */,
+				A10000000000000000000037 /* NotificationScheduler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,6 +382,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Ease/Ease.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Ease/Preview Content\"";
@@ -409,6 +418,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Ease/Ease.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Ease/Preview Content\"";

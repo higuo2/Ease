@@ -29,6 +29,14 @@ enum EaseFormatters {
         String(format: String(localized: "format.bodyFat"), locale: .current, value)
     }
 
+    static func kcal(_ value: Double) -> String {
+        String(format: String(localized: "format.kcal"), locale: .current, value)
+    }
+
+    static func hours(_ value: Double) -> String {
+        String(format: String(localized: "format.hours"), locale: .current, value)
+    }
+
     static func parseDecimal(_ text: String) -> Double? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }

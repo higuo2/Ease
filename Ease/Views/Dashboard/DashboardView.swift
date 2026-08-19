@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct DashboardView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \UserProfile.updatedAt, order: .reverse) private var profiles: [UserProfile]
     @Query(sort: \DailyRecord.date, order: .forward) private var records: [DailyRecord]
     @State private var viewModel = DashboardViewModel()
@@ -25,7 +26,10 @@ struct DashboardView: View {
                         )
                         .padding(.top, 8)
 
-                        TodayStripView(record: snapshot.today)
+                        TodayStripView(
+                            record: snapshot.today,
+                            health: viewModel.healthByDay[CalendarDay.dayKey(from: .now)]
+                        )
                         WeightSummaryCard(
                             weight: snapshot.displayWeight,
                             bodyFat: snapshot.bodyFat,
@@ -33,6 +37,7 @@ struct DashboardView: View {
                         )
                         TrendChartCard(
                             records: Array(records),
+                            healthByDay: viewModel.healthByDay,
                             range: viewModel.chartRange,
                             onSelectRange: { viewModel.chartRange = $0 },
                             onSelectDate: { viewModel.openLog(for: $0) }
@@ -69,9 +74,26 @@ struct DashboardView: View {
             .sheet(isPresented: $viewModel.isLogPresented) {
                 LogSheetView(date: viewModel.editingDate)
             }
+            .task(id: scenePhase) {
+                guard scenePhase == .active else { return }
+                await reloadHealthAndNotifications()
+            }
+            .onChange(of: viewModel.isLogPresented) { _, presented in
+                if !presented { Task { await reloadHealthAndNotifications() } }
+            }
+            .onChange(of: viewModel.isSettingsPresented) { _, presented in
+                if !presented { Task { await reloadHealthAndNotifications() } }
+            }
         }
         .preferredColorScheme(.light)
         .tint(EasePalette.accent)
+    }
+
+    private func reloadHealthAndNotifications() async {
+        await viewModel.reloadHealthAndNotifications(
+            enabled: profile?.notificationsEnabled == true,
+            records: Array(records)
+        )
     }
 }
 
