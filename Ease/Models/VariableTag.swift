@@ -13,6 +13,14 @@ enum VariableTag: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    var titleKey: String {
+        switch self {
+        case .period: "tag.period"
+        case .travel: "tag.travel"
+        case .bowel: "tag.bowel"
+        }
+    }
+
     static func sanitized(_ tags: [VariableTag]) -> [VariableTag] {
         allCases.filter { tags.contains($0) }
     }

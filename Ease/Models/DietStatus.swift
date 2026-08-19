@@ -12,4 +12,12 @@ enum DietStatus: String, Codable, CaseIterable, Sendable {
         case .cheat: "takeoutbag.and.cup.and.straw"
         }
     }
+
+    var titleKey: String {
+        switch self {
+        case .clean: "diet.clean"
+        case .normal: "diet.normal"
+        case .cheat: "diet.cheat"
+        }
+    }
 }

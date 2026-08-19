@@ -51,7 +51,12 @@ struct UserProfileRepository {
     }
 
     @discardableResult
-    func completeOnboarding(heightCm: Double, currentWeight: Double, targetWeight: Double) throws -> UserProfile {
+    func completeOnboarding(
+        heightCm: Double,
+        currentWeight: Double,
+        targetWeight: Double,
+        notificationsEnabled: Bool = false
+    ) throws -> UserProfile {
         let height = try MeasurementBounds.validatedHeight(heightCm)
         let weight = try MeasurementBounds.validatedWeight(currentWeight)
         let target = try MeasurementBounds.validatedWeight(targetWeight)
@@ -63,6 +68,7 @@ struct UserProfileRepository {
         profile.heightCm = height
         profile.startWeight = weight
         profile.targetWeight = target
+        profile.notificationsEnabled = notificationsEnabled
         profile.hasCompletedOnboarding = true
         profile.updatedAt = .now
         try context.save()

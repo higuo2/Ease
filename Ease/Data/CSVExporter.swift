@@ -28,7 +28,7 @@ enum CSVExporter {
     }
 
     private static func escaped(_ text: String) -> String {
-        guard text.contains(where: { $0 == "," || $0 == "\"" || $0 == "\n" }) else {
+        guard text.contains(where: { $0 == "," || $0 == "\"" || $0.isNewline }) else {
             return text
         }
         return "\"\(text.replacingOccurrences(of: "\"", with: "\"\""))\""

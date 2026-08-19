@@ -91,6 +91,7 @@ struct DailyRecordRepository {
         var tags = record.variableTags
         patch.tags.apply(to: &tags)
         record.variableTags = VariableTag.sanitized(tags)
+        record.tags = Array(record.tags)
 
         var note = record.note
         switch patch.note {
@@ -156,7 +157,7 @@ private struct RecordSnapshot {
         record.weight = weight
         record.bodyFat = bodyFat
         record.dietStatusRaw = dietStatusRaw
-        record.tags = tags
+        record.tags = Array(tags)
         record.note = note
     }
 }

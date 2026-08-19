@@ -25,7 +25,7 @@ final class DailyRecord {
             VariableTag.sanitized(tags.compactMap(VariableTag.init(rawValue:)))
         }
         set {
-            tags = VariableTag.sanitized(newValue).map(\.rawValue)
+            tags = Array(VariableTag.sanitized(newValue).map(\.rawValue))
         }
     }
 

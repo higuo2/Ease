@@ -16,6 +16,7 @@ struct RootView: View {
                 OnboardingView()
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: hasCompletedOnboarding)
         .preferredColorScheme(.light)
     }
 }

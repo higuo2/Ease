@@ -1,0 +1,22 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSHealthShareUsageDescription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ease reads activity, sleep, and menstrual data to display beside your weight trend."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ease 读取活动消耗、睡眠与经期数据，用于和体重趋势一起展示。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
