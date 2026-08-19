@@ -45,6 +45,7 @@
 		A10000000000000000000035 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000097 /* InfoPlist.xcstrings */; };
 		A10000000000000000000036 /* HealthKitReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000098 /* HealthKitReader.swift */; };
 		A10000000000000000000037 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000099 /* NotificationScheduler.swift */; };
+		A10000000000000000000038 /* ScaleOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009A /* ScaleOCR.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -88,6 +89,7 @@
 		A10000000000000000000097 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		A10000000000000000000098 /* HealthKitReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitReader.swift; sourceTree = "<group>"; };
 		A10000000000000000000099 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
+		A1000000000000000000009A /* ScaleOCR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleOCR.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,6 +160,7 @@
 				A1000000000000000000008A /* PermissionsService.swift */,
 				A10000000000000000000098 /* HealthKitReader.swift */,
 				A10000000000000000000099 /* NotificationScheduler.swift */,
+				A1000000000000000000009A /* ScaleOCR.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -326,6 +329,7 @@
 				A10000000000000000000034 /* LogSheetView.swift in Sources */,
 				A10000000000000000000036 /* HealthKitReader.swift in Sources */,
 				A10000000000000000000037 /* NotificationScheduler.swift in Sources */,
+				A10000000000000000000038 /* ScaleOCR.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -391,6 +395,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Ease;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Ease reads activity, sleep, and menstrual data to display beside your weight trend.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Ease reads a scale photo to prefill weight and body fat.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -427,6 +432,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Ease;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Ease reads activity, sleep, and menstrual data to display beside your weight trend.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Ease reads a scale photo to prefill weight and body fat.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

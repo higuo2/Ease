@@ -1,4 +1,5 @@
 import HealthKit
+import Photos
 import UserNotifications
 
 enum PermissionsService {
@@ -22,5 +23,11 @@ enum PermissionsService {
     static func requestNotifications() async -> Bool {
         let center = UNUserNotificationCenter.current()
         return (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
+    }
+
+    static func requestPhotoLibrary() async {
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        guard status == .notDetermined else { return }
+        _ = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
     }
 }

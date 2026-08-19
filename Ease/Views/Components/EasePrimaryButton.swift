@@ -63,12 +63,29 @@ struct EaseFAB: View {
     }
 }
 
-struct EaseField: View {
+struct EaseField<Accessory: View>: View {
     let title: LocalizedStringKey
     let placeholder: LocalizedStringKey
     @Binding var text: String
     var suffix: LocalizedStringKey? = nil
     var isInvalid: Bool = false
+    var accessory: Accessory
+
+    init(
+        title: LocalizedStringKey,
+        placeholder: LocalizedStringKey,
+        text: Binding<String>,
+        suffix: LocalizedStringKey? = nil,
+        isInvalid: Bool = false,
+        @ViewBuilder accessory: () -> Accessory
+    ) {
+        self.title = title
+        self.placeholder = placeholder
+        self._text = text
+        self.suffix = suffix
+        self.isInvalid = isInvalid
+        self.accessory = accessory()
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -86,10 +103,31 @@ struct EaseField: View {
                         .font(.system(size: 16, weight: .regular))
                         .foregroundStyle(EasePalette.secondaryText)
                 }
+                accessory
             }
             Rectangle()
                 .fill(isInvalid ? EasePalette.primaryText : EasePalette.track)
                 .frame(height: isInvalid ? 1.5 : 1)
+        }
+    }
+}
+
+extension EaseField where Accessory == EmptyView {
+    init(
+        title: LocalizedStringKey,
+        placeholder: LocalizedStringKey,
+        text: Binding<String>,
+        suffix: LocalizedStringKey? = nil,
+        isInvalid: Bool = false
+    ) {
+        self.init(
+            title: title,
+            placeholder: placeholder,
+            text: text,
+            suffix: suffix,
+            isInvalid: isInvalid
+        ) {
+            EmptyView()
         }
     }
 }

@@ -463,6 +463,12 @@
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "体重" } }
       }
     },
+    "log.ocr" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Read scale photo" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "相册识图" } }
+      }
+    },
     "log.bodyFat" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Body fat" } },

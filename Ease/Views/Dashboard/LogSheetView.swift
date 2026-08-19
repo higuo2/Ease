@@ -1,5 +1,8 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
+import UIKit
+import UniformTypeIdentifiers
 
 struct LogSheetView: View {
     @Environment(\.dismiss) private var dismiss
@@ -15,6 +18,9 @@ struct LogSheetView: View {
     @State private var noteText: String
     @State private var errorKey: String?
     @State private var errorPulse = 0
+    @State private var photoItem: PhotosPickerItem?
+    @State private var isPhotoPickerPresented = false
+    @State private var isOCRBusy = false
 
     init(date: Date) {
         let start = CalendarDay.startOfDay(date)
@@ -57,7 +63,9 @@ struct LogSheetView: View {
                                     text: $weightText,
                                     suffix: "unit.kg",
                                     isInvalid: isNumericError
-                                )
+                                ) {
+                                    ocrButton
+                                }
                                 EaseField(
                                     title: "log.bodyFat",
                                     placeholder: "log.bodyFat.placeholder",
@@ -128,6 +136,11 @@ struct LogSheetView: View {
             .onChange(of: selectedDate) { _, _ in
                 hydrateFromExisting()
             }
+            .onChange(of: photoItem) { _, item in
+                guard let item else { return }
+                Task { await applyOCR(from: item) }
+            }
+            .photosPicker(isPresented: $isPhotoPickerPresented, selection: $photoItem, matching: .images)
             .sensoryFeedback(.error, trigger: errorPulse)
         }
         .preferredColorScheme(.light)
@@ -140,6 +153,46 @@ struct LogSheetView: View {
     private var canSave: Bool {
         let hasWeight = EaseFormatters.parseDecimal(weightText) != nil
         return hasWeight || diet != nil
+    }
+
+    private var ocrButton: some View {
+        Button {
+            Task {
+                await PermissionsService.requestPhotoLibrary()
+                isPhotoPickerPresented = true
+            }
+        } label: {
+            ZStack {
+                Image(systemName: "photo")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(EasePalette.accent)
+                    .opacity(isOCRBusy ? 0 : 1)
+                if isOCRBusy {
+                    ProgressView()
+                        .tint(EasePalette.accent)
+                }
+            }
+            .frame(width: 28, height: 28)
+        }
+        .buttonStyle(.plain)
+        .disabled(isOCRBusy)
+        .accessibilityLabel(Text("log.ocr"))
+    }
+
+    private func applyOCR(from item: PhotosPickerItem) async {
+        isOCRBusy = true
+        defer {
+            isOCRBusy = false
+            photoItem = nil
+        }
+        guard let picked = try? await item.loadTransferable(type: PickedScaleImage.self) else { return }
+        let result = await ScaleOCR.recognize(image: picked.image)
+        if let weight = result.weightKg {
+            weightText = EaseFormatters.oneDecimal(weight)
+        }
+        if let bodyFat = result.bodyFatPercent {
+            bodyFatText = EaseFormatters.oneDecimal(bodyFat)
+        }
     }
 
     private func dietChip(_ status: DietStatus) -> some View {
@@ -241,6 +294,19 @@ struct LogSheetView: View {
         let enabled = profiles.first?.notificationsEnabled == true
         Task {
             await NotificationScheduler.refresh(enabled: enabled, context: modelContext)
+        }
+    }
+}
+
+private struct PickedScaleImage: Transferable {
+    let image: UIImage
+
+    static var transferRepresentation: some TransferRepresentation {
+        DataRepresentation(importedContentType: .image) { data in
+            guard let image = UIImage(data: data) else {
+                throw CocoaError(.fileReadCorruptFile)
+            }
+            return PickedScaleImage(image: image)
         }
     }
 }

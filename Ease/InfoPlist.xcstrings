@@ -16,6 +16,22 @@
           }
         }
       }
+    },
+    "NSPhotoLibraryUsageDescription" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ease reads a scale photo to prefill weight and body fat."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ease 读取体脂秤照片，用于预填体重与体脂。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
