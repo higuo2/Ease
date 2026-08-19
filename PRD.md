@@ -64,7 +64,7 @@
     * `weight`: Double?（精度 0.1 kg）
     * `bodyFat`: Double?（精度 0.1%）
     * `dietStatus`: Enum?（Clean / Normal / Cheat，每日至多一个）
-    * `tags`: [String]（经期 `drop.fill` / 差旅 `airplane` / 排空 `wind`，可多选，不可自定义）
+    * `tags`: [String]（稳定英文 key：`period` / `travel` / `bowel`；UI 分别用 `drop.fill` / `airplane` / `wind`，可多选，不可自定义）
     * `note`: String?
     * `updatedAt`: Date（CloudKit 冲突时取较新者）
 * **删除**：删的是该日整条记录。设置中的「清除全部数据」会删除全部 `DailyRecord` 并回到 Onboarding；身高/目标等用户设置一并重置。
@@ -95,4 +95,4 @@
 * **多语言**：简体中文与英文；`String Catalog` (.xcstrings)；跟随系统；无应用内切换。
 * **隐私**：无第三方服务器、无 Analytics。SwiftData 本地为主；CloudKit 仅同步到用户个人 iCloud。无网时本地照常读写，联网后静默合。
 * **冲突**：同一 `date` 两条记录，保留 `updatedAt` 较新者。
-* **CSV 导出列**：`date, weight, bodyFat, dietStatus, tags, note`。
+* **CSV 导出列**：`date, weight, bodyFat, dietStatus, tags, note`。仅用于离线备份 / Excel 阅读，不做再导入。`dietStatus` 为 `clean|normal|cheat`；`tags` 为 `period;travel;bowel` 这类稳定 key，不是 SF Symbol 名。

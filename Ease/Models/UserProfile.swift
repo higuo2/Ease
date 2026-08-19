@@ -11,6 +11,11 @@ final class UserProfile {
     var updatedAt: Date = Date.now
 
     init() {
+        self.heightCm = 0
+        self.startWeight = 0
+        self.targetWeight = 0
+        self.notificationsEnabled = false
+        self.hasCompletedOnboarding = false
         self.updatedAt = .now
     }
 }

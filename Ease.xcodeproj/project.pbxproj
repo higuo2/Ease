@@ -22,6 +22,11 @@
 		A1000000000000000000001C /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004C /* CSVExporter.swift */; };
 		A1000000000000000000001D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004D /* Assets.xcassets */; };
 		A1000000000000000000001E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004E /* Preview Assets.xcassets */; };
+		A1000000000000000000001F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000080 /* RootView.swift */; };
+		A10000000000000000000021 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000081 /* OnboardingView.swift */; };
+		A10000000000000000000022 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000082 /* DashboardView.swift */; };
+		A10000000000000000000023 /* EaseCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000083 /* EaseCard.swift */; };
+		A10000000000000000000024 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000084 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +47,11 @@
 		A1000000000000000000004D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000000000000000000004E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A1000000000000000000004F /* Ease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Ease.entitlements; sourceTree = "<group>"; };
+		A10000000000000000000080 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		A10000000000000000000081 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A10000000000000000000082 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		A10000000000000000000083 /* EaseCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseCard.swift; sourceTree = "<group>"; };
+		A10000000000000000000084 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,7 +79,9 @@
 				A10000000000000000000040 /* EaseApp.swift */,
 				A10000000000000000000053 /* Models */,
 				A10000000000000000000054 /* Data */,
+				A10000000000000000000057 /* Views */,
 				A1000000000000000000004D /* Assets.xcassets */,
+				A10000000000000000000084 /* Localizable.xcstrings */,
 				A1000000000000000000004F /* Ease.entitlements */,
 				A10000000000000000000055 /* Preview Content */,
 			);
@@ -116,6 +128,25 @@
 				A1000000000000000000004E /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		A10000000000000000000057 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000080 /* RootView.swift */,
+				A10000000000000000000081 /* OnboardingView.swift */,
+				A10000000000000000000082 /* DashboardView.swift */,
+				A10000000000000000000085 /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000085 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000083 /* EaseCard.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -179,6 +210,7 @@
 			files = (
 				A1000000000000000000001E /* Preview Assets.xcassets in Resources */,
 				A1000000000000000000001D /* Assets.xcassets in Resources */,
+				A10000000000000000000024 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -202,6 +234,10 @@
 				A1000000000000000000001A /* UserProfileRepository.swift in Sources */,
 				A1000000000000000000001B /* EaseModelContainer.swift in Sources */,
 				A1000000000000000000001C /* CSVExporter.swift in Sources */,
+				A1000000000000000000001F /* RootView.swift in Sources */,
+				A10000000000000000000021 /* OnboardingView.swift in Sources */,
+				A10000000000000000000022 /* DashboardView.swift in Sources */,
+				A10000000000000000000023 /* EaseCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

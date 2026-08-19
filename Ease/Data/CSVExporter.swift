@@ -16,7 +16,7 @@ enum CSVExporter {
             csv(record.weight),
             csv(record.bodyFat),
             record.dietStatus?.rawValue ?? "",
-            record.variableTags.map(\.rawValue).joined(separator: ";"),
+            escaped(record.variableTags.map(\.rawValue).joined(separator: ";")),
             escaped(record.note ?? "")
         ]
         return fields.joined(separator: ",")

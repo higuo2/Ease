@@ -3,6 +3,9 @@ import SwiftData
 
 @Model
 final class DailyRecord {
+    /// CloudKit requires non-optional stored properties to have defaults so remote
+    /// records can materialize without calling `init(date:)`. Local inserts always
+    /// go through `init(date:)`, which overwrites every stored property.
     var dayKey: String = ""
     var date: Date = Date.now
     var weight: Double?
@@ -28,8 +31,13 @@ final class DailyRecord {
 
     init(date: Date, calendar: Calendar = .current) {
         let start = CalendarDay.startOfDay(date, calendar: calendar)
-        self.date = start
         self.dayKey = CalendarDay.dayKey(from: start, calendar: calendar)
+        self.date = start
+        self.weight = nil
+        self.bodyFat = nil
+        self.dietStatusRaw = nil
+        self.tags = []
+        self.note = nil
         self.updatedAt = .now
     }
 }

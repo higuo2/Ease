@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import UIKit
 
 @main
 struct EaseApp: App {
@@ -8,9 +7,7 @@ struct EaseApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Color(UIColor.secondarySystemBackground)
-                .ignoresSafeArea()
-                .preferredColorScheme(.light)
+            RootView()
         }
         .modelContainer(container)
     }
