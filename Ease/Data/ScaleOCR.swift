@@ -25,7 +25,7 @@ enum ScaleOCR {
     static func parse(lines: [Line]) -> Result {
         var candidates: [Candidate] = []
         for line in lines {
-            candidates.append(contentsOf: candidates(in: line))
+            candidates.append(contentsOf: Self.candidates(in: line))
         }
         return Result(
             weightKg: pickWeight(candidates),
