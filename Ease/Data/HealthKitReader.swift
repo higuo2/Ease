@@ -25,6 +25,11 @@ enum HealthDisplay {
 
 enum HealthKitReader {
     static func load(days: Int, endingOn date: Date = .now, calendar: Calendar = .current) async -> [String: HealthDaySnapshot] {
+#if DEBUG
+        if !HKHealthStore.isHealthDataAvailable() {
+            return mockSnapshots(days: days, endingOn: date, calendar: calendar)
+        }
+#endif
         guard HKHealthStore.isHealthDataAvailable() else { return [:] }
         let store = HKHealthStore()
         let days = max(days, 1)
@@ -185,4 +190,24 @@ enum HealthKitReader {
             return false
         }
     }
+
+#if DEBUG
+    private static func mockSnapshots(days: Int, endingOn date: Date, calendar: Calendar) -> [String: HealthDaySnapshot] {
+        let count = max(days, 1)
+        let dayStarts = CalendarDay.datesBack(count, from: date, calendar: calendar)
+        let todayKey = CalendarDay.dayKey(from: date, calendar: calendar)
+        var snapshots: [String: HealthDaySnapshot] = [:]
+        for (offset, start) in dayStarts.enumerated() {
+            let key = CalendarDay.dayKey(from: start, calendar: calendar)
+            let dayIndex = dayStarts.count - 1 - offset
+            snapshots[key] = HealthDaySnapshot(
+                dayKey: key,
+                activeEnergyKcal: Double(320 + (dayIndex * 17) % 280).rounded(),
+                previousNightSleepHours: MeasurementBounds.roundedToTenth(6.5 + Double(dayIndex % 4) * 0.5),
+                isMenstrual: key == todayKey || dayIndex % 28 < 5
+            )
+        }
+        return snapshots
+    }
+#endif
 }
