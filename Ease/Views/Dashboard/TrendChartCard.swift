@@ -305,18 +305,19 @@ struct TrendChartCard: View {
             .fill(Color.clear)
             .contentShape(Rectangle())
             .gesture(
-                DragGesture(minimumDistance: 0)
+                DragGesture(minimumDistance: 12)
                     .onChanged { value in
                         preview = makePreview(at: value.location, proxy: proxy, geometry: geometry)
                     }
-                    .onEnded { value in
-                        let day = preview?.date
+                    .onEnded { _ in
                         preview = nil
-                        let distance = hypot(value.translation.width, value.translation.height)
-                        guard distance < 10, let day, let nearest = nearestRecord(to: day) else { return }
-                        onSelectDate(nearest.date)
                     }
             )
+            .onTapGesture { location in
+                guard let day = makePreview(at: location, proxy: proxy, geometry: geometry)?.date,
+                      let nearest = nearestRecord(to: day) else { return }
+                onSelectDate(nearest.date)
+            }
     }
 
     private func makePreview(at location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> ChartDayPreview? {

@@ -99,20 +99,52 @@ enum HealthKitReader {
         for day in dayStarts {
             let nightStart = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: CalendarDay.addingDays(-1, to: day, calendar: calendar)) ?? day
             let nightEnd = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: day) ?? day
-            var duration: TimeInterval = 0
-            for sample in samples {
-                guard isAsleep(sample.value) else { continue }
-                let clippedStart = max(sample.startDate, nightStart)
-                let clippedEnd = min(sample.endDate, nightEnd)
-                if clippedEnd > clippedStart {
-                    duration += clippedEnd.timeIntervalSince(clippedStart)
-                }
-            }
+            let duration = asleepDuration(samples: samples, nightStart: nightStart, nightEnd: nightEnd)
             if duration > 0 {
                 totals[CalendarDay.dayKey(from: day, calendar: calendar)] = duration
             }
         }
         return totals.mapValues { MeasurementBounds.roundedToTenth($0 / 3600) }
+    }
+
+    private static func asleepDuration(
+        samples: [HKCategorySample],
+        nightStart: Date,
+        nightEnd: Date
+    ) -> TimeInterval {
+        var staged: [(start: Date, end: Date)] = []
+        var fallback: [(start: Date, end: Date)] = []
+        for sample in samples {
+            guard let kind = HKCategoryValueSleepAnalysis(rawValue: sample.value), isAsleep(sample.value) else {
+                continue
+            }
+            let start = max(sample.startDate, nightStart)
+            let end = min(sample.endDate, nightEnd)
+            guard end > start else { continue }
+            switch kind {
+            case .asleepCore, .asleepDeep, .asleepREM:
+                staged.append((start, end))
+            default:
+                fallback.append((start, end))
+            }
+        }
+        return mergedDuration(staged.isEmpty ? fallback : staged)
+    }
+
+    private static func mergedDuration(_ intervals: [(start: Date, end: Date)]) -> TimeInterval {
+        let sorted = intervals.sorted { $0.start < $1.start }
+        guard var current = sorted.first else { return 0 }
+        var total: TimeInterval = 0
+        for next in sorted.dropFirst() {
+            if next.start <= current.end {
+                current.end = max(current.end, next.end)
+            } else {
+                total += current.end.timeIntervalSince(current.start)
+                current = next
+            }
+        }
+        total += current.end.timeIntervalSince(current.start)
+        return total
     }
 
     private static func loadMenstrual(

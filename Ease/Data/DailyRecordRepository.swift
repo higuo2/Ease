@@ -91,7 +91,6 @@ struct DailyRecordRepository {
         var tags = record.variableTags
         patch.tags.apply(to: &tags)
         record.variableTags = VariableTag.sanitized(tags)
-        record.tags = Array(record.tags)
 
         var note = record.note
         switch patch.note {

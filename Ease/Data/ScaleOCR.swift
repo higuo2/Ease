@@ -85,7 +85,7 @@ enum ScaleOCR {
     }
 
     private static let numberPattern = try! NSRegularExpression(
-        pattern: #"\d{1,3}(?:[.,]\d{1,2})?"#
+        pattern: #"(?<![0-9])[0-9]{1,3}(?:[.,][0-9]{1,2})?(?![0-9])"#
     )
 
     private static func candidates(in line: Line) -> [Candidate] {
