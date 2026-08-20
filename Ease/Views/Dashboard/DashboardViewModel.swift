@@ -28,6 +28,8 @@ final class DashboardViewModel {
     var isLogPresented = false
     var isSleepPresented = false
     var isCyclePresented = false
+    var isMetricHistoryPresented = false
+    var metricHistoryKey: String?
     var editingDate = Date.now
     var editingLogID: UUID?
     var healthByDay: [String: HealthDaySnapshot] = [:]
@@ -50,7 +52,15 @@ final class DashboardViewModel {
         openLog(for: selectedDate)
     }
 
-    func reloadHealthAndNotifications(enabled: Bool, records: [DailyRecord], logs: [WeightLog]) async {
+    func reloadHealthAndNotifications(
+        enabled: Bool,
+        records: [DailyRecord],
+        logs: [WeightLog],
+        weightHour: Int = NotificationSchedulePolicy.weightHour,
+        weightMinute: Int = NotificationSchedulePolicy.weightMinute,
+        dietHour: Int = NotificationSchedulePolicy.dietHour,
+        dietMinute: Int = NotificationSchedulePolicy.dietMinute
+    ) async {
         let payload = await HealthKitReader.loadAll()
         healthByDay = payload.byDay
         sleepHistory = payload.sleep
@@ -60,7 +70,11 @@ final class DashboardViewModel {
             enabled: enabled,
             todayRecord: records.first { $0.dayKey == todayKey },
             hasWeightToday: WeightMetrics.hasWeight(records: records, logs: logs, on: .now),
-            healthToday: healthByDay[todayKey]
+            healthToday: healthByDay[todayKey],
+            weightHour: weightHour,
+            weightMinute: weightMinute,
+            dietHour: dietHour,
+            dietMinute: dietMinute
         )
     }
 }

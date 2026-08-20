@@ -55,6 +55,14 @@
 		A100000000000000000000A5 /* HealthCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A1 /* HealthCardsView.swift */; };
 		A100000000000000000000A6 /* SleepDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A2 /* SleepDetailSheet.swift */; };
 		A100000000000000000000A7 /* CycleDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A3 /* CycleDetailSheet.swift */; };
+		A100000000000000000000C0 /* MetricDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B0 /* MetricDefinition.swift */; };
+		A100000000000000000000C1 /* MetricLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B1 /* MetricLog.swift */; };
+		A100000000000000000000C2 /* MetricCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B2 /* MetricCatalog.swift */; };
+		A100000000000000000000C3 /* MetricRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B3 /* MetricRepository.swift */; };
+		A100000000000000000000C4 /* CSVImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B4 /* CSVImporter.swift */; };
+		A100000000000000000000C5 /* PaceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B5 /* PaceEstimator.swift */; };
+		A100000000000000000000C6 /* ImportPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B6 /* ImportPreviewSheet.swift */; };
+		A100000000000000000000C7 /* MetricHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B7 /* MetricHistorySheet.swift */; };
 		T10000000000000000000013 /* EaseTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000003 /* EaseTestSupport.swift */; };
 		T10000000000000000000014 /* WeightMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000004 /* WeightMetricsTests.swift */; };
 		T10000000000000000000015 /* MeasurementBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000005 /* MeasurementBoundsTests.swift */; };
@@ -71,6 +79,9 @@
 		T1000000000000000000002D /* EaseFormattersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000001D /* EaseFormattersTests.swift */; };
 		T1000000000000000000002E /* DashboardSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000001E /* DashboardSnapshotTests.swift */; };
 		T1000000000000000000002F /* VariableTagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000001F /* VariableTagTests.swift */; };
+		T10000000000000000000040 /* PaceEstimatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000030 /* PaceEstimatorTests.swift */; };
+		T10000000000000000000041 /* CSVImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000031 /* CSVImporterTests.swift */; };
+		T10000000000000000000042 /* MetricRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000032 /* MetricRepositoryTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -134,6 +145,14 @@
 		A100000000000000000000A1 /* HealthCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthCardsView.swift; sourceTree = "<group>"; };
 		A100000000000000000000A2 /* SleepDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailSheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000A3 /* CycleDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleDetailSheet.swift; sourceTree = "<group>"; };
+		A100000000000000000000B0 /* MetricDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricDefinition.swift; sourceTree = "<group>"; };
+		A100000000000000000000B1 /* MetricLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricLog.swift; sourceTree = "<group>"; };
+		A100000000000000000000B2 /* MetricCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCatalog.swift; sourceTree = "<group>"; };
+		A100000000000000000000B3 /* MetricRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricRepository.swift; sourceTree = "<group>"; };
+		A100000000000000000000B4 /* CSVImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVImporter.swift; sourceTree = "<group>"; };
+		A100000000000000000000B5 /* PaceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaceEstimator.swift; sourceTree = "<group>"; };
+		A100000000000000000000B6 /* ImportPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportPreviewSheet.swift; sourceTree = "<group>"; };
+		A100000000000000000000B7 /* MetricHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricHistorySheet.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 		T10000000000000000000001 /* EaseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EaseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -153,6 +172,9 @@
 		T1000000000000000000001D /* EaseFormattersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseFormattersTests.swift; sourceTree = "<group>"; };
 		T1000000000000000000001E /* DashboardSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardSnapshotTests.swift; sourceTree = "<group>"; };
 		T1000000000000000000001F /* VariableTagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VariableTagTests.swift; sourceTree = "<group>"; };
+		T10000000000000000000030 /* PaceEstimatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaceEstimatorTests.swift; sourceTree = "<group>"; };
+		T10000000000000000000031 /* CSVImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVImporterTests.swift; sourceTree = "<group>"; };
+		T10000000000000000000032 /* MetricRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricRepositoryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -228,6 +250,9 @@
 				T1000000000000000000001D /* EaseFormattersTests.swift */,
 				T1000000000000000000001E /* DashboardSnapshotTests.swift */,
 				T1000000000000000000001F /* VariableTagTests.swift */,
+				T10000000000000000000030 /* PaceEstimatorTests.swift */,
+				T10000000000000000000031 /* CSVImporterTests.swift */,
+				T10000000000000000000032 /* MetricRepositoryTests.swift */,
 			);
 			path = EaseTests;
 			sourceTree = "<group>";
@@ -240,6 +265,8 @@
 				A10000000000000000000043 /* DailyRecord.swift */,
 				A1000000000000000000009B /* WeightLog.swift */,
 				A10000000000000000000044 /* UserProfile.swift */,
+				A100000000000000000000B0 /* MetricDefinition.swift */,
+				A100000000000000000000B1 /* MetricLog.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -257,6 +284,10 @@
 				A1000000000000000000004A /* UserProfileRepository.swift */,
 				A1000000000000000000004B /* EaseModelContainer.swift */,
 				A1000000000000000000004C /* CSVExporter.swift */,
+				A100000000000000000000B4 /* CSVImporter.swift */,
+				A100000000000000000000B2 /* MetricCatalog.swift */,
+				A100000000000000000000B3 /* MetricRepository.swift */,
+				A100000000000000000000B5 /* PaceEstimator.swift */,
 				A1000000000000000000008A /* PermissionsService.swift */,
 				A10000000000000000000098 /* HealthKitReader.swift */,
 				A1000000000000000000009E /* SleepHistory.swift */,
@@ -324,6 +355,8 @@
 				A10000000000000000000094 /* LogSheetView.swift */,
 				A100000000000000000000A2 /* SleepDetailSheet.swift */,
 				A100000000000000000000A3 /* CycleDetailSheet.swift */,
+				A100000000000000000000B6 /* ImportPreviewSheet.swift */,
+				A100000000000000000000B7 /* MetricHistorySheet.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -475,6 +508,14 @@
 				A100000000000000000000A5 /* HealthCardsView.swift in Sources */,
 				A100000000000000000000A6 /* SleepDetailSheet.swift in Sources */,
 				A100000000000000000000A7 /* CycleDetailSheet.swift in Sources */,
+				A100000000000000000000C0 /* MetricDefinition.swift in Sources */,
+				A100000000000000000000C1 /* MetricLog.swift in Sources */,
+				A100000000000000000000C2 /* MetricCatalog.swift in Sources */,
+				A100000000000000000000C3 /* MetricRepository.swift in Sources */,
+				A100000000000000000000C4 /* CSVImporter.swift in Sources */,
+				A100000000000000000000C5 /* PaceEstimator.swift in Sources */,
+				A100000000000000000000C6 /* ImportPreviewSheet.swift in Sources */,
+				A100000000000000000000C7 /* MetricHistorySheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -498,6 +539,9 @@
 				T1000000000000000000002D /* EaseFormattersTests.swift in Sources */,
 				T1000000000000000000002E /* DashboardSnapshotTests.swift in Sources */,
 				T1000000000000000000002F /* VariableTagTests.swift in Sources */,
+				T10000000000000000000040 /* PaceEstimatorTests.swift in Sources */,
+				T10000000000000000000041 /* CSVImporterTests.swift in Sources */,
+				T10000000000000000000042 /* MetricRepositoryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

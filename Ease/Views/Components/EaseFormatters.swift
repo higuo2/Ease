@@ -67,7 +67,17 @@ enum EaseFormatters {
         )
     }
 
-    static func parseDecimal(_ text: String) -> Double? {
+    static func paceETA(_ date: Date) -> String {
+        let stamp = date.formatted(
+            Date.FormatStyle()
+                .year(.defaultDigits)
+                .month(.abbreviated)
+                .day()
+        )
+        return String(format: String(localized: "format.paceETA"), locale: .current, stamp)
+    }
+
+    static func parseUnrounded(_ text: String) -> Double? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
@@ -88,6 +98,10 @@ enum EaseFormatters {
         }
 
         guard let value = Double(normalized) else { return nil }
-        return MeasurementBounds.roundedToTenth(value)
+        return value
+    }
+
+    static func parseDecimal(_ text: String) -> Double? {
+        parseUnrounded(text).map(MeasurementBounds.roundedToTenth)
     }
 }

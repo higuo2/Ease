@@ -63,4 +63,12 @@ final class MeasurementBoundsTests: XCTestCase {
             XCTAssertEqual(error as? EaseDataError, .invalidProfile)
         }
     }
+
+    func test_roundedToStep_与时刻钳制() {
+        XCTAssertEqual(MeasurementBounds.roundedToStep(1230, step: 50), 1250)
+        XCTAssertEqual(MeasurementBounds.roundedToStep(68.04, step: 0.1), 68.0)
+        XCTAssertEqual(MeasurementBounds.clampedHour(-1), 0)
+        XCTAssertEqual(MeasurementBounds.clampedHour(24), 23)
+        XCTAssertEqual(MeasurementBounds.clampedMinute(60), 59)
+    }
 }

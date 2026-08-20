@@ -10,6 +10,7 @@ struct LogSheetView: View {
     @Query(sort: \DailyRecord.date, order: .forward) private var records: [DailyRecord]
     @Query(sort: \WeightLog.timestamp, order: .forward) private var weightLogs: [WeightLog]
     @Query(sort: \UserProfile.updatedAt, order: .reverse) private var profiles: [UserProfile]
+    @Query(sort: \MetricDefinition.sortOrder, order: .forward) private var metricDefinitions: [MetricDefinition]
 
     @State private var selectedDate: Date
     @State private var editingLogID: UUID?
@@ -18,6 +19,7 @@ struct LogSheetView: View {
     @State private var diet: DietStatus?
     @State private var tags: Set<VariableTag>
     @State private var noteText: String
+    @State private var metricTexts: [String: String] = [:]
     @State private var errorKey: String?
     @State private var errorPulse = 0
     @State private var photoItem: PhotosPickerItem?
@@ -94,6 +96,15 @@ struct LogSheetView: View {
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        if !enabledMetrics.isEmpty {
+                            EaseCard {
+                                VStack(spacing: 20) {
+                                    ForEach(enabledMetrics, id: \.key) { definition in
+                                        metricField(definition)
+                                    }
+                                }
+                            }
                         }
                         EaseCard {
                             VStack(alignment: .leading, spacing: 8) {
@@ -270,6 +281,39 @@ struct LogSheetView: View {
         .buttonStyle(.plain)
     }
 
+    private var enabledMetrics: [MetricDefinition] {
+        metricDefinitions.filter(\.isEnabled)
+    }
+
+    private func metricField(_ definition: MetricDefinition) -> some View {
+        let spec = MetricCatalog.spec(for: definition)
+        let key = definition.key
+        return EaseField(
+            title: LocalizedStringKey(spec.titleKey ?? "settings.metrics"),
+            titleVerbatim: spec.kind == .custom ? spec.resolvedTitle : nil,
+            placeholder: "log.bodyFat.placeholder",
+            text: Binding(
+                get: { metricTexts[key] ?? "" },
+                set: { metricTexts[key] = $0 }
+            ),
+            suffix: LocalizedStringKey(spec.unit.titleKey),
+            isInvalid: isNumericError
+        )
+    }
+
+    private func saveMetrics() throws {
+        let metrics = MetricRepository(context: modelContext)
+        for definition in enabledMetrics {
+            let rawText = metricTexts[definition.key] ?? ""
+            guard let raw = EaseFormatters.parseUnrounded(rawText) else { continue }
+            try metrics.insertLog(
+                timestamp: timestampForNewLog,
+                metricKey: definition.key,
+                value: raw
+            )
+        }
+    }
+
     private func hydrateFromExisting() {
         let record = existing
         let log = editingLog ?? loadEditingLog()
@@ -283,6 +327,7 @@ struct LogSheetView: View {
         diet = record?.dietStatus
         tags = Set(record?.variableTags ?? [])
         noteText = record?.note ?? ""
+        metricTexts = [:]
         errorKey = nil
     }
 
@@ -303,13 +348,14 @@ struct LogSheetView: View {
         do {
             try saveWeight(weight: weight, bodyFat: bodyFat)
             try saveJournal(note: noteValue)
+            try saveMetrics()
             refreshReminders()
             dismiss()
         } catch let error as EaseDataError {
             switch error {
             case .emptyRecord, .emptyPatch:
                 presentError("log.error.empty")
-            case .invalidWeight, .invalidBodyFat, .invalidProfile:
+            case .invalidWeight, .invalidBodyFat, .invalidProfile, .invalidMetric, .tooManyCustomMetrics:
                 presentError("onboarding.error.invalid")
             case .futureDate:
                 presentError("log.error.future")

@@ -32,6 +32,18 @@ enum WeightMetrics {
         return MeasurementBounds.roundedToTenth(values.reduce(0, +) / 7)
     }
 
+    /// Last weigh-in per local calendar day, sorted by day.
+    static func lastPerDay(samples: [WeightSample], calendar: Calendar = .current) -> [WeightSample] {
+        Dictionary(
+            samples
+                .sorted { $0.date < $1.date }
+                .map { (CalendarDay.dayKey(from: $0.date, calendar: calendar), $0) },
+            uniquingKeysWith: { _, latest in latest }
+        )
+        .values
+        .sorted { $0.date < $1.date }
+    }
+
     static func latestWeight(samples: [WeightSample], calendar: Calendar = .current) -> Double? {
         samples.max { $0.date < $1.date }?.weight
     }

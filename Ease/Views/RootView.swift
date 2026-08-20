@@ -21,6 +21,7 @@ struct RootView: View {
         .preferredColorScheme(.light)
         .task {
             try? LegacyWeightMigrator.run(context: modelContext)
+            try? MetricRepository(context: modelContext).seedBuiltinsIfNeeded()
         }
     }
 }

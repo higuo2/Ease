@@ -65,6 +65,7 @@ struct EaseFAB: View {
 
 struct EaseField<Accessory: View>: View {
     let title: LocalizedStringKey
+    var titleVerbatim: String? = nil
     let placeholder: LocalizedStringKey
     @Binding var text: String
     var suffix: LocalizedStringKey? = nil
@@ -73,6 +74,7 @@ struct EaseField<Accessory: View>: View {
 
     init(
         title: LocalizedStringKey,
+        titleVerbatim: String? = nil,
         placeholder: LocalizedStringKey,
         text: Binding<String>,
         suffix: LocalizedStringKey? = nil,
@@ -80,6 +82,7 @@ struct EaseField<Accessory: View>: View {
         @ViewBuilder accessory: () -> Accessory
     ) {
         self.title = title
+        self.titleVerbatim = titleVerbatim
         self.placeholder = placeholder
         self._text = text
         self.suffix = suffix
@@ -89,9 +92,15 @@ struct EaseField<Accessory: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.system(size: 14, weight: .regular))
-                .foregroundStyle(EasePalette.secondaryText)
+            if let titleVerbatim {
+                Text(verbatim: titleVerbatim)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+            } else {
+                Text(title)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+            }
             HStack {
                 TextField(placeholder, text: $text)
                     .keyboardType(.decimalPad)
@@ -115,6 +124,7 @@ struct EaseField<Accessory: View>: View {
 extension EaseField where Accessory == EmptyView {
     init(
         title: LocalizedStringKey,
+        titleVerbatim: String? = nil,
         placeholder: LocalizedStringKey,
         text: Binding<String>,
         suffix: LocalizedStringKey? = nil,
@@ -122,6 +132,7 @@ extension EaseField where Accessory == EmptyView {
     ) {
         self.init(
             title: title,
+            titleVerbatim: titleVerbatim,
             placeholder: placeholder,
             text: text,
             suffix: suffix,

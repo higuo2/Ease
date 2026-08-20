@@ -151,4 +151,114 @@ final class NotificationSchedulePolicyTests: EaseStoreTestCase {
             )
         )
     }
+
+    func test_自定义体重时刻_0930未到则今天仍调度() {
+        let now = calendar.testDate(2026, 8, 20, hour: 9, minute: 0)
+        XCTAssertTrue(
+            NotificationSchedulePolicy.shouldScheduleWeightReminder(
+                on: calendar.testDate(2026, 8, 20),
+                now: now,
+                hasWeightToday: false,
+                hour: 9,
+                minute: 30,
+                calendar: calendar
+            )
+        )
+        XCTAssertFalse(
+            NotificationSchedulePolicy.shouldScheduleWeightReminder(
+                on: calendar.testDate(2026, 8, 20),
+                now: calendar.testDate(2026, 8, 20, hour: 9, minute: 30),
+                hasWeightToday: false,
+                hour: 9,
+                minute: 30,
+                calendar: calendar
+            )
+        )
+    }
+
+    func test_体重饮食同一分钟_仍各自独立判断() {
+        let now = calendar.testDate(2026, 8, 20, hour: 7, minute: 0)
+        XCTAssertTrue(
+            NotificationSchedulePolicy.shouldScheduleWeightReminder(
+                on: calendar.testDate(2026, 8, 20),
+                now: now,
+                hasWeightToday: false,
+                hour: 8,
+                minute: 0,
+                calendar: calendar
+            )
+        )
+        XCTAssertTrue(
+            NotificationSchedulePolicy.shouldScheduleDietReminder(
+                on: calendar.testDate(2026, 8, 20),
+                now: now,
+                hasDietStatusToday: false,
+                hour: 8,
+                minute: 0,
+                calendar: calendar
+            )
+        )
+    }
+
+    func test_自定义饮食时刻_2100已过推迟到次日() {
+        let now = calendar.testDate(2026, 8, 20, hour: 21, minute: 5)
+        XCTAssertFalse(
+            NotificationSchedulePolicy.shouldScheduleDietReminder(
+                on: calendar.testDate(2026, 8, 20),
+                now: now,
+                hasDietStatusToday: false,
+                hour: 21,
+                minute: 0,
+                calendar: calendar
+            )
+        )
+        XCTAssertTrue(
+            NotificationSchedulePolicy.shouldScheduleDietReminder(
+                on: calendar.testDate(2026, 8, 21),
+                now: now,
+                hasDietStatusToday: false,
+                hour: 21,
+                minute: 0,
+                calendar: calendar
+            )
+        )
+    }
+
+    func test_自定义时刻仍尊重当天已打卡() {
+        let now = calendar.testDate(2026, 8, 20, hour: 7)
+        XCTAssertFalse(
+            NotificationSchedulePolicy.shouldScheduleWeightReminder(
+                on: calendar.testDate(2026, 8, 20),
+                now: now,
+                hasWeightToday: true,
+                hour: 9,
+                minute: 30,
+                calendar: calendar
+            )
+        )
+        XCTAssertFalse(
+            NotificationSchedulePolicy.shouldScheduleDietReminder(
+                on: calendar.testDate(2026, 8, 20),
+                now: now,
+                hasDietStatusToday: true,
+                hour: 21,
+                minute: 0,
+                calendar: calendar
+            )
+        )
+    }
+
+    func test_越界hour会钳制后再判断() {
+        let now = calendar.testDate(2026, 8, 20, hour: 22, minute: 0)
+        XCTAssertTrue(
+            NotificationSchedulePolicy.shouldScheduleWeightReminder(
+                on: calendar.testDate(2026, 8, 20),
+                now: now,
+                hasWeightToday: false,
+                hour: 99,
+                minute: 0,
+                calendar: calendar
+            )
+        )
+    }
 }

@@ -16,6 +16,10 @@ final class UserProfileRepositoryTests: EaseStoreTestCase {
         XCTAssertTrue(profile.hasCompletedOnboarding)
         XCTAssertTrue(profile.hasMigratedWeightLogs)
         XCTAssertEqual(profile.sleepTargetHours, 8.0)
+        XCTAssertEqual(profile.weightReminderHour, 8)
+        XCTAssertEqual(profile.weightReminderMinute, 0)
+        XCTAssertEqual(profile.dietReminderHour, 22)
+        XCTAssertEqual(profile.dietReminderMinute, 30)
 
         let todayLogs = try weightLogs.logs(on: .now)
         XCTAssertEqual(todayLogs.count, 1)
@@ -71,16 +75,70 @@ final class UserProfileRepositoryTests: EaseStoreTestCase {
         var patch = DailyRecordPatch()
         patch.dietStatus = .set(.clean)
         try dailyRecords.upsert(on: calendar.testDate(2026, 8, 10), patch: patch)
+        try metrics.seedBuiltinsIfNeeded()
+        let waist = try metrics.definition(key: "waist")!
+        try metrics.setEnabled(waist, isEnabled: true)
+        _ = try metrics.insertLog(
+            timestamp: calendar.testDate(2026, 8, 10, hour: 8),
+            metricKey: "waist",
+            value: 68
+        )
 
         try profiles.resetAll()
 
         XCTAssertTrue(try fetchAll(WeightLog.self).isEmpty)
         XCTAssertTrue(try fetchAll(DailyRecord.self).isEmpty)
         XCTAssertTrue(try fetchAll(UserProfile.self).isEmpty)
+        XCTAssertTrue(try fetchAll(MetricDefinition.self).isEmpty)
+        XCTAssertTrue(try fetchAll(MetricLog.self).isEmpty)
 
         let restored = try profiles.profile()
         XCTAssertFalse(restored.hasCompletedOnboarding)
         XCTAssertFalse(restored.hasMigratedWeightLogs)
         XCTAssertEqual(restored.startWeight, 0)
+    }
+
+    func test_update_提醒时刻写入并钳制() throws {
+        _ = try profiles.completeOnboarding(heightCm: 170, currentWeight: 72, targetWeight: 62)
+        let updated = try profiles.update(
+            weightReminderHour: 9,
+            weightReminderMinute: 30,
+            dietReminderHour: 21,
+            dietReminderMinute: 0
+        )
+        XCTAssertEqual(updated.weightReminderHour, 9)
+        XCTAssertEqual(updated.weightReminderMinute, 30)
+        XCTAssertEqual(updated.dietReminderHour, 21)
+        XCTAssertEqual(updated.dietReminderMinute, 0)
+
+        let clamped = try profiles.update(weightReminderHour: 25, weightReminderMinute: 99)
+        XCTAssertEqual(clamped.weightReminderHour, 23)
+        XCTAssertEqual(clamped.weightReminderMinute, 59)
+    }
+
+    func test_deduplicate_提醒时刻随整份较新profile走() throws {
+        let older = UserProfile()
+        older.weightReminderHour = 8
+        older.weightReminderMinute = 0
+        older.dietReminderHour = 22
+        older.dietReminderMinute = 30
+        older.updatedAt = calendar.testDate(2026, 8, 1, hour: 8)
+        context.insert(older)
+
+        let newer = UserProfile()
+        newer.weightReminderHour = 9
+        newer.weightReminderMinute = 15
+        newer.dietReminderHour = 21
+        newer.dietReminderMinute = 0
+        newer.updatedAt = calendar.testDate(2026, 8, 10, hour: 8)
+        context.insert(newer)
+        try context.save()
+
+        let kept = try profiles.profile()
+        XCTAssertEqual(kept.weightReminderHour, 9)
+        XCTAssertEqual(kept.weightReminderMinute, 15)
+        XCTAssertEqual(kept.dietReminderHour, 21)
+        XCTAssertEqual(kept.dietReminderMinute, 0)
+        XCTAssertEqual(try fetchAll(UserProfile.self).count, 1)
     }
 }

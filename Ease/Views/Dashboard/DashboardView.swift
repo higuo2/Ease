@@ -1,11 +1,14 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct DashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \UserProfile.updatedAt, order: .reverse) private var profiles: [UserProfile]
     @Query(sort: \DailyRecord.date, order: .forward) private var records: [DailyRecord]
     @Query(sort: \WeightLog.timestamp, order: .forward) private var weightLogs: [WeightLog]
+    @Query(sort: \MetricDefinition.sortOrder, order: .forward) private var metricDefinitions: [MetricDefinition]
+    @Query(sort: \MetricLog.timestamp, order: .forward) private var metricLogs: [MetricLog]
     @State private var viewModel = DashboardViewModel()
 
     private var profile: UserProfile? { profiles.first }
@@ -25,6 +28,31 @@ struct DashboardView: View {
     private var selectedHealth: HealthDaySnapshot? {
         viewModel.healthByDay[CalendarDay.dayKey(from: selectedDate)]
     }
+    private var paceLine: String? {
+        guard let eta = PaceEstimator.estimate(
+            samples: WeightMetrics.samples(from: Array(records), logs: Array(weightLogs)),
+            targetWeight: snapshot.targetWeight,
+            displayWeight: snapshot.displayWeight,
+            progress: snapshot.progress,
+            now: .now
+        ) else { return nil }
+        return EaseFormatters.paceETA(eta)
+    }
+    private var metricsLine: String? {
+        let enabled = metricDefinitions.filter(\.isEnabled)
+        guard !enabled.isEmpty else { return nil }
+        let key = CalendarDay.dayKey(from: selectedDate)
+        var parts: [String] = []
+        for definition in enabled {
+            let onDay = metricLogs
+                .filter { $0.metricKey == definition.key && CalendarDay.dayKey(from: $0.timestamp) == key }
+                .sorted { $0.timestamp < $1.timestamp }
+            guard let latest = onDay.last else { continue }
+            parts.append(MetricCatalog.formattedReading(latest.value, spec: MetricCatalog.spec(for: definition)))
+        }
+        guard !parts.isEmpty else { return nil }
+        return parts.joined(separator: "  ")
+    }
 
     var body: some View {
         @Bindable var viewModel = viewModel
@@ -41,7 +69,8 @@ struct DashboardView: View {
                             progress: snapshot.progress,
                             lostKg: snapshot.lostKg,
                             remainingKg: snapshot.remainingKg,
-                            targetWeight: snapshot.targetWeight
+                            targetWeight: snapshot.targetWeight,
+                            paceLine: paceLine
                         )
                         HealthCardsView(
                             record: selectedRecord,
@@ -52,7 +81,12 @@ struct DashboardView: View {
                         WeightSummaryCard(
                             weight: snapshot.displayWeight,
                             bodyFat: snapshot.bodyFat,
-                            bmi: snapshot.bmi
+                            bmi: snapshot.bmi,
+                            metricsLine: metricsLine,
+                            onOpenMetrics: metricsLine == nil ? nil : {
+                                viewModel.metricHistoryKey = metricDefinitions.first(where: \.isEnabled)?.key
+                                viewModel.isMetricHistoryPresented = true
+                            }
                         )
                         TrendChartCard(
                             records: Array(records),
@@ -88,7 +122,11 @@ struct DashboardView: View {
             .toolbarBackground(EasePalette.background, for: .navigationBar)
             .sheet(isPresented: $viewModel.isSettingsPresented) {
                 if let profile {
-                    SettingsSheet(profile: profile, records: Array(records), logs: Array(weightLogs))
+                    SettingsSheet(
+                        profile: profile,
+                        records: Array(records),
+                        logs: Array(weightLogs)
+                    )
                 }
             }
             .sheet(isPresented: $viewModel.isLogPresented) {
@@ -104,9 +142,22 @@ struct DashboardView: View {
             .sheet(isPresented: $viewModel.isCyclePresented) {
                 CycleDetailSheet(history: viewModel.cycleHistory)
             }
+            .sheet(isPresented: $viewModel.isMetricHistoryPresented) {
+                MetricHistorySheet(
+                    definitions: metricDefinitions.filter(\.isEnabled),
+                    logs: Array(metricLogs),
+                    initialKey: viewModel.metricHistoryKey
+                )
+            }
             .task(id: scenePhase) {
                 guard scenePhase == .active else { return }
                 await reloadHealthAndNotifications()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
+                Task { await reloadHealthAndNotifications() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+                Task { await reloadHealthAndNotifications() }
             }
             .onChange(of: viewModel.isLogPresented) { _, presented in
                 if !presented {
@@ -126,7 +177,11 @@ struct DashboardView: View {
         await viewModel.reloadHealthAndNotifications(
             enabled: profile?.notificationsEnabled == true,
             records: Array(records),
-            logs: Array(weightLogs)
+            logs: Array(weightLogs),
+            weightHour: profile?.weightReminderHour ?? NotificationSchedulePolicy.weightHour,
+            weightMinute: profile?.weightReminderMinute ?? NotificationSchedulePolicy.weightMinute,
+            dietHour: profile?.dietReminderHour ?? NotificationSchedulePolicy.dietHour,
+            dietMinute: profile?.dietReminderMinute ?? NotificationSchedulePolicy.dietMinute
         )
     }
 }

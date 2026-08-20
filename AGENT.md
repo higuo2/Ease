@@ -14,7 +14,7 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
   - `WeightLog`: one row per weigh-in (`id`, `timestamp`, `weight`, `bodyFat?`). Many per day. Insert on save; do not overwrite the day's other logs. No Unique Constraint. No CloudKit `@Relationship` to `DailyRecord`. Runtime source of truth for weight.
   - Startup migrator (idempotent, `UserProfile.hasMigratedWeightLogs`): copy each `DailyRecord` that still has `weight` into a `WeightLog` only if that `dayKey` has no `WeightLog` yet. Leave the old optional fields populated.
 - CloudKit conflicts: same `DailyRecord.dayKey` or same `WeightLog.id` → keep the newer `updatedAt`. Multiple `WeightLog`s on one day are valid — never collapse them by date.
-- v1.2 models (do not implement until asked): `MetricDefinition` + `MetricLog`, split like weight vs day journal. No CloudKit `@Relationship`. No Unique Constraint. Dashboard gray metric line shows only `isEnabled` metrics; disabled keys stay out of the home card even if that day has `MetricLog`s.
+  - v1.2 models: `MetricDefinition` + `MetricLog`, split like weight vs day journal. No CloudKit `@Relationship`. No Unique Constraint. Dashboard gray metric line shows only `isEnabled` metrics; disabled keys stay out of the home card even if that day has `MetricLog`s.
 - Keep views modularized. Extract reusable UI components (cards, buttons, chart markers, day picker, health-detail sheets) into separate files.
 
 # ⚠️ Design System & Visual Guidelines (Strictly Enforced)
@@ -139,5 +139,5 @@ Step 1: philosophy. Step 2: height + current weight + target; saving **inserts t
 4. If a compiler error is pasted, fix it directly without verbose explanations.
 5. When PRD and this file conflict on product rules, PRD wins; this file wins on visual styling.
 6. Do not reintroduce "one weight per `DailyRecord`" or "main-card weight = 7-day MA". Those rules are retired as of v1.1.
-7. Implement v1.1 before v1.2. Do not add CSV import, `MetricLog`, pace-ETA, or reminder time pickers unless the user is explicitly on v1.2.
+7. v1.2 is in scope: CSV import, `MetricLog`, pace-ETA, and reminder time pickers follow PRD §8. Do not add water/waist reminder nags, dual-axis charts, or third-party CSV dialects.
 8. Never drop `DailyRecord.weight` / `bodyFat` from the schema. Never nil them after copying to `WeightLog`. Weight writes go only to `WeightLog`.

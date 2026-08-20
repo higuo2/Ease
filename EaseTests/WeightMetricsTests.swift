@@ -200,4 +200,16 @@ final class WeightMetricsTests: EaseStoreTestCase {
             )
         )
     }
+
+    func test_lastPerDay_同一天多条_只留timestamp最大() {
+        let samples = [
+            WeightSample(date: calendar.testDate(2026, 8, 10, hour: 7), weight: 71.2),
+            WeightSample(date: calendar.testDate(2026, 8, 10, hour: 21), weight: 70.4),
+            WeightSample(date: calendar.testDate(2026, 8, 11, hour: 8), weight: 70.1)
+        ]
+        let last = WeightMetrics.lastPerDay(samples: samples, calendar: calendar)
+        XCTAssertEqual(last.count, 2)
+        XCTAssertEqual(last[0].weight, 70.4)
+        XCTAssertEqual(last[1].weight, 70.1)
+    }
 }

@@ -1,4 +1,4 @@
-# 减脂追踪 App: Ease (个人自用版 v1.1)
+# 减脂追踪 App: Ease (个人自用版 v1.2)
 
 ## 1. 产品愿景与边界 (Vision & Boundaries)
 * **愿景**：客观记录，聚焦趋势。提供一个安静、无压力且具极简现代质感的数据看板。
@@ -12,7 +12,7 @@
     * 禁止 Tab 栏。Health 详情只用 Sheet，不新开一级导航。
     * 经期预测仅为本地启发式展示，禁止写成医疗结论或「Apple 官方预测」。
 * **本期范围 (v1.1)**：一天多次体重 (`WeightLog`)、顶部周/月日期切换、睡眠详情 Sheet、经期周期详情 Sheet、语义色健康卡（睡眠 / 经期 / Active Energy）。
-* **下一期 (v1.2)**：Ease CSV 再导入、扩展指标（围度 / 饮水等）、达标日估算、自定义提醒时刻。规格见 §8。未开始实现前，代码仍只做 v1.1。
+* **本期范围 (v1.2)**：Ease CSV 再导入、扩展指标（围度 / 饮水等）、达标日估算、自定义提醒时刻。规格见 §8。
 * **仍不做**：桌面 Widget、体重+体脂双轴图、月历饮食视图、**饮食变量标签**自定义、Dark Mode、第三方格式导入（MyFitnessPal 等）、为扩展指标单独做催打卡通知。
 
 ## 2. 信息架构与页面流转 (Information Architecture)
@@ -172,7 +172,7 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
     * `dietStatus` 为 `clean|normal|cheat`；`tags` 为 `period;travel;bowel` 这类稳定 key。
     * 某日只有饮食、没有 `WeightLog`：仍输出一行，`time/weight/bodyFat` 留空。
     * v1.2 若有扩展指标，**另导出** `ease-metrics.csv`（见 §8.2），不塞进体重文件以免列漂移。
-    * v1.2 起支持按同一方言再导入（§8.1）。v1.1 实现阶段仍只导出。
+    * v1.2 起支持按同一方言再导入（§8.1）。扩展指标另导出 `ease-metrics.csv`。
 
 ## 8. v1.2 规格（先写进文档，实现排在 v1.1 之后）
 

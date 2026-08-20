@@ -27,7 +27,11 @@ struct UserProfileRepository {
         startWeight: Double? = nil,
         targetWeight: Double? = nil,
         sleepTargetHours: Double? = nil,
-        notificationsEnabled: Bool? = nil
+        notificationsEnabled: Bool? = nil,
+        weightReminderHour: Int? = nil,
+        weightReminderMinute: Int? = nil,
+        dietReminderHour: Int? = nil,
+        dietReminderMinute: Int? = nil
     ) throws -> UserProfile {
         let profile = try profile()
         let nextHeight = try heightCm.map(MeasurementBounds.validatedHeight) ?? profile.heightCm
@@ -48,6 +52,18 @@ struct UserProfileRepository {
         profile.targetWeight = nextTarget
         profile.sleepTargetHours = nextSleep
         profile.notificationsEnabled = nextNotifications
+        if let weightReminderHour {
+            profile.weightReminderHour = MeasurementBounds.clampedHour(weightReminderHour)
+        }
+        if let weightReminderMinute {
+            profile.weightReminderMinute = MeasurementBounds.clampedMinute(weightReminderMinute)
+        }
+        if let dietReminderHour {
+            profile.dietReminderHour = MeasurementBounds.clampedHour(dietReminderHour)
+        }
+        if let dietReminderMinute {
+            profile.dietReminderMinute = MeasurementBounds.clampedMinute(dietReminderMinute)
+        }
         profile.updatedAt = .now
         try context.save()
         return profile
@@ -81,6 +97,7 @@ struct UserProfileRepository {
     }
 
     func resetAll() throws {
+        try MetricRepository(context: context, calendar: calendar).deleteAll()
         try WeightLogRepository(context: context, calendar: calendar).deleteAll()
         try DailyRecordRepository(context: context, calendar: calendar).deleteAll()
         for profile in try fetchAll() {

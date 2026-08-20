@@ -17,7 +17,7 @@ enum EaseTestCalendar {
 
 enum EaseInMemoryStore {
     static func makeContainer() throws -> ModelContainer {
-        let schema = Schema([DailyRecord.self, UserProfile.self, WeightLog.self])
+        let schema = Schema(EaseModelContainer.models)
         let configuration = ModelConfiguration(
             "EaseTests-\(UUID().uuidString)",
             schema: schema,
@@ -87,6 +87,10 @@ class EaseStoreTestCase: XCTestCase {
 
     var profiles: UserProfileRepository {
         UserProfileRepository(context: context, calendar: calendar)
+    }
+
+    var metrics: MetricRepository {
+        MetricRepository(context: context, calendar: calendar)
     }
 
     func fetchAll<T: PersistentModel>(_ type: T.Type) throws -> [T] {

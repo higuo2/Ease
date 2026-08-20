@@ -4,6 +4,8 @@ struct WeightSummaryCard: View {
     let weight: Double?
     let bodyFat: Double?
     let bmi: Double?
+    var metricsLine: String? = nil
+    var onOpenMetrics: (() -> Void)? = nil
 
     var body: some View {
         EaseCard {
@@ -26,6 +28,20 @@ struct WeightSummaryCard: View {
                         .font(.system(size: 16, weight: .regular))
                         .monospacedDigit()
                         .foregroundStyle(EasePalette.secondaryText)
+                }
+                if let metricsLine {
+                    Button {
+                        onOpenMetrics?()
+                    } label: {
+                        Text(metricsLine)
+                            .font(.system(size: 13, weight: .regular))
+                            .monospacedDigit()
+                            .foregroundStyle(EasePalette.secondaryText)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(onOpenMetrics == nil)
                 }
                 if let bmi {
                     Text(EaseFormatters.bmi(bmi))

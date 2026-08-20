@@ -76,4 +76,23 @@ final class CSVExporterTests: EaseStoreTestCase {
         let rows = csv.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         XCTAssertEqual(rows[1], #"2026-08-13,,,,normal,,"he said ""hi"", then left""#)
     }
+
+    func test_exportMetrics_按精度输出且不混入体重表() throws {
+        let waist = MetricLog(
+            timestamp: calendar.testDate(2026, 8, 10, hour: 8),
+            metricKey: "waist",
+            value: 68.04
+        )
+        let water = MetricLog(
+            timestamp: calendar.testDate(2026, 8, 10, hour: 9),
+            metricKey: "water",
+            value: 1500
+        )
+        let csv = CSVExporter.exportMetrics([water, waist], calendar: calendar)
+        let rows = csv.split(separator: "\n").map(String.init)
+        XCTAssertEqual(rows[0], CSVExporter.metricsHeader)
+        XCTAssertEqual(rows[1], "2026-08-10,08:00,waist,68.0")
+        XCTAssertEqual(rows[2], "2026-08-10,09:00,water,1500")
+        XCTAssertFalse(csv.contains("dietStatus"))
+    }
 }

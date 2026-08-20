@@ -39,4 +39,6 @@ enum EaseDataError: Error, Equatable {
     case invalidBodyFat
     case futureDate
     case invalidProfile
+    case invalidMetric
+    case tooManyCustomMetrics
 }

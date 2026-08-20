@@ -14,6 +14,19 @@ enum MeasurementBounds {
         (value * 2).rounded() / 2
     }
 
+    static func roundedToStep(_ value: Double, step: Double) -> Double {
+        guard step > 0 else { return value }
+        return (value / step).rounded() * step
+    }
+
+    static func clampedHour(_ value: Int) -> Int {
+        min(max(value, 0), 23)
+    }
+
+    static func clampedMinute(_ value: Int) -> Int {
+        min(max(value, 0), 59)
+    }
+
     static func validatedSleepTarget(_ value: Double) throws -> Double {
         let rounded = roundedToHalf(value)
         guard sleepTargetHours.contains(rounded) else { throw EaseDataError.invalidProfile }
