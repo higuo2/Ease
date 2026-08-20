@@ -923,6 +923,38 @@
         }
       }
     },
+    "metric.head": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Head"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "头围"
+          }
+        }
+      }
+    },
+    "metric.highWaist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "High waist"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高腰"
+          }
+        }
+      }
+    },
     "metric.hip": {
       "localizations": {
         "en": {
@@ -971,6 +1003,134 @@
         }
       }
     },
+    "metric.leftArm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left arm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左臂"
+          }
+        }
+      }
+    },
+    "metric.leftCalf": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left calf"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左小腿"
+          }
+        }
+      }
+    },
+    "metric.leftThigh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left thigh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左大腿"
+          }
+        }
+      }
+    },
+    "metric.navel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "肚脐"
+          }
+        }
+      }
+    },
+    "metric.rightArm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Right arm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右臂"
+          }
+        }
+      }
+    },
+    "metric.rightCalf": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Right calf"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右小腿"
+          }
+        }
+      }
+    },
+    "metric.shoulder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shoulder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "肩围"
+          }
+        }
+      }
+    },
+    "metric.shoulderWidth": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shoulder width"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "肩宽"
+          }
+        }
+      }
+    },
     "metric.thigh": {
       "localizations": {
         "en": {
@@ -983,6 +1143,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "大腿围"
+          }
+        }
+      }
+    },
+    "metric.underbust": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Underbust"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下胸围"
           }
         }
       }
@@ -1015,6 +1191,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "饮水"
+          }
+        }
+      }
+    },
+    "metric.wrist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wrist"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手腕"
           }
         }
       }

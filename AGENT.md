@@ -56,7 +56,7 @@ The UI must replicate a clean, modern, soft-shadowed card aesthetic with generou
   - Diet: Clean (`leaf.fill`), Normal (`fork.knife`), Cheat (`takeoutbag.and.cup.and.straw`).
   - Variables: Period (`drop.fill`), Travel (`airplane`), Bowel (`wind`).
   - Sleep card: `moon.fill`. Energy card: `bolt.fill`.
-  - Built-in metrics (v1.2): waist/hip/chest/thigh `ruler`; water `drop` (not `drop.fill`, which is period).
+  - Built-in metrics (v1.2): circumferences use `ruler`; water `drop` (not `drop.fill`, which is period).
 
 ## 4. Screen Layout (match PRD §2)
 

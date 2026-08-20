@@ -207,11 +207,23 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 * **内置目录**（首次进入 v1.2 写入定义，默认**关闭**，用户在设置里打开才会出现在录入表）：
     | key | 单位 | 精度 | 范围 | SF Symbol |
     |-----|------|------|------|-----------|
-    | `waist` | cm | 0.1 | 40–200 | `ruler` |
-    | `hip` | cm | 0.1 | 40–200 | `ruler` |
-    | `chest` | cm | 0.1 | 40–200 | `ruler` |
-    | `thigh` | cm | 0.1 | 20–120 | `ruler` |
-    | `water` | ml | 50 | 0–6000 | `drop` |
+    | `waist` | cm | 0.1 | 40–200 | `ruler` | 低腰 |
+    | `hip` | cm | 0.1 | 40–200 | `ruler` | 臀围 |
+    | `chest` | cm | 0.1 | 40–200 | `ruler` | 上胸围 |
+    | `thigh` | cm | 0.1 | 20–120 | `ruler` | 右大腿 |
+    | `water` | ml | 50 | 0–6000 | `drop` | 饮水 |
+    | `underbust` | cm | 0.1 | 40–200 | `ruler` | 下胸围 |
+    | `highWaist` | cm | 0.1 | 40–200 | `ruler` | 高腰 |
+    | `navel` | cm | 0.1 | 40–200 | `ruler` | 肚脐 |
+    | `leftArm` | cm | 0.1 | 15–60 | `ruler` | 左臂 |
+    | `rightArm` | cm | 0.1 | 15–60 | `ruler` | 右臂 |
+    | `leftThigh` | cm | 0.1 | 20–120 | `ruler` | 左大腿 |
+    | `leftCalf` | cm | 0.1 | 20–60 | `ruler` | 左小腿 |
+    | `rightCalf` | cm | 0.1 | 20–60 | `ruler` | 右小腿 |
+    | `shoulderWidth` | cm | 0.1 | 20–80 | `ruler` | 肩宽 |
+    | `shoulder` | cm | 0.1 | 50–160 | `ruler` | 肩围 |
+    | `wrist` | cm | 0.1 | 10–30 | `ruler` | 手腕 |
+    | `head` | cm | 0.1 | 40–70 | `ruler` | 头围 |
 * **自定义**：最多 **8** 条。名称用本地化显示字符串（用户输入，不进饮食 tags）。单位只能三选一。图标只能从一小份 SF Symbol 列表选。禁止 emoji、禁止自定义单位（kcal、% 宏量素等）。
 * **录入**：Log Sheet 在备注之上增加「已启用指标」可选数字行。保存时对填了的指标 **insert `MetricLog`**，空行不写。不把指标和体重绑在同一条 `WeightLog`。
 * **首页**：不新增马卡龙卡。主卡次行之下最多一行 gray 小号数字，只列出 **`isEnabled == true` 且该所选日有 log** 的指标最新值（如 `Waist 68.0 cm`）。关掉的指标即使当天已有 `MetricLog` 也**不得**出现在这一行，以保持界面清爽。没有任何已启用指标的当日值 → 整行隐藏。

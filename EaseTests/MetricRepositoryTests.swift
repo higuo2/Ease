@@ -174,6 +174,15 @@ final class MetricRepositoryTests: EaseStoreTestCase {
         XCTAssertEqual(MetricCatalog.builtin(for: "thigh")?.range, 20...120)
     }
 
+    func test_内置目录含围度细分且手腕范围覆盖15() {
+        XCTAssertNotNil(MetricCatalog.builtin(for: "underbust"))
+        XCTAssertNotNil(MetricCatalog.builtin(for: "leftArm"))
+        XCTAssertTrue(MetricCatalog.builtin(for: "wrist")!.range.contains(15.4))
+        XCTAssertTrue(MetricCatalog.builtin(for: "head")!.range.contains(52.5))
+        XCTAssertEqual(try MetricCatalog.validated(15.4, spec: MetricCatalog.builtin(for: "wrist")!), 15.4)
+        XCTAssertEqual(try MetricCatalog.validated(31.5, spec: MetricCatalog.builtin(for: "leftArm")!), 31.5)
+    }
+
     func test_删一条MetricLog_不影响定义() throws {
         try metrics.seedBuiltinsIfNeeded()
         let log = try metrics.insertLog(
