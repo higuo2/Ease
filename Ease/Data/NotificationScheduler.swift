@@ -2,11 +2,106 @@ import Foundation
 import UserNotifications
 import SwiftData
 
+/// Pure scheduling rules. No `UNUserNotificationCenter` — safe to unit test with a fixed calendar.
+enum NotificationSchedulePolicy {
+    static let weightHour = 8
+    static let weightMinute = 0
+    static let dietHour = 22
+    static let dietMinute = 30
+    static let horizonDays = 7
+
+    /// Weight reminder fires at 08:00. Skip today if a weigh-in already exists; skip a day whose 08:00 has passed.
+    static func shouldScheduleWeightReminder(
+        on day: Date,
+        now: Date,
+        hasWeightToday: Bool,
+        calendar: Calendar
+    ) -> Bool {
+        shouldSchedule(
+            on: day,
+            now: now,
+            hour: weightHour,
+            minute: weightMinute,
+            skipTodayIfAlreadyLogged: hasWeightToday,
+            calendar: calendar
+        )
+    }
+
+    static func shouldScheduleWeightReminder(
+        on day: Date,
+        now: Date,
+        logs: [WeightLog],
+        records: [DailyRecord] = [],
+        calendar: Calendar
+    ) -> Bool {
+        let hasWeightToday = WeightMetrics.hasWeight(
+            records: records,
+            logs: logs,
+            on: now,
+            calendar: calendar
+        )
+        return shouldScheduleWeightReminder(
+            on: day,
+            now: now,
+            hasWeightToday: hasWeightToday,
+            calendar: calendar
+        )
+    }
+
+    /// Diet reminder fires at 22:30. Skip today if `dietStatus` is already set; skip a day whose 22:30 has passed.
+    static func shouldScheduleDietReminder(
+        on day: Date,
+        now: Date,
+        hasDietStatusToday: Bool,
+        calendar: Calendar
+    ) -> Bool {
+        shouldSchedule(
+            on: day,
+            now: now,
+            hour: dietHour,
+            minute: dietMinute,
+            skipTodayIfAlreadyLogged: hasDietStatusToday,
+            calendar: calendar
+        )
+    }
+
+    static func shouldScheduleDietReminder(
+        on day: Date,
+        now: Date,
+        todayRecord: DailyRecord?,
+        calendar: Calendar
+    ) -> Bool {
+        shouldScheduleDietReminder(
+            on: day,
+            now: now,
+            hasDietStatusToday: todayRecord?.dietStatus != nil,
+            calendar: calendar
+        )
+    }
+
+    static func shouldSchedule(
+        on day: Date,
+        now: Date,
+        hour: Int,
+        minute: Int,
+        skipTodayIfAlreadyLogged: Bool,
+        calendar: Calendar
+    ) -> Bool {
+        let dayStart = CalendarDay.startOfDay(day, calendar: calendar)
+        let todayStart = CalendarDay.startOfDay(now, calendar: calendar)
+        guard dayStart >= todayStart else { return false }
+        if calendar.isDate(dayStart, inSameDayAs: todayStart), skipTodayIfAlreadyLogged {
+            return false
+        }
+        let fireDate = CalendarDay.atHour(hour, minute: minute, on: dayStart, calendar: calendar)
+        return fireDate > now
+    }
+}
+
 @MainActor
 enum NotificationScheduler {
     private static let weightPrefix = "ease.weight."
     private static let dietPrefix = "ease.diet."
-    private static let horizonDays = 7
 
     static func refresh(
         enabled: Bool,
@@ -43,31 +138,38 @@ enum NotificationScheduler {
         }
 
         let today = CalendarDay.startOfDay(now, calendar: calendar)
-        for offset in 0..<horizonDays {
+        for offset in 0..<NotificationSchedulePolicy.horizonDays {
             guard let day = calendar.date(byAdding: .day, value: offset, to: today) else { continue }
-            let isToday = offset == 0
-            let skipWeight = isToday && hasWeightToday
-            let skipDiet = isToday && todayRecord?.dietStatus != nil
-            if !skipWeight {
+            if NotificationSchedulePolicy.shouldScheduleWeightReminder(
+                on: day,
+                now: now,
+                hasWeightToday: hasWeightToday,
+                calendar: calendar
+            ) {
                 await schedule(
                     center: center,
                     prefix: weightPrefix,
                     day: day,
-                    hour: 8,
-                    minute: 0,
-                    body: weightBody(health: isToday ? healthToday : nil),
+                    hour: NotificationSchedulePolicy.weightHour,
+                    minute: NotificationSchedulePolicy.weightMinute,
+                    body: weightBody(health: offset == 0 ? healthToday : nil),
                     now: now,
                     calendar: calendar
                 )
             }
-            if !skipDiet {
+            if NotificationSchedulePolicy.shouldScheduleDietReminder(
+                on: day,
+                now: now,
+                hasDietStatusToday: todayRecord?.dietStatus != nil,
+                calendar: calendar
+            ) {
                 await schedule(
                     center: center,
                     prefix: dietPrefix,
                     day: day,
-                    hour: 22,
-                    minute: 30,
-                    body: dietBody(health: isToday ? healthToday : nil),
+                    hour: NotificationSchedulePolicy.dietHour,
+                    minute: NotificationSchedulePolicy.dietMinute,
+                    body: dietBody(health: offset == 0 ? healthToday : nil),
                     now: now,
                     calendar: calendar
                 )
