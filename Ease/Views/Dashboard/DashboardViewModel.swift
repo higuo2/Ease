@@ -18,6 +18,50 @@ enum ChartRange: Int, CaseIterable, Identifiable {
     }
 }
 
+/// Home-card gray line. Nil when nothing is enabled.
+/// Enabled with no log that day → entry copy. Enabled with logs → readings only.
+enum DashboardMetricsLine {
+    static func text(
+        enabled: [MetricDefinition],
+        logs: [MetricLog],
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> String? {
+        guard !enabled.isEmpty else { return nil }
+        let key = CalendarDay.dayKey(from: date, calendar: calendar)
+        var parts: [String] = []
+        for definition in enabled {
+            let onDay = logs
+                .filter { $0.metricKey == definition.key && CalendarDay.dayKey(from: $0.timestamp, calendar: calendar) == key }
+                .sorted { $0.timestamp < $1.timestamp }
+            guard let latest = onDay.last else { continue }
+            parts.append(MetricCatalog.formattedReading(latest.value, spec: MetricCatalog.spec(for: definition)))
+        }
+        if parts.isEmpty {
+            return String(localized: "dashboard.metrics")
+        }
+        return parts.joined(separator: "  ")
+    }
+
+    static func focusKey(
+        enabled: [MetricDefinition],
+        logs: [MetricLog],
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> String? {
+        guard !enabled.isEmpty else { return nil }
+        let key = CalendarDay.dayKey(from: date, calendar: calendar)
+        for definition in enabled {
+            let hasLog = logs.contains {
+                $0.metricKey == definition.key
+                    && CalendarDay.dayKey(from: $0.timestamp, calendar: calendar) == key
+            }
+            if hasLog { return definition.key }
+        }
+        return enabled.first?.key
+    }
+}
+
 @Observable
 @MainActor
 final class DashboardViewModel {

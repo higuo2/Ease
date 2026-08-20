@@ -15,6 +15,8 @@ final class MetricRepositoryTests: EaseStoreTestCase {
     }
 
     func test_禁用后历史保留且首页行不展示() throws {
+        // homeLine is readings-only: disabled or no log that day → nil.
+        // The dashboard entry copy is covered by DashboardMetricsLine tests.
         try metrics.seedBuiltinsIfNeeded()
         let waist = try metrics.definition(key: "waist")!
         try metrics.setEnabled(waist, isEnabled: true)

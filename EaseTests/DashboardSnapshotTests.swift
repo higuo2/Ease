@@ -94,6 +94,41 @@ final class DashboardSnapshotTests: EaseStoreTestCase {
         XCTAssertEqual(snapshot.today?.dietStatus, .clean)
     }
 
+    func test_首页灰字_未启用则隐藏_已启用无当日记录则入口() throws {
+        try metrics.seedBuiltinsIfNeeded()
+        let waist = try metrics.definition(key: "waist")!
+        let day = calendar.testDate(2026, 8, 10, hour: 8)
+        XCTAssertNil(
+            DashboardMetricsLine.text(enabled: [], logs: [], on: day, calendar: calendar)
+        )
+
+        try metrics.setEnabled(waist, isEnabled: true)
+        XCTAssertEqual(
+            DashboardMetricsLine.text(enabled: [waist], logs: [], on: day, calendar: calendar),
+            String(localized: "dashboard.metrics")
+        )
+        XCTAssertEqual(
+            DashboardMetricsLine.focusKey(enabled: [waist], logs: [], on: day, calendar: calendar),
+            "waist"
+        )
+    }
+
+    func test_首页灰字_已启用且当日有记录_显示读数() throws {
+        try metrics.seedBuiltinsIfNeeded()
+        let waist = try metrics.definition(key: "waist")!
+        try metrics.setEnabled(waist, isEnabled: true)
+        let day = calendar.testDate(2026, 8, 10, hour: 8)
+        let log = try metrics.insertLog(timestamp: day, metricKey: "waist", value: 68)
+        XCTAssertEqual(
+            DashboardMetricsLine.text(enabled: [waist], logs: [log], on: day, calendar: calendar),
+            MetricCatalog.formattedReading(68, spec: MetricCatalog.builtin(for: "waist")!)
+        )
+        XCTAssertEqual(
+            DashboardMetricsLine.focusKey(enabled: [waist], logs: [log], on: day, calendar: calendar),
+            "waist"
+        )
+    }
+
     private func insertProfile(heightCm: Double, start: Double, target: Double) throws -> UserProfile {
         let profile = UserProfile()
         profile.heightCm = heightCm

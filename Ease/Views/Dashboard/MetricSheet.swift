@@ -29,14 +29,7 @@ struct MetricSheet: View {
                         EaseCard {
                             dateRow
                         }
-                        if enabledMetrics.isEmpty {
-                            EaseCard {
-                                Text("settings.metrics")
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(EasePalette.secondaryText)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        } else {
+                        if !enabledMetrics.isEmpty {
                             EaseCard {
                                 VStack(spacing: 20) {
                                     ForEach(enabledMetrics, id: \.key) { definition in

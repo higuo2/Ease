@@ -159,7 +159,7 @@ struct MetricRepository {
         try context.save()
     }
 
-    /// Home-card gray line: enabled metrics that have a log on `date`, latest value each.
+    /// Readings-only. Dashboard gray entry uses `DashboardMetricsLine`, not this.
     func homeLine(on date: Date) throws -> String? {
         let enabled = try enabledDefinitions()
         var parts: [String] = []

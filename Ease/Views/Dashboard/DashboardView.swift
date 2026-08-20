@@ -43,31 +43,19 @@ struct DashboardView: View {
     }
 
     private var metricsLine: String? {
-        guard !enabledMetrics.isEmpty else { return nil }
-        let key = CalendarDay.dayKey(from: selectedDate)
-        var parts: [String] = []
-        for definition in enabledMetrics {
-            let onDay = metricLogs
-                .filter { $0.metricKey == definition.key && CalendarDay.dayKey(from: $0.timestamp) == key }
-                .sorted { $0.timestamp < $1.timestamp }
-            guard let latest = onDay.last else { continue }
-            parts.append(MetricCatalog.formattedReading(latest.value, spec: MetricCatalog.spec(for: definition)))
-        }
-        if parts.isEmpty {
-            return String(localized: "dashboard.metrics")
-        }
-        return parts.joined(separator: "  ")
+        DashboardMetricsLine.text(
+            enabled: enabledMetrics,
+            logs: Array(metricLogs),
+            on: selectedDate
+        )
     }
 
     private var metricsFocusKey: String? {
-        let key = CalendarDay.dayKey(from: selectedDate)
-        for definition in enabledMetrics {
-            let hasLog = metricLogs.contains {
-                $0.metricKey == definition.key && CalendarDay.dayKey(from: $0.timestamp) == key
-            }
-            if hasLog { return definition.key }
-        }
-        return enabledMetrics.first?.key
+        DashboardMetricsLine.focusKey(
+            enabled: enabledMetrics,
+            logs: Array(metricLogs),
+            on: selectedDate
+        )
     }
 
     var body: some View {
