@@ -94,26 +94,38 @@ final class DashboardSnapshotTests: EaseStoreTestCase {
         XCTAssertEqual(snapshot.today?.dietStatus, .clean)
     }
 
-    func test_首页灰字_未启用则隐藏_已启用无当日记录则入口() throws {
-        try metrics.seedBuiltinsIfNeeded()
-        let waist = try metrics.definition(key: "waist")!
+    func test_首页灰字_未启用则隐藏() throws {
         let day = calendar.testDate(2026, 8, 10, hour: 8)
         XCTAssertNil(
             DashboardMetricsLine.text(enabled: [], logs: [], on: day, calendar: calendar)
         )
+        XCTAssertNil(
+            DashboardMetricsLine.focusKey(enabled: [], logs: [], on: day, calendar: calendar)
+        )
+    }
 
+    func test_首页灰字_已启用今日无记录_显示入口() throws {
+        try metrics.seedBuiltinsIfNeeded()
+        let waist = try metrics.definition(key: "waist")!
         try metrics.setEnabled(waist, isEnabled: true)
+        let day = calendar.testDate(2026, 8, 10, hour: 8)
+        let yesterday = try metrics.insertLog(
+            timestamp: calendar.testDate(2026, 8, 9, hour: 8),
+            metricKey: "waist",
+            value: 81
+        )
+        XCTAssertNil(try metrics.homeLine(on: day))
         XCTAssertEqual(
-            DashboardMetricsLine.text(enabled: [waist], logs: [], on: day, calendar: calendar),
+            DashboardMetricsLine.text(enabled: [waist], logs: [yesterday], on: day, calendar: calendar),
             String(localized: "dashboard.metrics")
         )
         XCTAssertEqual(
-            DashboardMetricsLine.focusKey(enabled: [waist], logs: [], on: day, calendar: calendar),
+            DashboardMetricsLine.focusKey(enabled: [waist], logs: [yesterday], on: day, calendar: calendar),
             "waist"
         )
     }
 
-    func test_首页灰字_已启用且当日有记录_显示读数() throws {
+    func test_首页灰字_已启用且今日有记录_显示读数() throws {
         try metrics.seedBuiltinsIfNeeded()
         let waist = try metrics.definition(key: "waist")!
         try metrics.setEnabled(waist, isEnabled: true)

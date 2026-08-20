@@ -109,6 +109,13 @@ final class MetricRepositoryTests: EaseStoreTestCase {
         XCTAssertNil(try metrics.homeLine(on: calendar.testDate(2026, 8, 12)))
     }
 
+    func test_homeLine_已启用但当日无记录_返回nil_不含入口文案() throws {
+        try metrics.seedBuiltinsIfNeeded()
+        let waist = try metrics.definition(key: "waist")!
+        try metrics.setEnabled(waist, isEnabled: true)
+        XCTAssertNil(try metrics.homeLine(on: calendar.testDate(2026, 8, 10)))
+    }
+
     func test_空名称拒绝自定义_合法自定义key带custom前缀() throws {
         XCTAssertThrowsError(try metrics.addCustom(name: "   ", unit: .cm, symbolName: "ruler")) { error in
             XCTAssertEqual(error as? EaseDataError, .invalidMetric)
@@ -199,38 +206,37 @@ final class MetricRepositoryTests: EaseStoreTestCase {
 
     func test_批量写入_先校验后一次保存_失败则零写入() throws {
         try metrics.seedBuiltinsIfNeeded()
+        let day = calendar.testDate(2026, 8, 10, hour: 8)
         XCTAssertTrue(try metrics.insertLogs([]).isEmpty)
+
         XCTAssertThrowsError(
             try metrics.insertLogs([
-                MetricLogDraft(
-                    timestamp: calendar.testDate(2026, 8, 10, hour: 8),
-                    metricKey: "waist",
-                    value: 68
-                ),
-                MetricLogDraft(
-                    timestamp: calendar.testDate(2026, 8, 10, hour: 8),
-                    metricKey: "wrist",
-                    value: 9
-                )
+                MetricLogDraft(timestamp: day, metricKey: "waist", value: 81),
+                MetricLogDraft(timestamp: day, metricKey: "leftArm", value: 31.5),
+                MetricLogDraft(timestamp: day, metricKey: "underbust", value: 76),
+                MetricLogDraft(timestamp: day, metricKey: "wrist", value: 9)
             ])
         ) { error in
             XCTAssertEqual(error as? EaseDataError, .invalidMetric)
         }
-        XCTAssertTrue(try metrics.allLogs().isEmpty)
+        XCTAssertTrue(try fetchAll(MetricLog.self).isEmpty)
+
+        XCTAssertThrowsError(
+            try metrics.insertLogs([
+                MetricLogDraft(timestamp: day, metricKey: "waist", value: 81),
+                MetricLogDraft(timestamp: day, metricKey: "not_a_metric", value: 40)
+            ])
+        ) { error in
+            XCTAssertEqual(error as? EaseDataError, .invalidMetric)
+        }
+        XCTAssertTrue(try fetchAll(MetricLog.self).isEmpty)
+        XCTAssertEqual(try fetchAll(MetricDefinition.self).count, MetricCatalog.builtins.count)
 
         let written = try metrics.insertLogs([
-            MetricLogDraft(
-                timestamp: calendar.testDate(2026, 8, 10, hour: 8),
-                metricKey: "leftArm",
-                value: 31.5
-            ),
-            MetricLogDraft(
-                timestamp: calendar.testDate(2026, 8, 10, hour: 8),
-                metricKey: "wrist",
-                value: 15.4
-            )
+            MetricLogDraft(timestamp: day, metricKey: "leftArm", value: 31.5),
+            MetricLogDraft(timestamp: day, metricKey: "wrist", value: 15.4)
         ])
         XCTAssertEqual(written.count, 2)
-        XCTAssertEqual(try metrics.allLogs().count, 2)
+        XCTAssertEqual(try fetchAll(MetricLog.self).count, 2)
     }
 }
