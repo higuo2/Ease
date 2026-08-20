@@ -37,6 +37,15 @@ enum EaseFormatters {
         String(format: String(localized: "format.hours"), locale: .current, value)
     }
 
+    static func sleepAverage(_ hours: Double) -> String {
+        String(format: String(localized: "sleep.average"), locale: .current, sleepDuration(hours))
+    }
+
+    static func cycleNext(_ date: Date) -> String {
+        let stamp = date.formatted(Date.FormatStyle().month(.abbreviated).day())
+        return String(format: String(localized: "cycle.next"), locale: .current, stamp)
+    }
+
     /// Compact asleep duration, e.g. `7h 59m`.
     static func sleepDuration(_ hours: Double) -> String {
         let totalMinutes = max(0, Int((hours * 60).rounded()))

@@ -7,8 +7,6 @@ private struct ChartDayPreview: Equatable {
     var movingAverage: Double?
     var diet: DietStatus?
     var tags: [VariableTag]
-    var sleepHours: Double?
-    var activeEnergyKcal: Double?
 }
 
 private struct ChartTagMark: Identifiable {
@@ -94,28 +92,6 @@ struct TrendChartCard: View {
             }
     }
 
-    private var energyPoints: [(date: Date, value: Double)] {
-        visibleDays.compactMap { day in
-            guard let value = healthByDay[CalendarDay.dayKey(from: day)]?.activeEnergyKcal else {
-                return nil
-            }
-            return (day, value)
-        }
-    }
-
-    private var sleepPoints: [(date: Date, value: Double)] {
-        visibleDays.compactMap { day in
-            guard let value = healthByDay[CalendarDay.dayKey(from: day)]?.previousNightSleepHours else {
-                return nil
-            }
-            return (day, value)
-        }
-    }
-
-    private var hasHealthLayer: Bool {
-        !energyPoints.isEmpty || !sleepPoints.isEmpty
-    }
-
     private var recentDietDays: [Date] {
         CalendarDay.datesBack(7, from: .now)
     }
@@ -157,18 +133,13 @@ struct TrendChartCard: View {
                     previewRow(preview)
                 }
 
-                if weightPoints.isEmpty && !hasHealthLayer {
+                if weightPoints.isEmpty {
                     Text("dashboard.chart.empty")
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(EasePalette.secondaryText)
                         .frame(maxWidth: .infinity, minHeight: 160, alignment: .center)
                 } else {
-                    if !weightPoints.isEmpty {
-                        weightChart
-                    }
-                    if hasHealthLayer {
-                        healthLayer
-                    }
+                    weightChart
                 }
 
                 dietRow
@@ -266,44 +237,6 @@ struct TrendChartCard: View {
         }
     }
 
-    private var healthLayer: some View {
-        VStack(spacing: 8) {
-            if !energyPoints.isEmpty {
-                healthBars(points: energyPoints, yKey: "chart.axis.energy")
-            }
-            if !sleepPoints.isEmpty {
-                healthBars(points: sleepPoints, yKey: "chart.axis.sleep")
-            }
-        }
-    }
-
-    private func healthBars(points: [(date: Date, value: Double)], yKey: String) -> some View {
-        Chart {
-            ForEach(points, id: \.date) { point in
-                BarMark(
-                    x: .value("chart.axis.date", point.date, unit: .day),
-                    y: .value(yKey, point.value)
-                )
-                .foregroundStyle(EasePalette.healthBar)
-                .cornerRadius(2)
-            }
-            if let preview {
-                RuleMark(x: .value("chart.axis.date", preview.date))
-                    .foregroundStyle(EasePalette.accent.opacity(0.35))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
-            }
-        }
-        .chartXScale(domain: xDomain)
-        .chartXAxis(.hidden)
-        .chartYAxis(.hidden)
-        .frame(height: 36)
-        .chartOverlay { proxy in
-            GeometryReader { geometry in
-                dragLayer(proxy: proxy, geometry: geometry)
-            }
-        }
-    }
-
     private var dietRow: some View {
         HStack {
             ForEach(recentDietDays, id: \.self) { day in
@@ -356,18 +289,6 @@ struct TrendChartCard: View {
                 }
                 .font(.system(size: 14, weight: .regular))
                 .foregroundStyle(EasePalette.primaryText)
-                if let hours = preview.sleepHours {
-                    Text(EaseFormatters.hours(hours))
-                        .font(.system(size: 12, weight: .regular))
-                        .monospacedDigit()
-                        .foregroundStyle(EasePalette.secondaryText)
-                }
-                if let kcal = preview.activeEnergyKcal {
-                    Text(EaseFormatters.kcal(kcal))
-                        .font(.system(size: 12, weight: .regular))
-                        .monospacedDigit()
-                        .foregroundStyle(EasePalette.secondaryText)
-                }
             }
         }
         .accessibilityElement(children: .combine)
@@ -418,9 +339,7 @@ struct TrendChartCard: View {
             weight: WeightMetrics.weightOnDay(records: records, logs: logs, on: day),
             movingAverage: WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: day),
             diet: record?.dietStatus,
-            tags: HealthDisplay.tags(record: record, isMenstrual: health?.isMenstrual == true),
-            sleepHours: health?.previousNightSleepHours,
-            activeEnergyKcal: health?.activeEnergyKcal
+            tags: HealthDisplay.tags(record: record, isMenstrual: health?.isMenstrual == true)
         )
     }
 

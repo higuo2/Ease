@@ -9,27 +9,45 @@ struct DashboardView: View {
     @State private var viewModel = DashboardViewModel()
 
     private var profile: UserProfile? { profiles.first }
+    private var selectedDate: Date { viewModel.selectedDate }
     private var snapshot: DashboardSnapshot {
-        DashboardSnapshot.make(profile: profile, records: Array(records), logs: Array(weightLogs))
+        DashboardSnapshot.make(
+            profile: profile,
+            records: Array(records),
+            logs: Array(weightLogs),
+            now: selectedDate
+        )
+    }
+    private var selectedRecord: DailyRecord? {
+        let key = CalendarDay.dayKey(from: selectedDate)
+        return records.first { $0.dayKey == key }
+    }
+    private var selectedHealth: HealthDaySnapshot? {
+        viewModel.healthByDay[CalendarDay.dayKey(from: selectedDate)]
     }
 
     var body: some View {
+        @Bindable var viewModel = viewModel
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 20) {
+                        DayPickerHeader(
+                            selectedDate: $viewModel.selectedDate,
+                            mode: $viewModel.dayPickerMode
+                        )
                         ProgressRingView(
                             progress: snapshot.progress,
                             lostKg: snapshot.lostKg,
                             remainingKg: snapshot.remainingKg,
                             targetWeight: snapshot.targetWeight
                         )
-                        .padding(.top, 8)
-
-                        TodayStripView(
-                            record: snapshot.today,
-                            health: viewModel.healthByDay[CalendarDay.dayKey(from: .now)]
+                        HealthCardsView(
+                            record: selectedRecord,
+                            health: selectedHealth,
+                            onOpenSleep: { viewModel.isSleepPresented = true },
+                            onOpenCycle: { viewModel.isCyclePresented = true }
                         )
                         WeightSummaryCard(
                             weight: snapshot.displayWeight,
@@ -48,7 +66,7 @@ struct DashboardView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 96)
                 }
-                EaseFAB(action: viewModel.openTodayLog)
+                EaseFAB(action: viewModel.openSelectedLog)
                     .padding(.trailing, 20)
                     .padding(.bottom, 20)
             }
@@ -75,6 +93,16 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $viewModel.isLogPresented) {
                 LogSheetView(date: viewModel.editingDate, editingLogID: viewModel.editingLogID)
+            }
+            .sheet(isPresented: $viewModel.isSleepPresented) {
+                SleepDetailSheet(
+                    history: viewModel.sleepHistory,
+                    focusHours: selectedHealth?.previousNightSleepHours,
+                    targetHours: profile?.sleepTargetHours ?? 8.0
+                )
+            }
+            .sheet(isPresented: $viewModel.isCyclePresented) {
+                CycleDetailSheet(history: viewModel.cycleHistory)
             }
             .task(id: scenePhase) {
                 guard scenePhase == .active else { return }

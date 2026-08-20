@@ -1,5 +1,34 @@
 import SwiftUI
 
+struct EaseArcRing: View {
+    let progress: Double
+    let colors: [Color]
+    var lineWidth: CGFloat = 12
+    var diameter: CGFloat = 196
+
+    private var clamped: Double { min(max(progress, 0), 1) }
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(EasePalette.track, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+            if clamped > 0 {
+                ProgressRingArc(progress: clamped)
+                    .stroke(
+                        AngularGradient(
+                            colors: colors,
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(-90 + 360 * clamped)
+                        ),
+                        style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                    )
+            }
+        }
+        .frame(width: diameter, height: diameter)
+    }
+}
+
 struct ProgressRingView: View {
     let progress: Double
     let lostKg: Double
@@ -11,20 +40,10 @@ struct ProgressRingView: View {
 
     var body: some View {
         ZStack {
-            Circle()
-                .stroke(EasePalette.track, style: StrokeStyle(lineWidth: 12, lineCap: .round))
-            if clamped > 0 {
-                ProgressRingArc(progress: clamped)
-                    .stroke(
-                        AngularGradient(
-                            colors: [EasePalette.accentSoft, EasePalette.accent],
-                            center: .center,
-                            startAngle: .degrees(-90),
-                            endAngle: .degrees(-90 + 360 * clamped)
-                        ),
-                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                    )
-            }
+            EaseArcRing(
+                progress: clamped,
+                colors: [EasePalette.accentSoft, EasePalette.accent]
+            )
             VStack(spacing: 6) {
                 if isComplete {
                     Text(EaseFormatters.targetKg(targetWeight))
@@ -45,7 +64,6 @@ struct ProgressRingView: View {
             }
             .padding(.horizontal, 28)
         }
-        .frame(width: 196, height: 196)
         .frame(maxWidth: .infinity)
     }
 }

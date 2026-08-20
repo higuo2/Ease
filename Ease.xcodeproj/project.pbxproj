@@ -51,6 +51,10 @@
 		A1000000000000000000003E /* LegacyWeightMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009D /* LegacyWeightMigrator.swift */; };
 		A1000000000000000000003F /* SleepHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009E /* SleepHistory.swift */; };
 		A10000000000000000000039 /* CycleMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009F /* CycleMetrics.swift */; };
+		A100000000000000000000A4 /* DayPickerHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A0 /* DayPickerHeader.swift */; };
+		A100000000000000000000A5 /* HealthCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A1 /* HealthCardsView.swift */; };
+		A100000000000000000000A6 /* SleepDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A2 /* SleepDetailSheet.swift */; };
+		A100000000000000000000A7 /* CycleDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A3 /* CycleDetailSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -100,6 +104,10 @@
 		A1000000000000000000009D /* LegacyWeightMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyWeightMigrator.swift; sourceTree = "<group>"; };
 		A1000000000000000000009E /* SleepHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepHistory.swift; sourceTree = "<group>"; };
 		A1000000000000000000009F /* CycleMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleMetrics.swift; sourceTree = "<group>"; };
+		A100000000000000000000A0 /* DayPickerHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPickerHeader.swift; sourceTree = "<group>"; };
+		A100000000000000000000A1 /* HealthCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthCardsView.swift; sourceTree = "<group>"; };
+		A100000000000000000000A2 /* SleepDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailSheet.swift; sourceTree = "<group>"; };
+		A100000000000000000000A3 /* CycleDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleDetailSheet.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -232,11 +240,15 @@
 			children = (
 				A10000000000000000000082 /* DashboardView.swift */,
 				A1000000000000000000008F /* DashboardViewModel.swift */,
+				A100000000000000000000A0 /* DayPickerHeader.swift */,
+				A100000000000000000000A1 /* HealthCardsView.swift */,
 				A10000000000000000000090 /* TodayStripView.swift */,
 				A10000000000000000000091 /* WeightSummaryCard.swift */,
 				A10000000000000000000092 /* TrendChartCard.swift */,
 				A10000000000000000000093 /* SettingsSheet.swift */,
 				A10000000000000000000094 /* LogSheetView.swift */,
+				A100000000000000000000A2 /* SleepDetailSheet.swift */,
+				A100000000000000000000A3 /* CycleDetailSheet.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -354,6 +366,10 @@
 				A1000000000000000000003E /* LegacyWeightMigrator.swift in Sources */,
 				A1000000000000000000003F /* SleepHistory.swift in Sources */,
 				A10000000000000000000039 /* CycleMetrics.swift in Sources */,
+				A100000000000000000000A4 /* DayPickerHeader.swift in Sources */,
+				A100000000000000000000A5 /* HealthCardsView.swift in Sources */,
+				A100000000000000000000A6 /* SleepDetailSheet.swift in Sources */,
+				A100000000000000000000A7 /* CycleDetailSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

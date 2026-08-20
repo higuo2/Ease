@@ -12,6 +12,7 @@ struct SettingsSheet: View {
     @State private var heightText: String
     @State private var startText: String
     @State private var targetText: String
+    @State private var sleepTargetText: String
     @State private var notificationsEnabled: Bool
     @State private var showDeleteConfirm = false
     @State private var sharePayload: SharePayload?
@@ -24,6 +25,7 @@ struct SettingsSheet: View {
         _heightText = State(initialValue: EaseFormatters.oneDecimal(profile.heightCm))
         _startText = State(initialValue: EaseFormatters.oneDecimal(profile.startWeight))
         _targetText = State(initialValue: EaseFormatters.oneDecimal(profile.targetWeight))
+        _sleepTargetText = State(initialValue: EaseFormatters.oneDecimal(profile.sleepTargetHours))
         _notificationsEnabled = State(initialValue: profile.notificationsEnabled)
     }
 
@@ -38,6 +40,7 @@ struct SettingsSheet: View {
                                 EaseField(title: "settings.height", placeholder: "onboarding.height.placeholder", text: $heightText, suffix: "unit.cm")
                                 EaseField(title: "settings.startWeight", placeholder: "onboarding.weight.placeholder", text: $startText, suffix: "unit.kg")
                                 EaseField(title: "settings.targetWeight", placeholder: "onboarding.weight.placeholder", text: $targetText, suffix: "unit.kg")
+                                EaseField(title: "settings.sleepTarget", placeholder: "settings.sleepTarget.placeholder", text: $sleepTargetText, suffix: "unit.hours")
                             }
                         }
                         EaseCard {
@@ -86,7 +89,8 @@ struct SettingsSheet: View {
     private func save() {
         guard let height = EaseFormatters.parseDecimal(heightText),
               let start = EaseFormatters.parseDecimal(startText),
-              let target = EaseFormatters.parseDecimal(targetText) else {
+              let target = EaseFormatters.parseDecimal(targetText),
+              let sleepTarget = EaseFormatters.parseDecimal(sleepTargetText) else {
             errorKey = "onboarding.error.invalid"
             return
         }
@@ -100,6 +104,7 @@ struct SettingsSheet: View {
                     heightCm: height,
                     startWeight: start,
                     targetWeight: target,
+                    sleepTargetHours: sleepTarget,
                     notificationsEnabled: enabled
                 )
                 await NotificationScheduler.refresh(enabled: enabled, context: modelContext)

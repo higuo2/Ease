@@ -38,10 +38,14 @@ struct SleepHistory: Sendable, Equatable {
         return nights.first { $0.dayKey == key }?.hours
     }
 
-    /// Sleep-target ring fill. Nil when last night has no data — do not draw 0%.
+    /// Sleep-target ring fill. Nil when that night has no data — do not draw 0%.
+    func ringProgress(on date: Date, targetHours: Double, calendar: Calendar = .current) -> Double? {
+        guard let hours = hours(on: date, calendar: calendar), targetHours > 0 else { return nil }
+        return min(max(hours / targetHours, 0), 1)
+    }
+
     func ringProgress(targetHours: Double) -> Double? {
-        guard let lastNightHours, targetHours > 0 else { return nil }
-        return min(max(lastNightHours / targetHours, 0), 1)
+        ringProgress(on: endingOn, targetHours: targetHours)
     }
 
     static func make(

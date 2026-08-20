@@ -26,12 +26,14 @@ struct UserProfileRepository {
         heightCm: Double? = nil,
         startWeight: Double? = nil,
         targetWeight: Double? = nil,
+        sleepTargetHours: Double? = nil,
         notificationsEnabled: Bool? = nil
     ) throws -> UserProfile {
         let profile = try profile()
         let nextHeight = try heightCm.map(MeasurementBounds.validatedHeight) ?? profile.heightCm
         let nextStart = try startWeight.map(MeasurementBounds.validatedWeight) ?? profile.startWeight
         let nextTarget = try targetWeight.map(MeasurementBounds.validatedWeight) ?? profile.targetWeight
+        let nextSleep = try sleepTargetHours.map(MeasurementBounds.validatedSleepTarget) ?? profile.sleepTargetHours
         let nextNotifications = notificationsEnabled ?? profile.notificationsEnabled
         let shouldValidate = profile.hasCompletedOnboarding
             || heightCm != nil
@@ -44,6 +46,7 @@ struct UserProfileRepository {
         profile.heightCm = nextHeight
         profile.startWeight = nextStart
         profile.targetWeight = nextTarget
+        profile.sleepTargetHours = nextSleep
         profile.notificationsEnabled = nextNotifications
         profile.updatedAt = .now
         try context.save()

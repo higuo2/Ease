@@ -22,8 +22,12 @@ enum ChartRange: Int, CaseIterable, Identifiable {
 @MainActor
 final class DashboardViewModel {
     var chartRange: ChartRange = .days7
+    var selectedDate = CalendarDay.startOfDay(.now)
+    var dayPickerMode: DayPickerMode = .week
     var isSettingsPresented = false
     var isLogPresented = false
+    var isSleepPresented = false
+    var isCyclePresented = false
     var editingDate = Date.now
     var editingLogID: UUID?
     var healthByDay: [String: HealthDaySnapshot] = [:]
@@ -42,8 +46,8 @@ final class DashboardViewModel {
         isLogPresented = true
     }
 
-    func openTodayLog() {
-        openLog(for: .now)
+    func openSelectedLog() {
+        openLog(for: selectedDate)
     }
 
     func reloadHealthAndNotifications(enabled: Bool, records: [DailyRecord], logs: [WeightLog]) async {
