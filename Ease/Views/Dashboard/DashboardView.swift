@@ -5,11 +5,12 @@ struct DashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \UserProfile.updatedAt, order: .reverse) private var profiles: [UserProfile]
     @Query(sort: \DailyRecord.date, order: .forward) private var records: [DailyRecord]
+    @Query(sort: \WeightLog.timestamp, order: .forward) private var weightLogs: [WeightLog]
     @State private var viewModel = DashboardViewModel()
 
     private var profile: UserProfile? { profiles.first }
     private var snapshot: DashboardSnapshot {
-        DashboardSnapshot.make(profile: profile, records: Array(records))
+        DashboardSnapshot.make(profile: profile, records: Array(records), logs: Array(weightLogs))
     }
 
     var body: some View {
@@ -37,10 +38,11 @@ struct DashboardView: View {
                         )
                         TrendChartCard(
                             records: Array(records),
+                            logs: Array(weightLogs),
                             healthByDay: viewModel.healthByDay,
                             range: viewModel.chartRange,
                             onSelectRange: { viewModel.chartRange = $0 },
-                            onSelectDate: { viewModel.openLog(for: $0) }
+                            onSelectLog: { viewModel.openWeightLog($0) }
                         )
                     }
                     .padding(.horizontal, 20)
@@ -68,18 +70,21 @@ struct DashboardView: View {
             .toolbarBackground(EasePalette.background, for: .navigationBar)
             .sheet(isPresented: $viewModel.isSettingsPresented) {
                 if let profile {
-                    SettingsSheet(profile: profile, records: Array(records))
+                    SettingsSheet(profile: profile, records: Array(records), logs: Array(weightLogs))
                 }
             }
             .sheet(isPresented: $viewModel.isLogPresented) {
-                LogSheetView(date: viewModel.editingDate)
+                LogSheetView(date: viewModel.editingDate, editingLogID: viewModel.editingLogID)
             }
             .task(id: scenePhase) {
                 guard scenePhase == .active else { return }
                 await reloadHealthAndNotifications()
             }
             .onChange(of: viewModel.isLogPresented) { _, presented in
-                if !presented { Task { await reloadHealthAndNotifications() } }
+                if !presented {
+                    viewModel.editingLogID = nil
+                    Task { await reloadHealthAndNotifications() }
+                }
             }
             .onChange(of: viewModel.isSettingsPresented) { _, presented in
                 if !presented { Task { await reloadHealthAndNotifications() } }
@@ -92,7 +97,8 @@ struct DashboardView: View {
     private func reloadHealthAndNotifications() async {
         await viewModel.reloadHealthAndNotifications(
             enabled: profile?.notificationsEnabled == true,
-            records: Array(records)
+            records: Array(records),
+            logs: Array(weightLogs)
         )
     }
 }

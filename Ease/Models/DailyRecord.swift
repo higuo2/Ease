@@ -8,7 +8,11 @@ final class DailyRecord {
     /// go through `init(date:)`, which overwrites every stored property.
     var dayKey: String = ""
     var date: Date = Date.now
+    /// Legacy snapshot from v1.0. Kept on the CloudKit schema as Optional.
+    /// v1.1+ never writes this field; `WeightLog` is the source of truth.
     var weight: Double?
+    /// Legacy snapshot from v1.0. Kept on the CloudKit schema as Optional.
+    /// v1.1+ never writes this field; `WeightLog` is the source of truth.
     var bodyFat: Double?
     var dietStatusRaw: String?
     var tags: [String] = []

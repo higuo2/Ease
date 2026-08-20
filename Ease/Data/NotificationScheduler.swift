@@ -13,10 +13,14 @@ enum NotificationScheduler {
         context: ModelContext
     ) async {
         let today = try? DailyRecordRepository(context: context).record(on: .now)
+        let logs = (try? WeightLogRepository(context: context).logs(on: .now)) ?? []
+        let records = today.map { [$0] } ?? []
+        let hasWeight = WeightMetrics.hasWeight(records: records, logs: logs, on: .now)
         let health = await HealthKitReader.load(days: 1)
         await refresh(
             enabled: enabled,
             todayRecord: today,
+            hasWeightToday: hasWeight,
             healthToday: health[CalendarDay.dayKey(from: .now)]
         )
     }
@@ -24,6 +28,7 @@ enum NotificationScheduler {
     static func refresh(
         enabled: Bool,
         todayRecord: DailyRecord?,
+        hasWeightToday: Bool = false,
         healthToday: HealthDaySnapshot?,
         now: Date = .now,
         calendar: Calendar = .current
@@ -41,7 +46,7 @@ enum NotificationScheduler {
         for offset in 0..<horizonDays {
             guard let day = calendar.date(byAdding: .day, value: offset, to: today) else { continue }
             let isToday = offset == 0
-            let skipWeight = isToday && todayRecord?.weight != nil
+            let skipWeight = isToday && hasWeightToday
             let skipDiet = isToday && todayRecord?.dietStatus != nil
             if !skipWeight {
                 await schedule(

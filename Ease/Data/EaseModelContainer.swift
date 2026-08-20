@@ -3,7 +3,7 @@ import SwiftData
 
 enum EaseModelContainer {
     static func make() -> ModelContainer {
-        let schema = Schema([DailyRecord.self, UserProfile.self])
+        let schema = Schema([DailyRecord.self, UserProfile.self, WeightLog.self])
         let cloud = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
         if let container = try? ModelContainer(for: schema, configurations: [cloud]) {
             return container
@@ -18,7 +18,7 @@ enum EaseModelContainer {
     }
     
     static func preview() -> ModelContainer {
-        let schema = Schema([DailyRecord.self, UserProfile.self])
+        let schema = Schema([DailyRecord.self, UserProfile.self, WeightLog.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         do {
             return try ModelContainer(for: schema, configurations: [configuration])

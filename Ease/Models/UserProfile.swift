@@ -8,6 +8,8 @@ final class UserProfile {
     var targetWeight: Double = 0
     var notificationsEnabled: Bool = false
     var hasCompletedOnboarding: Bool = false
+    var hasMigratedWeightLogs: Bool = false
+    var sleepTargetHours: Double = 8.0
     var updatedAt: Date = Date.now
 
     init() {
@@ -16,6 +18,8 @@ final class UserProfile {
         self.targetWeight = 0
         self.notificationsEnabled = false
         self.hasCompletedOnboarding = false
+        self.hasMigratedWeightLogs = false
+        self.sleepTargetHours = 8.0
         self.updatedAt = .now
     }
 }

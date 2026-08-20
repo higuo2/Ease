@@ -46,6 +46,9 @@
 		A10000000000000000000036 /* HealthKitReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000098 /* HealthKitReader.swift */; };
 		A10000000000000000000037 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000099 /* NotificationScheduler.swift */; };
 		A10000000000000000000038 /* ScaleOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009A /* ScaleOCR.swift */; };
+		A1000000000000000000003C /* WeightLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009B /* WeightLog.swift */; };
+		A1000000000000000000003D /* WeightLogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009C /* WeightLogRepository.swift */; };
+		A1000000000000000000003E /* LegacyWeightMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009D /* LegacyWeightMigrator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -90,6 +93,9 @@
 		A10000000000000000000098 /* HealthKitReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitReader.swift; sourceTree = "<group>"; };
 		A10000000000000000000099 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 		A1000000000000000000009A /* ScaleOCR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleOCR.swift; sourceTree = "<group>"; };
+		A1000000000000000000009B /* WeightLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLog.swift; sourceTree = "<group>"; };
+		A1000000000000000000009C /* WeightLogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLogRepository.swift; sourceTree = "<group>"; };
+		A1000000000000000000009D /* LegacyWeightMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyWeightMigrator.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -145,6 +151,7 @@
 				A10000000000000000000041 /* DietStatus.swift */,
 				A10000000000000000000042 /* VariableTag.swift */,
 				A10000000000000000000043 /* DailyRecord.swift */,
+				A1000000000000000000009B /* WeightLog.swift */,
 				A10000000000000000000044 /* UserProfile.swift */,
 			);
 			path = Models;
@@ -158,6 +165,8 @@
 				A10000000000000000000047 /* MeasurementBounds.swift */,
 				A10000000000000000000048 /* WeightMetrics.swift */,
 				A10000000000000000000049 /* DailyRecordRepository.swift */,
+				A1000000000000000000009C /* WeightLogRepository.swift */,
+				A1000000000000000000009D /* LegacyWeightMigrator.swift */,
 				A1000000000000000000004A /* UserProfileRepository.swift */,
 				A1000000000000000000004B /* EaseModelContainer.swift */,
 				A1000000000000000000004C /* CSVExporter.swift */,
@@ -334,6 +343,9 @@
 				A10000000000000000000036 /* HealthKitReader.swift in Sources */,
 				A10000000000000000000037 /* NotificationScheduler.swift in Sources */,
 				A10000000000000000000038 /* ScaleOCR.swift in Sources */,
+				A1000000000000000000003C /* WeightLog.swift in Sources */,
+				A1000000000000000000003D /* WeightLogRepository.swift in Sources */,
+				A1000000000000000000003E /* LegacyWeightMigrator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

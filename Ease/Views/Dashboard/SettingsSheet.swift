@@ -7,6 +7,7 @@ struct SettingsSheet: View {
     @Environment(\.modelContext) private var modelContext
     let profile: UserProfile
     let records: [DailyRecord]
+    let logs: [WeightLog]
 
     @State private var heightText: String
     @State private var startText: String
@@ -16,9 +17,10 @@ struct SettingsSheet: View {
     @State private var sharePayload: SharePayload?
     @State private var errorKey: String?
 
-    init(profile: UserProfile, records: [DailyRecord]) {
+    init(profile: UserProfile, records: [DailyRecord], logs: [WeightLog] = []) {
         self.profile = profile
         self.records = records
+        self.logs = logs
         _heightText = State(initialValue: EaseFormatters.oneDecimal(profile.heightCm))
         _startText = State(initialValue: EaseFormatters.oneDecimal(profile.startWeight))
         _targetText = State(initialValue: EaseFormatters.oneDecimal(profile.targetWeight))
@@ -114,7 +116,7 @@ struct SettingsSheet: View {
     }
 
     private func exportCSV() {
-        let csv = CSVExporter.export(records)
+        let csv = CSVExporter.export(records, logs: logs)
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("ease-export.csv")
         do {
             try csv.write(to: url, atomically: true, encoding: .utf8)

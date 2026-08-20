@@ -61,8 +61,8 @@ struct UserProfileRepository {
         let weight = try MeasurementBounds.validatedWeight(currentWeight)
         let target = try MeasurementBounds.validatedWeight(targetWeight)
 
-        let records = DailyRecordRepository(context: context, calendar: calendar)
-        try records.upsert(on: .now, patch: DailyRecordPatch(weight: .set(weight)))
+        try WeightLogRepository(context: context, calendar: calendar)
+            .insert(timestamp: .now, weight: weight, bodyFat: nil)
 
         let profile = try profile()
         profile.heightCm = height
@@ -70,12 +70,15 @@ struct UserProfileRepository {
         profile.targetWeight = target
         profile.notificationsEnabled = notificationsEnabled
         profile.hasCompletedOnboarding = true
+        profile.hasMigratedWeightLogs = true
+        profile.sleepTargetHours = 8.0
         profile.updatedAt = .now
         try context.save()
         return profile
     }
 
     func resetAll() throws {
+        try WeightLogRepository(context: context, calendar: calendar).deleteAll()
         try DailyRecordRepository(context: context, calendar: calendar).deleteAll()
         for profile in try fetchAll() {
             context.delete(profile)

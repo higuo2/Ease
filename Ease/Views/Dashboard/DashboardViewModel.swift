@@ -25,10 +25,18 @@ final class DashboardViewModel {
     var isSettingsPresented = false
     var isLogPresented = false
     var editingDate = Date.now
+    var editingLogID: UUID?
     var healthByDay: [String: HealthDaySnapshot] = [:]
 
     func openLog(for date: Date) {
         editingDate = CalendarDay.startOfDay(date)
+        editingLogID = nil
+        isLogPresented = true
+    }
+
+    func openWeightLog(_ log: WeightLog) {
+        editingDate = CalendarDay.startOfDay(log.timestamp)
+        editingLogID = log.id
         isLogPresented = true
     }
 
@@ -36,12 +44,13 @@ final class DashboardViewModel {
         openLog(for: .now)
     }
 
-    func reloadHealthAndNotifications(enabled: Bool, records: [DailyRecord]) async {
+    func reloadHealthAndNotifications(enabled: Bool, records: [DailyRecord], logs: [WeightLog]) async {
         healthByDay = await HealthKitReader.load(days: 90)
         let todayKey = CalendarDay.dayKey(from: .now)
         await NotificationScheduler.refresh(
             enabled: enabled,
             todayRecord: records.first { $0.dayKey == todayKey },
+            hasWeightToday: WeightMetrics.hasWeight(records: records, logs: logs, on: .now),
             healthToday: healthByDay[todayKey]
         )
     }
@@ -58,11 +67,16 @@ struct DashboardSnapshot {
     let startWeight: Double
     let today: DailyRecord?
 
-    static func make(profile: UserProfile?, records: [DailyRecord], now: Date = .now) -> DashboardSnapshot {
+    static func make(
+        profile: UserProfile?,
+        records: [DailyRecord],
+        logs: [WeightLog] = [],
+        now: Date = .now
+    ) -> DashboardSnapshot {
         let start = profile?.startWeight ?? 0
         let target = profile?.targetWeight ?? 0
         let height = profile?.heightCm ?? 0
-        let display = WeightMetrics.displayWeight(records: records, on: now)
+        let display = WeightMetrics.displayWeight(records: records, logs: logs, on: now)
         let todayKey = CalendarDay.dayKey(from: now)
         let today = records.first { $0.dayKey == todayKey }
         let progress: Double
@@ -85,7 +99,7 @@ struct DashboardSnapshot {
         }
         return DashboardSnapshot(
             displayWeight: display,
-            bodyFat: today?.bodyFat,
+            bodyFat: WeightMetrics.latestBodyFat(records: records, logs: logs, on: now),
             bmi: bmi,
             progress: progress,
             lostKg: lost,

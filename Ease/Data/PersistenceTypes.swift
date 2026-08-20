@@ -12,7 +12,9 @@ enum FieldUpdate<Value: Sendable>: Sendable {
 }
 
 struct DailyRecordPatch: Sendable {
+    /// Routed to a new `WeightLog`. Never written onto `DailyRecord` after v1.1.
     var weight: FieldUpdate<Double?> = .unchanged
+    /// Stored on the inserted `WeightLog` when `weight` is set.
     var bodyFat: FieldUpdate<Double?> = .unchanged
     var dietStatus: FieldUpdate<DietStatus?> = .unchanged
     var tags: FieldUpdate<[VariableTag]> = .unchanged

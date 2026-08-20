@@ -20,7 +20,9 @@ enum WeightMetrics {
     ) -> Double? {
         let window = CalendarDay.datesBack(7, from: date, calendar: calendar)
         let weightsByDay = Dictionary(
-            samples.map { (CalendarDay.dayKey(from: $0.date, calendar: calendar), $0.weight) },
+            samples
+                .sorted { $0.date < $1.date }
+                .map { (CalendarDay.dayKey(from: $0.date, calendar: calendar), $0.weight) },
             uniquingKeysWith: { _, latest in latest }
         )
         let values = window.compactMap { day in
@@ -31,15 +33,7 @@ enum WeightMetrics {
     }
 
     static func latestWeight(samples: [WeightSample], calendar: Calendar = .current) -> Double? {
-        samples
-            .sorted { lhs, rhs in
-                let left = CalendarDay.startOfDay(lhs.date, calendar: calendar)
-                let right = CalendarDay.startOfDay(rhs.date, calendar: calendar)
-                if left == right { return false }
-                return left < right
-            }
-            .last?
-            .weight
+        samples.max { $0.date < $1.date }?.weight
     }
 
     static func displayWeight(
@@ -47,8 +41,34 @@ enum WeightMetrics {
         on date: Date,
         calendar: Calendar = .current
     ) -> Double? {
-        sevenDayMA(samples: samples, endingOn: date, calendar: calendar)
+        weightOnDay(samples: samples, date: date, calendar: calendar)
             ?? latestWeight(samples: samples, calendar: calendar)
+    }
+
+    /// Weight logged on that calendar day only. No global fallback.
+    static func weightOnDay(
+        samples: [WeightSample],
+        date: Date,
+        calendar: Calendar = .current
+    ) -> Double? {
+        let key = CalendarDay.dayKey(from: date, calendar: calendar)
+        return samples
+            .filter { CalendarDay.dayKey(from: $0.date, calendar: calendar) == key }
+            .max { $0.date < $1.date }?
+            .weight
+    }
+
+    static func hasWeight(
+        records: [DailyRecord],
+        logs: [WeightLog] = [],
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> Bool {
+        weightOnDay(
+            samples: samples(from: records, logs: logs, calendar: calendar),
+            date: date,
+            calendar: calendar
+        ) != nil
     }
 
     static func progress(start: Double, target: Double, display: Double) -> Double {
@@ -66,29 +86,65 @@ enum WeightMetrics {
         MeasurementBounds.roundedToTenth(max(0, display - target))
     }
 
-    static func samples(from records: [DailyRecord], calendar: Calendar = .current) -> [WeightSample] {
-        records.compactMap { record in
+    static func samples(
+        from records: [DailyRecord],
+        logs: [WeightLog] = [],
+        calendar: Calendar = .current
+    ) -> [WeightSample] {
+        let fromLogs = logs.map { WeightSample(date: $0.timestamp, weight: $0.weight) }
+        let daysWithLogs = Set(logs.map { CalendarDay.dayKey(from: $0.timestamp, calendar: calendar) })
+        let fromLegacy = records.compactMap { record -> WeightSample? in
             guard let weight = record.weight else { return nil }
+            guard !daysWithLogs.contains(record.dayKey) else { return nil }
             return WeightSample(date: record.date, weight: weight)
         }
-        .sorted {
-            CalendarDay.startOfDay($0.date, calendar: calendar) < CalendarDay.startOfDay($1.date, calendar: calendar)
-        }
+        return (fromLogs + fromLegacy).sorted { $0.date < $1.date }
     }
 
     static func sevenDayMA(
         records: [DailyRecord],
+        logs: [WeightLog] = [],
         endingOn date: Date,
         calendar: Calendar = .current
     ) -> Double? {
-        sevenDayMA(samples: samples(from: records, calendar: calendar), endingOn: date, calendar: calendar)
+        sevenDayMA(samples: samples(from: records, logs: logs, calendar: calendar), endingOn: date, calendar: calendar)
     }
 
     static func displayWeight(
         records: [DailyRecord],
+        logs: [WeightLog] = [],
         on date: Date,
         calendar: Calendar = .current
     ) -> Double? {
-        displayWeight(samples: samples(from: records, calendar: calendar), on: date, calendar: calendar)
+        displayWeight(samples: samples(from: records, logs: logs, calendar: calendar), on: date, calendar: calendar)
+    }
+
+    static func weightOnDay(
+        records: [DailyRecord],
+        logs: [WeightLog] = [],
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> Double? {
+        weightOnDay(
+            samples: samples(from: records, logs: logs, calendar: calendar),
+            date: date,
+            calendar: calendar
+        )
+    }
+
+    static func latestBodyFat(
+        records: [DailyRecord],
+        logs: [WeightLog] = [],
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> Double? {
+        let key = CalendarDay.dayKey(from: date, calendar: calendar)
+        let onDay = logs
+            .filter { CalendarDay.dayKey(from: $0.timestamp, calendar: calendar) == key }
+            .sorted { $0.timestamp < $1.timestamp }
+        if let fat = onDay.last(where: { $0.bodyFat != nil })?.bodyFat {
+            return fat
+        }
+        return records.first { $0.dayKey == key }?.bodyFat
     }
 }

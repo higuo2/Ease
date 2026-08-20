@@ -8,9 +8,11 @@ struct LogSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \DailyRecord.date, order: .forward) private var records: [DailyRecord]
+    @Query(sort: \WeightLog.timestamp, order: .forward) private var weightLogs: [WeightLog]
     @Query(sort: \UserProfile.updatedAt, order: .reverse) private var profiles: [UserProfile]
 
     @State private var selectedDate: Date
+    @State private var editingLogID: UUID?
     @State private var weightText: String
     @State private var bodyFatText: String
     @State private var diet: DietStatus?
@@ -22,9 +24,10 @@ struct LogSheetView: View {
     @State private var isPhotoPickerPresented = false
     @State private var isOCRBusy = false
 
-    init(date: Date) {
+    init(date: Date, editingLogID: UUID? = nil) {
         let start = CalendarDay.startOfDay(date)
         _selectedDate = State(initialValue: start)
+        _editingLogID = State(initialValue: editingLogID)
         _weightText = State(initialValue: "")
         _bodyFatText = State(initialValue: "")
         _diet = State(initialValue: nil)
@@ -109,8 +112,8 @@ struct LogSheetView: View {
                                 .foregroundStyle(EasePalette.primaryText)
                         }
                         EasePrimaryButton(title: "log.save", isEnabled: canSave, action: save)
-                        if existing != nil {
-                            EaseTextButton(title: "log.delete", action: deleteRecord)
+                        if showsDelete {
+                            EaseTextButton(title: "log.delete", action: deleteCurrent)
                         }
                     }
                     .padding(20)
@@ -124,7 +127,10 @@ struct LogSheetView: View {
                 }
             }
             .onAppear(perform: hydrateFromExisting)
-            .onChange(of: selectedDate) { _, _ in
+            .onChange(of: selectedDate) { oldValue, newValue in
+                if !Calendar.current.isDate(oldValue, inSameDayAs: newValue) {
+                    editingLogID = nil
+                }
                 hydrateFromExisting()
             }
             .onChange(of: photoItem) { _, item in
@@ -165,6 +171,20 @@ struct LogSheetView: View {
 
     private var isNumericError: Bool {
         errorKey == "onboarding.error.invalid"
+    }
+
+    private var logsOnSelectedDay: [WeightLog] {
+        let key = CalendarDay.dayKey(from: selectedDate)
+        return weightLogs.filter { CalendarDay.dayKey(from: $0.timestamp) == key }
+    }
+
+    private var editingLog: WeightLog? {
+        guard let editingLogID else { return nil }
+        return weightLogs.first { $0.id == editingLogID }
+    }
+
+    private var showsDelete: Bool {
+        editingLog != nil || (existing != nil && logsOnSelectedDay.isEmpty)
     }
 
     private var canSave: Bool {
@@ -251,35 +271,38 @@ struct LogSheetView: View {
     }
 
     private func hydrateFromExisting() {
-        guard let record = existing else {
+        let record = existing
+        let log = editingLog ?? loadEditingLog()
+        if let log {
+            weightText = EaseFormatters.oneDecimal(log.weight)
+            bodyFatText = log.bodyFat.map(EaseFormatters.oneDecimal) ?? ""
+        } else {
             weightText = ""
             bodyFatText = ""
-            diet = nil
-            tags = []
-            noteText = ""
-            errorKey = nil
-            return
         }
-        weightText = record.weight.map(EaseFormatters.oneDecimal) ?? ""
-        bodyFatText = record.bodyFat.map(EaseFormatters.oneDecimal) ?? ""
-        diet = record.dietStatus
-        tags = Set(record.variableTags)
-        noteText = record.note ?? ""
+        diet = record?.dietStatus
+        tags = Set(record?.variableTags ?? [])
+        noteText = record?.note ?? ""
         errorKey = nil
+    }
+
+    private func loadEditingLog() -> WeightLog? {
+        guard let editingLogID else { return nil }
+        return try? WeightLogRepository(context: modelContext).log(id: editingLogID)
     }
 
     private func save() {
         let weight = EaseFormatters.parseDecimal(weightText)
         let bodyFat = EaseFormatters.parseDecimal(bodyFatText)
         let note = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
-        var patch = DailyRecordPatch()
-        patch.weight = .set(weight)
-        patch.bodyFat = .set(bodyFat)
-        patch.dietStatus = .set(diet)
-        patch.tags = .set(VariableTag.sanitized(Array(tags)))
-        patch.note = .set(note.isEmpty ? nil : note)
+        let noteValue = note.isEmpty ? nil : note
+        guard weight != nil || diet != nil else {
+            presentError("log.error.empty")
+            return
+        }
         do {
-            try DailyRecordRepository(context: modelContext).upsert(on: selectedDate, patch: patch)
+            try saveWeight(weight: weight, bodyFat: bodyFat)
+            try saveJournal(note: noteValue)
             refreshReminders()
             dismiss()
         } catch let error as EaseDataError {
@@ -296,15 +319,53 @@ struct LogSheetView: View {
         }
     }
 
+    private func saveWeight(weight: Double?, bodyFat: Double?) throws {
+        let logs = WeightLogRepository(context: modelContext)
+        if let editingLog {
+            guard let weight else { return }
+            let fatUnchanged = editingLog.weight == weight && editingLog.bodyFat == bodyFat
+            if fatUnchanged { return }
+            try logs.update(editingLog, weight: weight, bodyFat: bodyFat)
+            return
+        }
+        guard let weight else { return }
+        try logs.insert(timestamp: timestampForNewLog, weight: weight, bodyFat: bodyFat)
+    }
+
+    private var timestampForNewLog: Date {
+        if Calendar.current.isDate(selectedDate, inSameDayAs: .now) {
+            return .now
+        }
+        return CalendarDay.atHour(8, on: selectedDate)
+    }
+
+    private func saveJournal(note: String?) throws {
+        let hasJournal = diet != nil || !tags.isEmpty || note != nil || existing != nil
+        guard hasJournal else { return }
+        var patch = DailyRecordPatch()
+        patch.dietStatus = .set(diet)
+        patch.tags = .set(VariableTag.sanitized(Array(tags)))
+        patch.note = .set(note)
+        try DailyRecordRepository(context: modelContext).upsert(on: selectedDate, patch: patch)
+    }
+
     private func presentError(_ key: String) {
         errorKey = key
         errorPulse += 1
     }
 
-    private func deleteRecord() {
-        try? DailyRecordRepository(context: modelContext).delete(on: selectedDate)
-        refreshReminders()
-        dismiss()
+    private func deleteCurrent() {
+        do {
+            if let editingLog {
+                try WeightLogRepository(context: modelContext).delete(editingLog)
+            } else if logsOnSelectedDay.isEmpty {
+                try DailyRecordRepository(context: modelContext).delete(on: selectedDate)
+            }
+            refreshReminders()
+            dismiss()
+        } catch {
+            presentError("onboarding.error.invalid")
+        }
     }
 
     private func refreshReminders() {

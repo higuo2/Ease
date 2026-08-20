@@ -18,12 +18,19 @@ private struct ChartTagMark: Identifiable {
     var tags: [VariableTag]
 }
 
+private struct ChartWeightPoint: Identifiable {
+    var id: String
+    var date: Date
+    var weight: Double
+}
+
 struct TrendChartCard: View {
     let records: [DailyRecord]
+    let logs: [WeightLog]
     let healthByDay: [String: HealthDaySnapshot]
     let range: ChartRange
     let onSelectRange: (ChartRange) -> Void
-    let onSelectDate: (Date) -> Void
+    let onSelectLog: (WeightLog) -> Void
 
     @State private var preview: ChartDayPreview?
 
@@ -51,20 +58,40 @@ struct TrendChartCard: View {
         records.filter { $0.date >= rangeStart && $0.date <= rangeEnd }
     }
 
-    private var weightPoints: [(date: Date, weight: Double)] {
-        recordsInRange.compactMap { record in
-            guard let weight = record.weight else { return nil }
-            return (record.date, weight)
+    private var chartWeightPoints: [ChartWeightPoint] {
+        let fromLogs = logsInRange.map {
+            ChartWeightPoint(id: $0.id.uuidString, date: $0.timestamp, weight: $0.weight)
         }
+        let daysWithLogs = Set(logsInRange.map { CalendarDay.dayKey(from: $0.timestamp) })
+        let fromLegacy = recordsInRange.compactMap { record -> ChartWeightPoint? in
+            guard let weight = record.weight, !daysWithLogs.contains(record.dayKey) else { return nil }
+            return ChartWeightPoint(id: "legacy-\(record.dayKey)", date: record.date, weight: weight)
+        }
+        return (fromLogs + fromLegacy).sorted { $0.date < $1.date }
+    }
+
+    private var weightPoints: [(date: Date, weight: Double)] {
+        chartWeightPoints.map { ($0.date, $0.weight) }
+    }
+
+    private var logsInRange: [WeightLog] {
+        let end = CalendarDay.endOfDay(rangeEnd)
+        return logs.filter { $0.timestamp >= rangeStart && $0.timestamp < end }
     }
 
     private var movingAveragePoints: [(date: Date, value: Double)] {
-        weightPoints.compactMap { point in
-            guard let ma = WeightMetrics.sevenDayMA(records: records, endingOn: point.date) else {
-                return nil
+        let lastPerDay = Dictionary(
+            chartWeightPoints.map { (CalendarDay.dayKey(from: $0.date), $0) },
+            uniquingKeysWith: { lhs, rhs in lhs.date < rhs.date ? rhs : lhs }
+        )
+        return lastPerDay.values
+            .sorted { $0.date < $1.date }
+            .compactMap { point in
+                guard let ma = WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: point.date) else {
+                    return nil
+                }
+                return (point.date, ma)
             }
-            return (point.date, ma)
-        }
     }
 
     private var energyPoints: [(date: Date, value: Double)] {
@@ -109,7 +136,7 @@ struct TrendChartCard: View {
             guard !dayTags.isEmpty else { return nil }
             return ChartTagMark(
                 date: day,
-                y: record(on: day)?.weight ?? weightYDomain.upperBound,
+                y: WeightMetrics.weightOnDay(records: records, logs: logs, on: day) ?? weightYDomain.upperBound,
                 tags: dayTags
             )
         }
@@ -170,10 +197,10 @@ struct TrendChartCard: View {
 
     private var weightChart: some View {
         Chart {
-            if weightPoints.count >= 2 {
-                ForEach(weightPoints, id: \.date) { point in
+            if chartWeightPoints.count >= 2 {
+                ForEach(chartWeightPoints) { point in
                     LineMark(
-                        x: .value("chart.axis.date", point.date, unit: .day),
+                        x: .value("chart.axis.date", point.date),
                         y: .value("chart.axis.weight", point.weight)
                     )
                     .foregroundStyle(EasePalette.chartMuted)
@@ -182,9 +209,9 @@ struct TrendChartCard: View {
                 }
             }
 
-            ForEach(weightPoints, id: \.date) { point in
+            ForEach(chartWeightPoints) { point in
                 PointMark(
-                    x: .value("chart.axis.date", point.date, unit: .day),
+                    x: .value("chart.axis.date", point.date),
                     y: .value("chart.axis.weight", point.weight)
                 )
                 .foregroundStyle(EasePalette.chartMuted)
@@ -193,7 +220,7 @@ struct TrendChartCard: View {
 
             ForEach(movingAveragePoints, id: \.date) { point in
                 LineMark(
-                    x: .value("chart.axis.date", point.date, unit: .day),
+                    x: .value("chart.axis.date", point.date),
                     y: .value("chart.axis.ma", point.value)
                 )
                 .foregroundStyle(EasePalette.accent)
@@ -203,7 +230,7 @@ struct TrendChartCard: View {
 
             ForEach(tagMarks) { mark in
                 PointMark(
-                    x: .value("chart.axis.date", mark.date, unit: .day),
+                    x: .value("chart.axis.date", mark.date),
                     y: .value("chart.axis.weight", mark.y)
                 )
                 .symbolSize(0)
@@ -219,7 +246,7 @@ struct TrendChartCard: View {
             }
 
             if let preview {
-                RuleMark(x: .value("chart.axis.date", preview.date, unit: .day))
+                RuleMark(x: .value("chart.axis.date", preview.date))
                     .foregroundStyle(EasePalette.accent.opacity(0.35))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
             }
@@ -361,13 +388,13 @@ struct TrendChartCard: View {
                     }
             )
             .onTapGesture { location in
-                guard let day = makePreview(at: location, proxy: proxy, geometry: geometry)?.date,
-                      let nearest = nearestRecord(to: day) else { return }
-                onSelectDate(nearest.date)
+                guard let tapped = dateAt(location, proxy: proxy, geometry: geometry),
+                      let log = nearestLog(to: tapped) else { return }
+                onSelectLog(log)
             }
     }
 
-    private func makePreview(at location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> ChartDayPreview? {
+    private func dateAt(_ location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> Date? {
         let x: CGFloat
         if let plotFrame = proxy.plotFrame {
             x = location.x - geometry[plotFrame].origin.x
@@ -377,13 +404,19 @@ struct TrendChartCard: View {
         guard let date: Date = proxy.value(atX: x) else { return nil }
         let day = CalendarDay.startOfDay(date)
         guard day >= rangeStart && day <= rangeEnd else { return nil }
+        return date
+    }
+
+    private func makePreview(at location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> ChartDayPreview? {
+        guard let date = dateAt(location, proxy: proxy, geometry: geometry) else { return nil }
+        let day = CalendarDay.startOfDay(date)
         let key = CalendarDay.dayKey(from: day)
         let record = records.first { $0.dayKey == key }
         let health = healthByDay[key]
         return ChartDayPreview(
             date: day,
-            weight: record?.weight,
-            movingAverage: WeightMetrics.sevenDayMA(records: records, endingOn: day),
+            weight: WeightMetrics.weightOnDay(records: records, logs: logs, on: day),
+            movingAverage: WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: day),
             diet: record?.dietStatus,
             tags: HealthDisplay.tags(record: record, isMenstrual: health?.isMenstrual == true),
             sleepHours: health?.previousNightSleepHours,
@@ -391,14 +424,13 @@ struct TrendChartCard: View {
         )
     }
 
-    private func nearestRecord(to date: Date) -> DailyRecord? {
-        let target = CalendarDay.startOfDay(date)
-        let maxDelta: TimeInterval = 2 * 24 * 60 * 60
-        return recordsInRange
-            .filter { abs($0.date.timeIntervalSince(target)) <= maxDelta }
-            .min { lhs, rhs in
-                abs(lhs.date.timeIntervalSince(target)) < abs(rhs.date.timeIntervalSince(target))
-            }
+    private func nearestLog(to date: Date) -> WeightLog? {
+        let key = CalendarDay.dayKey(from: date)
+        let onDay = logsInRange.filter { CalendarDay.dayKey(from: $0.timestamp) == key }
+        guard !onDay.isEmpty else { return nil }
+        return onDay.min { lhs, rhs in
+            abs(lhs.timestamp.timeIntervalSince(date)) < abs(rhs.timestamp.timeIntervalSince(date))
+        }
     }
 
     private func record(on day: Date) -> DailyRecord? {

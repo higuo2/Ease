@@ -43,4 +43,18 @@ enum CalendarDay {
         calendar.date(byAdding: .day, value: value, to: startOfDay(date, calendar: calendar))
             ?? startOfDay(date, calendar: calendar)
     }
+
+    static func atHour(
+        _ hour: Int,
+        minute: Int = 0,
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> Date {
+        calendar.date(
+            bySettingHour: hour,
+            minute: minute,
+            second: 0,
+            of: startOfDay(date, calendar: calendar)
+        ) ?? startOfDay(date, calendar: calendar)
+    }
 }

@@ -23,26 +23,30 @@ struct DailyRecordRepository {
         return try context.fetch(descriptor)
     }
 
+    /// Journal fields (`dietStatus` / `tags` / `note`) upsert into `DailyRecord`.
+    /// `patch.weight` / `patch.bodyFat` insert a `WeightLog` and never write the legacy fields.
     @discardableResult
-    func upsert(on date: Date, patch: DailyRecordPatch) throws -> DailyRecord {
+    func upsert(on date: Date, patch: DailyRecordPatch) throws -> DailyRecord? {
         guard !CalendarDay.isFuture(date, calendar: calendar) else {
             throw EaseDataError.futureDate
         }
         guard !patch.isEmpty else { throw EaseDataError.emptyPatch }
 
+        let insertedLog = try insertWeightIfNeeded(on: date, patch: patch)
+        let next = try journalState(on: date, patch: patch)
         let existing = try record(on: date)
-        let record = existing ?? DailyRecord(date: date, calendar: calendar)
-        let snapshot = RecordSnapshot(record)
-        do {
-            try apply(patch, to: record)
-            guard record.weight != nil || record.dietStatus != nil else {
-                throw EaseDataError.emptyRecord
-            }
-        } catch {
-            snapshot.restore(to: record)
-            throw error
+        let hasJournal = next.diet != nil || !next.tags.isEmpty || next.note != nil
+        if !insertedLog && !hasJournal && existing == nil {
+            throw EaseDataError.emptyRecord
+        }
+        if existing == nil && !hasJournal {
+            return nil
         }
 
+        let record = existing ?? DailyRecord(date: date, calendar: calendar)
+        record.dietStatus = next.diet
+        record.variableTags = next.tags
+        record.note = next.note
         record.updatedAt = .now
         if existing == nil {
             context.insert(record)
@@ -65,34 +69,59 @@ struct DailyRecordRepository {
         try context.save()
     }
 
-    private func apply(_ patch: DailyRecordPatch, to record: DailyRecord) throws {
-        var weight = record.weight
+    private func insertWeightIfNeeded(on date: Date, patch: DailyRecordPatch) throws -> Bool {
+        let weight: Double?
         switch patch.weight {
         case .unchanged:
-            break
+            return false
         case .set(let value):
             weight = try value.map(MeasurementBounds.validatedWeight)
         }
-        record.weight = weight
+        guard let weight else { return false }
 
-        var bodyFat = record.bodyFat
+        let bodyFat: Double?
         switch patch.bodyFat {
         case .unchanged:
-            break
+            bodyFat = nil
         case .set(let value):
             bodyFat = try value.map(MeasurementBounds.validatedBodyFat)
         }
-        record.bodyFat = bodyFat
 
-        var diet = record.dietStatus
-        patch.dietStatus.apply(to: &diet)
-        record.dietStatus = diet
+        let timestamp: Date
+        if calendar.isDate(date, inSameDayAs: .now) {
+            timestamp = .now
+        } else {
+            timestamp = CalendarDay.atHour(8, on: date, calendar: calendar)
+        }
+        try WeightLogRepository(context: context, calendar: calendar)
+            .insert(timestamp: timestamp, weight: weight, bodyFat: bodyFat)
+        return true
+    }
 
-        var tags = record.variableTags
-        patch.tags.apply(to: &tags)
-        record.variableTags = VariableTag.sanitized(tags)
+    private struct JournalState {
+        var diet: DietStatus?
+        var tags: [VariableTag]
+        var note: String?
+    }
 
-        var note = record.note
+    private func journalState(on date: Date, patch: DailyRecordPatch) throws -> JournalState {
+        let existing = try record(on: date)
+        var diet = existing?.dietStatus
+        var tags = existing?.variableTags ?? []
+        var note = existing?.note
+
+        switch patch.dietStatus {
+        case .unchanged:
+            break
+        case .set(let value):
+            diet = value
+        }
+        switch patch.tags {
+        case .unchanged:
+            break
+        case .set(let value):
+            tags = VariableTag.sanitized(value)
+        }
         switch patch.note {
         case .unchanged:
             break
@@ -100,7 +129,20 @@ struct DailyRecordRepository {
             let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
             note = (trimmed?.isEmpty == false) ? trimmed : nil
         }
-        record.note = note
+
+        let journalTouched: Bool = {
+            if case .unchanged = patch.dietStatus,
+               case .unchanged = patch.tags,
+               case .unchanged = patch.note {
+                return false
+            }
+            return true
+        }()
+
+        if !journalTouched && existing == nil {
+            return JournalState(diet: nil, tags: [], note: nil)
+        }
+        return JournalState(diet: diet, tags: tags, note: note)
     }
 
     @discardableResult
@@ -134,29 +176,5 @@ struct DailyRecordRepository {
         if removed {
             try context.save()
         }
-    }
-}
-
-private struct RecordSnapshot {
-    var weight: Double?
-    var bodyFat: Double?
-    var dietStatusRaw: String?
-    var tags: [String]
-    var note: String?
-
-    init(_ record: DailyRecord) {
-        weight = record.weight
-        bodyFat = record.bodyFat
-        dietStatusRaw = record.dietStatusRaw
-        tags = record.tags
-        note = record.note
-    }
-
-    func restore(to record: DailyRecord) {
-        record.weight = weight
-        record.bodyFat = bodyFat
-        record.dietStatusRaw = dietStatusRaw
-        record.tags = Array(tags)
-        record.note = note
     }
 }
