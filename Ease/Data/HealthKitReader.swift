@@ -1,6 +1,5 @@
 import Foundation
 import HealthKit
-import SwiftData
 
 struct HealthDaySnapshot: Sendable, Equatable {
     var dayKey: String
@@ -11,6 +10,18 @@ struct HealthDaySnapshot: Sendable, Equatable {
     var hasStripMetrics: Bool {
         activeEnergyKcal != nil || previousNightSleepHours != nil
     }
+}
+
+struct HealthKitPayload: Sendable, Equatable {
+    var byDay: [String: HealthDaySnapshot]
+    var sleep: SleepHistory
+    var cycle: CycleHistory
+
+    static let empty = HealthKitPayload(
+        byDay: [:],
+        sleep: .empty,
+        cycle: .empty
+    )
 }
 
 enum HealthDisplay {
@@ -24,39 +35,86 @@ enum HealthDisplay {
 }
 
 enum HealthKitReader {
+    static let dashboardSnapshotDays = 90
+    static let sleepHistoryNights = 30
+    static let cycleHistoryDays = 180
+
     static func load(days: Int, endingOn date: Date = .now, calendar: Calendar = .current) async -> [String: HealthDaySnapshot] {
+        await loadAll(
+            snapshotDays: max(days, 1),
+            sleepNights: max(days, 1),
+            cycleDays: max(days, 1),
+            endingOn: date,
+            calendar: calendar
+        ).byDay
+    }
+
+    /// Dashboard snapshots plus the 30-night sleep series and 180-day cycle history.
+    /// Sleep / menstrual queries are shared; HealthKit is never written.
+    static func loadAll(
+        snapshotDays: Int = dashboardSnapshotDays,
+        sleepNights: Int = sleepHistoryNights,
+        cycleDays: Int = cycleHistoryDays,
+        endingOn date: Date = .now,
+        calendar: Calendar = .current
+    ) async -> HealthKitPayload {
 #if DEBUG
         if !HKHealthStore.isHealthDataAvailable() {
-            return mockSnapshots(days: days, endingOn: date, calendar: calendar)
+            return mockPayload(
+                snapshotDays: snapshotDays,
+                sleepNights: sleepNights,
+                cycleDays: cycleDays,
+                endingOn: date,
+                calendar: calendar
+            )
         }
 #endif
-        guard HKHealthStore.isHealthDataAvailable() else { return [:] }
+        guard HKHealthStore.isHealthDataAvailable() else { return .empty }
         let store = HKHealthStore()
-        let days = max(days, 1)
-        let dayStarts = CalendarDay.datesBack(days, from: date, calendar: calendar)
-        guard let rangeStart = dayStarts.first else { return [:] }
+        let snapshotCount = max(snapshotDays, 1)
+        let sleepCount = max(sleepNights, snapshotCount)
+        let cycleCount = max(cycleDays, snapshotCount)
+
+        let snapshotStarts = CalendarDay.datesBack(snapshotCount, from: date, calendar: calendar)
+        let sleepStarts = CalendarDay.datesBack(sleepCount, from: date, calendar: calendar)
+        let cycleStarts = CalendarDay.datesBack(cycleCount, from: date, calendar: calendar)
+        guard let energyStart = snapshotStarts.first,
+              let cycleStart = cycleStarts.first else { return .empty }
         let rangeEnd = CalendarDay.endOfDay(date, calendar: calendar)
 
-        var snapshots: [String: HealthDaySnapshot] = [:]
-        for start in dayStarts {
-            let key = CalendarDay.dayKey(from: start, calendar: calendar)
-            snapshots[key] = HealthDaySnapshot(dayKey: key)
-        }
-
-        async let energy = loadEnergy(store: store, start: rangeStart, end: rangeEnd, calendar: calendar)
-        async let sleep = loadSleep(store: store, dayStarts: dayStarts, calendar: calendar)
-        async let period = loadMenstrual(store: store, start: rangeStart, end: rangeEnd, calendar: calendar)
+        async let energy = loadEnergy(store: store, start: energyStart, end: rangeEnd, calendar: calendar)
+        async let sleep = loadSleep(store: store, dayStarts: sleepStarts, calendar: calendar)
+        async let period = loadMenstrual(store: store, start: cycleStart, end: rangeEnd, calendar: calendar)
 
         let energyMap = await energy
         let sleepMap = await sleep
         let periodSet = await period
 
-        for key in snapshots.keys {
-            snapshots[key]?.activeEnergyKcal = energyMap[key]
-            snapshots[key]?.previousNightSleepHours = sleepMap[key]
-            snapshots[key]?.isMenstrual = periodSet.contains(key)
+        var byDay: [String: HealthDaySnapshot] = [:]
+        for start in snapshotStarts {
+            let key = CalendarDay.dayKey(from: start, calendar: calendar)
+            byDay[key] = HealthDaySnapshot(
+                dayKey: key,
+                activeEnergyKcal: energyMap[key],
+                previousNightSleepHours: sleepMap[key],
+                isMenstrual: periodSet.contains(key)
+            )
         }
-        return snapshots
+
+        return HealthKitPayload(
+            byDay: byDay,
+            sleep: SleepHistory.make(
+                hoursByDay: sleepMap,
+                nights: sleepNights,
+                endingOn: date,
+                calendar: calendar
+            ),
+            cycle: CycleMetrics.make(
+                periodDayKeys: periodSet,
+                endingOn: date,
+                calendar: calendar
+            )
+        )
     }
 
     private static func loadEnergy(
@@ -168,7 +226,13 @@ enum HealthKitReader {
         var days: Set<String> = []
         for sample in samples {
             guard isMenstrualFlow(sample.value) else { continue }
-            days.insert(CalendarDay.dayKey(from: sample.startDate, calendar: calendar))
+            var cursor = CalendarDay.startOfDay(sample.startDate, calendar: calendar)
+            days.insert(CalendarDay.dayKey(from: cursor, calendar: calendar))
+            cursor = CalendarDay.addingDays(1, to: cursor, calendar: calendar)
+            while cursor < sample.endDate {
+                days.insert(CalendarDay.dayKey(from: cursor, calendar: calendar))
+                cursor = CalendarDay.addingDays(1, to: cursor, calendar: calendar)
+            }
         }
         return days
     }
@@ -192,22 +256,72 @@ enum HealthKitReader {
     }
 
 #if DEBUG
-    private static func mockSnapshots(days: Int, endingOn date: Date, calendar: Calendar) -> [String: HealthDaySnapshot] {
-        let count = max(days, 1)
-        let dayStarts = CalendarDay.datesBack(count, from: date, calendar: calendar)
-        let todayKey = CalendarDay.dayKey(from: date, calendar: calendar)
-        var snapshots: [String: HealthDaySnapshot] = [:]
-        for (offset, start) in dayStarts.enumerated() {
+    private static func mockPayload(
+        snapshotDays: Int,
+        sleepNights: Int,
+        cycleDays: Int,
+        endingOn date: Date,
+        calendar: Calendar
+    ) -> HealthKitPayload {
+        let sleepMap = mockSleepHours(days: max(snapshotDays, sleepNights), endingOn: date, calendar: calendar)
+        let periodSet = mockPeriodDays(days: max(snapshotDays, cycleDays), endingOn: date, calendar: calendar)
+        let snapshotStarts = CalendarDay.datesBack(max(snapshotDays, 1), from: date, calendar: calendar)
+        var byDay: [String: HealthDaySnapshot] = [:]
+        for (offset, start) in snapshotStarts.enumerated() {
             let key = CalendarDay.dayKey(from: start, calendar: calendar)
-            let dayIndex = dayStarts.count - 1 - offset
-            snapshots[key] = HealthDaySnapshot(
+            let dayIndex = snapshotStarts.count - 1 - offset
+            byDay[key] = HealthDaySnapshot(
                 dayKey: key,
                 activeEnergyKcal: Double(320 + (dayIndex * 17) % 280).rounded(),
-                previousNightSleepHours: MeasurementBounds.roundedToTenth(6.5 + Double(dayIndex % 4) * 0.5),
-                isMenstrual: key == todayKey || dayIndex % 28 < 5
+                previousNightSleepHours: sleepMap[key],
+                isMenstrual: periodSet.contains(key)
             )
         }
-        return snapshots
+        return HealthKitPayload(
+            byDay: byDay,
+            sleep: SleepHistory.make(
+                hoursByDay: sleepMap,
+                nights: sleepNights,
+                endingOn: date,
+                calendar: calendar
+            ),
+            cycle: CycleMetrics.make(
+                periodDayKeys: periodSet,
+                endingOn: date,
+                calendar: calendar
+            )
+        )
+    }
+
+    private static func mockSleepHours(
+        days: Int,
+        endingOn date: Date,
+        calendar: Calendar
+    ) -> [String: Double] {
+        let dayStarts = CalendarDay.datesBack(max(days, 1), from: date, calendar: calendar)
+        var hours: [String: Double] = [:]
+        for (offset, start) in dayStarts.enumerated() {
+            let dayIndex = dayStarts.count - 1 - offset
+            let key = CalendarDay.dayKey(from: start, calendar: calendar)
+            hours[key] = MeasurementBounds.roundedToTenth(6.5 + Double(dayIndex % 4) * 0.5)
+        }
+        return hours
+    }
+
+    private static func mockPeriodDays(
+        days: Int,
+        endingOn date: Date,
+        calendar: Calendar
+    ) -> Set<String> {
+        let dayStarts = CalendarDay.datesBack(max(days, 1), from: date, calendar: calendar)
+        var keys: Set<String> = []
+        for (offset, start) in dayStarts.enumerated() {
+            let dayIndex = dayStarts.count - 1 - offset
+            if dayIndex % 28 < 5 {
+                keys.insert(CalendarDay.dayKey(from: start, calendar: calendar))
+            }
+        }
+        return keys
     }
 #endif
 }

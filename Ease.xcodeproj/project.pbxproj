@@ -49,6 +49,8 @@
 		A1000000000000000000003C /* WeightLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009B /* WeightLog.swift */; };
 		A1000000000000000000003D /* WeightLogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009C /* WeightLogRepository.swift */; };
 		A1000000000000000000003E /* LegacyWeightMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009D /* LegacyWeightMigrator.swift */; };
+		A1000000000000000000003F /* SleepHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009E /* SleepHistory.swift */; };
+		A10000000000000000000039 /* CycleMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000009F /* CycleMetrics.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -96,6 +98,8 @@
 		A1000000000000000000009B /* WeightLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLog.swift; sourceTree = "<group>"; };
 		A1000000000000000000009C /* WeightLogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLogRepository.swift; sourceTree = "<group>"; };
 		A1000000000000000000009D /* LegacyWeightMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyWeightMigrator.swift; sourceTree = "<group>"; };
+		A1000000000000000000009E /* SleepHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepHistory.swift; sourceTree = "<group>"; };
+		A1000000000000000000009F /* CycleMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleMetrics.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -172,6 +176,8 @@
 				A1000000000000000000004C /* CSVExporter.swift */,
 				A1000000000000000000008A /* PermissionsService.swift */,
 				A10000000000000000000098 /* HealthKitReader.swift */,
+				A1000000000000000000009E /* SleepHistory.swift */,
+				A1000000000000000000009F /* CycleMetrics.swift */,
 				A10000000000000000000099 /* NotificationScheduler.swift */,
 				A1000000000000000000009A /* ScaleOCR.swift */,
 			);
@@ -346,6 +352,8 @@
 				A1000000000000000000003C /* WeightLog.swift in Sources */,
 				A1000000000000000000003D /* WeightLogRepository.swift in Sources */,
 				A1000000000000000000003E /* LegacyWeightMigrator.swift in Sources */,
+				A1000000000000000000003F /* SleepHistory.swift in Sources */,
+				A10000000000000000000039 /* CycleMetrics.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

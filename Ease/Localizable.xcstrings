@@ -473,6 +473,22 @@
         }
       }
     },
+    "format.sleepDuration" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dh %dm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d小时 %d分钟"
+          }
+        }
+      }
+    },
     "format.targetKg" : {
       "localizations" : {
         "en" : {

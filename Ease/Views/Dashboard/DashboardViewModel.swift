@@ -27,6 +27,8 @@ final class DashboardViewModel {
     var editingDate = Date.now
     var editingLogID: UUID?
     var healthByDay: [String: HealthDaySnapshot] = [:]
+    var sleepHistory = SleepHistory.empty
+    var cycleHistory = CycleHistory.empty
 
     func openLog(for date: Date) {
         editingDate = CalendarDay.startOfDay(date)
@@ -45,7 +47,10 @@ final class DashboardViewModel {
     }
 
     func reloadHealthAndNotifications(enabled: Bool, records: [DailyRecord], logs: [WeightLog]) async {
-        healthByDay = await HealthKitReader.load(days: 90)
+        let payload = await HealthKitReader.loadAll()
+        healthByDay = payload.byDay
+        sleepHistory = payload.sleep
+        cycleHistory = payload.cycle
         let todayKey = CalendarDay.dayKey(from: .now)
         await NotificationScheduler.refresh(
             enabled: enabled,

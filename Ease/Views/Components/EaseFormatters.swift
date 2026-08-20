@@ -37,6 +37,17 @@ enum EaseFormatters {
         String(format: String(localized: "format.hours"), locale: .current, value)
     }
 
+    /// Compact asleep duration, e.g. `7h 59m`.
+    static func sleepDuration(_ hours: Double) -> String {
+        let totalMinutes = max(0, Int((hours * 60).rounded()))
+        return String(
+            format: String(localized: "format.sleepDuration"),
+            locale: .current,
+            totalMinutes / 60,
+            totalMinutes % 60
+        )
+    }
+
     /// Locale-ordered numeric date with zero-padded month/day (avoids `19/ 8/2026`).
     static func numericDate(_ date: Date) -> String {
         date.formatted(
