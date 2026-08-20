@@ -44,16 +44,7 @@ struct LogSheetView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         EaseCard {
-                            DatePicker(
-                                "log.date",
-                                selection: $selectedDate,
-                                in: ...Date.now,
-                                displayedComponents: .date
-                            )
-                            .datePickerStyle(.compact)
-                            .tint(EasePalette.accent)
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundStyle(EasePalette.primaryText)
+                            logDateRow
                         }
                         EaseCard {
                             VStack(spacing: 20) {
@@ -144,6 +135,32 @@ struct LogSheetView: View {
             .sensoryFeedback(.error, trigger: errorPulse)
         }
         .preferredColorScheme(.light)
+    }
+
+    private var logDateRow: some View {
+        HStack {
+            Text("log.date")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(EasePalette.primaryText)
+            Spacer(minLength: 12)
+            Text(EaseFormatters.numericDate(selectedDate))
+                .font(.system(size: 16, weight: .regular))
+                .monospacedDigit()
+                .foregroundStyle(EasePalette.primaryText)
+                .frame(minWidth: 120, minHeight: 32, alignment: .trailing)
+                .overlay {
+                    DatePicker(
+                        "log.date",
+                        selection: $selectedDate,
+                        in: ...Date.now,
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .tint(EasePalette.accent)
+                    .opacity(0.02)
+                }
+        }
     }
 
     private var isNumericError: Bool {

@@ -11,6 +11,13 @@ private struct ChartDayPreview: Equatable {
     var activeEnergyKcal: Double?
 }
 
+private struct ChartTagMark: Identifiable {
+    var id: Date { date }
+    var date: Date
+    var y: Double
+    var tags: [VariableTag]
+}
+
 struct TrendChartCard: View {
     let records: [DailyRecord]
     let healthByDay: [String: HealthDaySnapshot]
@@ -86,6 +93,28 @@ struct TrendChartCard: View {
         CalendarDay.datesBack(7, from: .now)
     }
 
+    /// Keep a usable Y span so a single weight point does not collapse into a blank plot.
+    private var weightYDomain: ClosedRange<Double> {
+        let values = weightPoints.map(\.weight) + movingAveragePoints.map(\.value)
+        let minV = values.min() ?? 0
+        let maxV = values.max() ?? 0
+        let mid = (minV + maxV) / 2
+        let halfSpan = max((maxV - minV) / 2 + 0.3, 0.6)
+        return (mid - halfSpan)...(mid + halfSpan)
+    }
+
+    private var tagMarks: [ChartTagMark] {
+        visibleDays.compactMap { day in
+            let dayTags = tags(on: day)
+            guard !dayTags.isEmpty else { return nil }
+            return ChartTagMark(
+                date: day,
+                y: record(on: day)?.weight ?? weightYDomain.upperBound,
+                tags: dayTags
+            )
+        }
+    }
+
     var body: some View {
         EaseCard {
             VStack(alignment: .leading, spacing: 16) {
@@ -141,33 +170,30 @@ struct TrendChartCard: View {
 
     private var weightChart: some View {
         Chart {
-            ForEach(weightPoints, id: \.date) { point in
-                LineMark(
-                    x: .value("chart.axis.date", point.date),
-                    y: .value("chart.axis.weight", point.weight)
-                )
-                .foregroundStyle(EasePalette.chartMuted)
-                .interpolationMethod(.catmullRom)
-                .lineStyle(StrokeStyle(lineWidth: 1.5))
-
-                PointMark(
-                    x: .value("chart.axis.date", point.date),
-                    y: .value("chart.axis.weight", point.weight)
-                )
-                .foregroundStyle(EasePalette.chartMuted)
-                .symbolSize(24)
-                .annotation(position: .top, spacing: 4) {
-                    if let tag = tags(on: point.date).first {
-                        Image(systemName: tag.systemImage)
-                            .font(.system(size: 9, weight: .regular))
-                            .foregroundStyle(EasePalette.accent)
-                    }
+            if weightPoints.count >= 2 {
+                ForEach(weightPoints, id: \.date) { point in
+                    LineMark(
+                        x: .value("chart.axis.date", point.date, unit: .day),
+                        y: .value("chart.axis.weight", point.weight)
+                    )
+                    .foregroundStyle(EasePalette.chartMuted)
+                    .interpolationMethod(.catmullRom)
+                    .lineStyle(StrokeStyle(lineWidth: 1.5))
                 }
+            }
+
+            ForEach(weightPoints, id: \.date) { point in
+                PointMark(
+                    x: .value("chart.axis.date", point.date, unit: .day),
+                    y: .value("chart.axis.weight", point.weight)
+                )
+                .foregroundStyle(EasePalette.chartMuted)
+                .symbolSize(48)
             }
 
             ForEach(movingAveragePoints, id: \.date) { point in
                 LineMark(
-                    x: .value("chart.axis.date", point.date),
+                    x: .value("chart.axis.date", point.date, unit: .day),
                     y: .value("chart.axis.ma", point.value)
                 )
                 .foregroundStyle(EasePalette.accent)
@@ -175,15 +201,36 @@ struct TrendChartCard: View {
                 .lineStyle(StrokeStyle(lineWidth: 3))
             }
 
+            ForEach(tagMarks) { mark in
+                PointMark(
+                    x: .value("chart.axis.date", mark.date, unit: .day),
+                    y: .value("chart.axis.weight", mark.y)
+                )
+                .symbolSize(0)
+                .annotation(position: .top, spacing: 6) {
+                    HStack(spacing: 2) {
+                        ForEach(mark.tags, id: \.self) { tag in
+                            Image(systemName: tag.systemImage)
+                        }
+                    }
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundStyle(EasePalette.accent)
+                }
+            }
+
             if let preview {
-                RuleMark(x: .value("chart.axis.date", preview.date))
+                RuleMark(x: .value("chart.axis.date", preview.date, unit: .day))
                     .foregroundStyle(EasePalette.accent.opacity(0.35))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
             }
         }
         .chartXScale(domain: xDomain)
+        .chartYScale(domain: weightYDomain)
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
+        .chartPlotStyle { plot in
+            plot.padding(.top, 18)
+        }
         .frame(height: 180)
         .chartOverlay { proxy in
             GeometryReader { geometry in

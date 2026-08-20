@@ -37,6 +37,16 @@ enum EaseFormatters {
         String(format: String(localized: "format.hours"), locale: .current, value)
     }
 
+    /// Locale-ordered numeric date with zero-padded month/day (avoids `19/ 8/2026`).
+    static func numericDate(_ date: Date) -> String {
+        date.formatted(
+            Date.FormatStyle()
+                .year(.defaultDigits)
+                .month(.twoDigits)
+                .day(.twoDigits)
+        )
+    }
+
     static func parseDecimal(_ text: String) -> Double? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
