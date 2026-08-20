@@ -14,10 +14,13 @@ enum ScaleOCR {
     }
 
     static func recognize(image: UIImage) async -> Result {
-        guard let cgImage = flattened(image) else { return Result() }
-        return await withCheckedContinuation { continuation in
+        await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
-                continuation.resume(returning: runVision(cgImage: cgImage))
+                let result: Result = autoreleasepool {
+                    guard let cgImage = flattened(image) else { return Result() }
+                    return runVision(cgImage: cgImage)
+                }
+                continuation.resume(returning: result)
             }
         }
     }

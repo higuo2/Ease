@@ -99,7 +99,7 @@ final class LegacyWeightMigratorTests: EaseStoreTestCase {
         XCTAssertTrue(try profiles.profile().hasMigratedWeightLogs)
     }
 
-    func test_迁移_无UserProfile_直接返回() throws {
+    func test_迁移_无UserProfile_仍迁移并创建profile() throws {
         let day = calendar.testDate(2026, 8, 10)
         let record = DailyRecord(date: day, calendar: calendar)
         record.weight = 70.0
@@ -108,6 +108,10 @@ final class LegacyWeightMigratorTests: EaseStoreTestCase {
 
         try LegacyWeightMigrator.run(context: context, calendar: calendar)
 
-        XCTAssertTrue(try fetchAll(WeightLog.self).isEmpty)
+        XCTAssertEqual(try fetchAll(WeightLog.self).count, 1)
+        XCTAssertEqual(try fetchAll(WeightLog.self).first?.weight, 70.0)
+        let profile = try profiles.profile()
+        XCTAssertTrue(profile.hasMigratedWeightLogs)
+        XCTAssertFalse(profile.hasCompletedOnboarding)
     }
 }

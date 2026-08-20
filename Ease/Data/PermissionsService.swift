@@ -4,8 +4,7 @@ import UserNotifications
 
 enum PermissionsService {
     static func requestHealthKitRead() async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
-        let store = HKHealthStore()
+        guard let store = HealthKitStore.shared else { return }
         var read: Set<HKObjectType> = []
         if let energy = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) {
             read.insert(energy)

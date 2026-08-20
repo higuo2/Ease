@@ -1,6 +1,14 @@
 import Foundation
 import HealthKit
 
+/// One store for the process lifetime. Apple documents `HKHealthStore` as a shared client, not a per-call object.
+enum HealthKitStore {
+    static let shared: HKHealthStore? = {
+        guard HKHealthStore.isHealthDataAvailable() else { return nil }
+        return HKHealthStore()
+    }()
+}
+
 struct HealthDaySnapshot: Sendable, Equatable {
     var dayKey: String
     var activeEnergyKcal: Double?
@@ -69,8 +77,7 @@ enum HealthKitReader {
             )
         }
 #endif
-        guard HKHealthStore.isHealthDataAvailable() else { return .empty }
-        let store = HKHealthStore()
+        guard let store = HealthKitStore.shared else { return .empty }
         let snapshotCount = max(snapshotDays, 1)
         let sleepCount = max(sleepNights, snapshotCount)
         let cycleCount = max(cycleDays, snapshotCount)

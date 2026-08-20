@@ -5,10 +5,7 @@ import SwiftData
 @MainActor
 enum LegacyWeightMigrator {
     static func run(context: ModelContext, calendar: Calendar = .current) throws {
-        let profiles = try context.fetch(
-            FetchDescriptor<UserProfile>(sortBy: [SortDescriptor(\.updatedAt, order: .reverse)])
-        )
-        guard let profile = profiles.first else { return }
+        let profile = try UserProfileRepository(context: context, calendar: calendar).profile()
         guard !profile.hasMigratedWeightLogs else { return }
 
         let records = try context.fetch(FetchDescriptor<DailyRecord>())
