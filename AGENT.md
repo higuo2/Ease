@@ -14,7 +14,7 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
   - `WeightLog`: one row per weigh-in (`id`, `timestamp`, `weight`, `bodyFat?`). Many per day. Insert on save; do not overwrite the day's other logs. No Unique Constraint. No CloudKit `@Relationship` to `DailyRecord`. Runtime source of truth for weight.
   - Startup migrator (idempotent, `UserProfile.hasMigratedWeightLogs`): copy each `DailyRecord` that still has `weight` into a `WeightLog` only if that `dayKey` has no `WeightLog` yet. Leave the old optional fields populated.
 - CloudKit conflicts: same `DailyRecord.dayKey` or same `WeightLog.id` → keep the newer `updatedAt`. Multiple `WeightLog`s on one day are valid — never collapse them by date.
-- v1.2 models (do not implement until asked): `MetricDefinition` + `MetricLog`, split like weight vs day journal. No CloudKit `@Relationship`. No Unique Constraint.
+- v1.2 models (do not implement until asked): `MetricDefinition` + `MetricLog`, split like weight vs day journal. No CloudKit `@Relationship`. No Unique Constraint. Dashboard gray metric line shows only `isEnabled` metrics; disabled keys stay out of the home card even if that day has `MetricLog`s.
 - Keep views modularized. Extract reusable UI components (cards, buttons, chart markers, day picker, health-detail sheets) into separate files.
 
 # ⚠️ Design System & Visual Guidelines (Strictly Enforced)
@@ -65,14 +65,14 @@ Top → bottom, this order is mandatory:
 1. Nav: title `Ease` + trailing settings button.
 2. Day Picker Header (week / month). Selected day drives the ring, health cards, weight card, and FAB. No future dates.
 3. Purple weight-goal progress ring (already lost kg / remaining kg). At 100%, show `Target X.X kg` with no celebration. Clamp progress to 0...1.
-   v1.2: optional gray pace line under the ring (`At this pace, around 12 Oct 2026.`). Hide per PRD §8.3; never a countdown badge.
+   v1.2: optional gray pace line under the ring (`At this pace, around 12 Oct 2026.`). Hide per PRD §8.3 (incl. MAD filter then OLS, and all hide-guards). Never a countdown badge.
 4. Semantic health cards (hide any card with no permission or no data — no placeholder dashes):
    - Sleep (mint) → Sleep Detail Sheet.
    - Period (pink) → Cycle Detail Sheet.
    - Active Energy (orange) → display only, not tappable into a calorie goal.
    Diet pending/selected and travel/bowel icons stay neutral, not tinted.
 5. Main card: large **selected-day latest** `WeightLog` weight; optional body fat on a secondary line; `BMI 21.4` as a number only. If that day has no log, fall back to the global latest weight.
-   v1.2: if enabled metrics have a log that day, one extra gray line of latest values. No extra macaron cards for waist/water.
+   v1.2: one extra gray line of latest values **only for enabled metrics** that have a log that day. Disabled metrics never appear here, even if logs exist. No extra macaron cards for waist/water.
 6. Chart card: `7 / 30 / 90` segmented control (X range only; MA window stays 7 calendar days). Plot **every** `WeightLog` in range. De-emphasize individual points; highlight 7-day MA (last weigh-in per calendar day). SF Symbol markers on days. A row of last-7-day diet icons under the chart. If fewer than 7 calendar days have a weight, draw points/line only — **no MA**. Do not overlay gray HealthKit sleep/energy bars on this chart.
 7. FAB `+` above the Home Indicator; opens the log sheet for the **selected day**.
 
@@ -88,7 +88,7 @@ OCR is not a separate screen; on failure leave fields empty, no error alert.
 
 ### Settings Sheet
 Height, start weight, target weight, sleep target hours, notifications master switch, export CSV, delete all data (records + weight logs + v1.2 metrics + profile). Changing start/target recomputes the ring immediately.
-v1.2 on the same sheet: weight/diet reminder times (`hourAndMinute`), Import CSV (preview sheet before write), metric enable/add. Import preview is a white card list of counts, not a spreadsheet editor.
+v1.2 on the same sheet: weight/diet reminder times (`hourAndMinute`, device-local wall clock; reschedule on system time-zone change), Import CSV (preview sheet before write; truncate after 5000 rows, do not reject the whole file), metric enable/add. Import preview is a white card list of counts (incl. truncated), not a spreadsheet editor.
 
 ### Sleep Detail Sheet
 Last-night duration (`7h 59m`) + sleep-target ring (hide the ring if last night has no data). 30-day asleep bar chart. Average of nights that have data. Mint/teal accents allowed on this sheet only.

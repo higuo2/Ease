@@ -65,6 +65,12 @@
 		T1000000000000000000001A /* UserProfileRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000000A /* UserProfileRepositoryTests.swift */; };
 		T1000000000000000000001B /* CSVExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000000B /* CSVExporterTests.swift */; };
 		T1000000000000000000001C /* NotificationSchedulePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000000C /* NotificationSchedulePolicyTests.swift */; };
+		T1000000000000000000002A /* CycleMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000000D /* CycleMetricsTests.swift */; };
+		T1000000000000000000002B /* SleepHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000000E /* SleepHistoryTests.swift */; };
+		T1000000000000000000002C /* ScaleOCRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000000F /* ScaleOCRTests.swift */; };
+		T1000000000000000000002D /* EaseFormattersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000001D /* EaseFormattersTests.swift */; };
+		T1000000000000000000002E /* DashboardSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000001E /* DashboardSnapshotTests.swift */; };
+		T1000000000000000000002F /* VariableTagTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T1000000000000000000001F /* VariableTagTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -141,6 +147,12 @@
 		T1000000000000000000000A /* UserProfileRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileRepositoryTests.swift; sourceTree = "<group>"; };
 		T1000000000000000000000B /* CSVExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporterTests.swift; sourceTree = "<group>"; };
 		T1000000000000000000000C /* NotificationSchedulePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSchedulePolicyTests.swift; sourceTree = "<group>"; };
+		T1000000000000000000000D /* CycleMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleMetricsTests.swift; sourceTree = "<group>"; };
+		T1000000000000000000000E /* SleepHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepHistoryTests.swift; sourceTree = "<group>"; };
+		T1000000000000000000000F /* ScaleOCRTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleOCRTests.swift; sourceTree = "<group>"; };
+		T1000000000000000000001D /* EaseFormattersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseFormattersTests.swift; sourceTree = "<group>"; };
+		T1000000000000000000001E /* DashboardSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardSnapshotTests.swift; sourceTree = "<group>"; };
+		T1000000000000000000001F /* VariableTagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VariableTagTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -210,6 +222,12 @@
 				T1000000000000000000000A /* UserProfileRepositoryTests.swift */,
 				T1000000000000000000000B /* CSVExporterTests.swift */,
 				T1000000000000000000000C /* NotificationSchedulePolicyTests.swift */,
+				T1000000000000000000000D /* CycleMetricsTests.swift */,
+				T1000000000000000000000E /* SleepHistoryTests.swift */,
+				T1000000000000000000000F /* ScaleOCRTests.swift */,
+				T1000000000000000000001D /* EaseFormattersTests.swift */,
+				T1000000000000000000001E /* DashboardSnapshotTests.swift */,
+				T1000000000000000000001F /* VariableTagTests.swift */,
 			);
 			path = EaseTests;
 			sourceTree = "<group>";
@@ -474,6 +492,12 @@
 				T1000000000000000000001A /* UserProfileRepositoryTests.swift in Sources */,
 				T1000000000000000000001B /* CSVExporterTests.swift in Sources */,
 				T1000000000000000000001C /* NotificationSchedulePolicyTests.swift in Sources */,
+				T1000000000000000000002A /* CycleMetricsTests.swift in Sources */,
+				T1000000000000000000002B /* SleepHistoryTests.swift in Sources */,
+				T1000000000000000000002C /* ScaleOCRTests.swift in Sources */,
+				T1000000000000000000002D /* EaseFormattersTests.swift in Sources */,
+				T1000000000000000000002E /* DashboardSnapshotTests.swift in Sources */,
+				T1000000000000000000002F /* VariableTagTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

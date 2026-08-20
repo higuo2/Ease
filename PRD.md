@@ -114,7 +114,7 @@ v1.2 在同一 Sheet 追加：体重提醒时刻、饮食提醒时刻、导入 C
 ### 3.4 `UserProfile` 增补
 * 保留：`heightCm`、`startWeight`、`targetWeight`、`notificationsEnabled`、`hasCompletedOnboarding`、`updatedAt`
 * v1.1 新增：`sleepTargetHours`（默认 8.0，精度 0.5，范围 4–12）、`hasMigratedWeightLogs`（默认 `false`）
-* v1.2 新增：`weightReminderHour` / `weightReminderMinute`（默认 8 / 0）、`dietReminderHour` / `dietReminderMinute`（默认 22 / 30）。均为本地墙钟，0–23 / 0–59。
+* v1.2 新增：`weightReminderHour` / `weightReminderMinute`（默认 8 / 0）、`dietReminderHour` / `dietReminderMinute`（默认 22 / 30）。只存整数，**不存 TimeZone / UTC 偏移**。语义永远是**当前设备本地墙钟**（0–23 / 0–59）：北京设的 8:00，飞到纽约仍是纽约当天 8:00，不得把旧时区换算成新时区的绝对时刻。详见 §8.4。
 
 ### 3.5 展示与均线（三个定义不得混用）
 * **主卡体重 / BMI 用的体重**：所选日最新一条 `WeightLog`（`timestamp` 最大）；该日没有则全局最新一条。
@@ -154,6 +154,7 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
     * 饮食提醒文案 `今日饮食状态待打卡。` — 仅当当天 `DailyRecord.dietStatus == nil`（含没有 DailyRecord）时发送。v1.1 固定 **22:30**；v1.2 改用饮食提醒时刻。
     * 两个时刻互相独立；若设成同一分钟，仍发两条，不合并。
     * 改时刻或打开总开关后，取消旧 pending 再按新时刻重排。当天该时刻已过则从次日开始。
+    * v1.2：调度必须用设备**当前** `TimeZone` 组装墙钟，`DateComponents` 不要钉死出发地时区。监听到系统时区变化（以及显著时间变化）后，取消 pending 再按新本地墙钟重排，避免跨时区漫游后半夜响铃。
 * **客观事实联动**（符合条件时追加在对应那一条后面，不另发一条）：
     * 生理期：`经期数据已同步。水分滞留可能引发正常体重波动。`
     * 睡眠不足（昨晚 asleep &lt; 6h）：`昨晚睡眠不足 6 小时。皮质醇升高可能影响数据表现。`
@@ -184,8 +185,10 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
     * 兼容 v1.0 七列无 `time`（`date,weight,bodyFat,dietStatus,tags,note`）：该行体重的 `timestamp` 记为该日本地 08:00。
     * 扩展指标：表头 `date,time,metricKey,value`（§8.2）。与体重视为两个文件，一次导入选一个。
 * **不做**：MyFitnessPal / 薄荷 / Apple Health 导出 XML、照片、任意 Excel 多 Sheet。
-* **限额**：单文件 ≤ 2 MB 或 ≤ 5000 行（先到为准）。超限拒绝整文件，不半导入。
-* **预览后才落库**：解析完弹出确认 Sheet，冷淡数字即可，例如 `Import 42 weigh-ins, 12 diet days. Skip 3 duplicates. 2 rows invalid.` 用户点 Confirm 才写入。取消则零写入。
+* **容量（截断，不整文件拒绝）**：按行流式读取，最多接受表头 + **5000 行数据**。超出的行不读入内存、不导入，也不算 invalid。预览用一行 secondary 文案标明截断，例如 `Read first 5000 rows.`，语气冷淡，不弹警告。
+    * 已读超过 **2 MB** 仍未结束（超长行 / 无换行炸弹）：停止继续读，同样按截断处理，已解析的行保留进预览。
+    * 只有文件打不开、编码不是 UTF-8、或表头无法识别时，才拒绝整文件、零写入。
+* **预览后才落库**：解析完弹出确认 Sheet，冷淡数字即可，例如 `Import 42 weigh-ins, 12 diet days. Skip 3 duplicates. 2 rows invalid.` 若发生截断，追加截断句。用户点 Confirm 才写入。取消则零写入。
 * **合并，不覆盖全库**：导入不是「用文件替换 App」。用户若要清空再进，先用「清除全部数据」。
 * **行规则**：
     * 未来日期、体重/体脂/围度越界、无法解析的行：计入 invalid，跳过。
@@ -198,7 +201,7 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 ### 8.2 扩展指标（围度、饮水等）
 目标：可记腰围/饮水，但首页不被指标卡淹没；饮食三标签仍然不可自定义。
 
-* **模型（无 CloudKit `@Relationship`）**：
+* **模型（无 CloudKit `@Relationship`）**：`MetricDefinition` 与 `MetricLog` **禁止**用 `@Relationship` 互指（与 v1.1 体重/日记拆分同一原则，避免 CloudKit 物化死锁）。用 `metricKey` 字符串对齐。
     * `MetricDefinition`：`key`（稳定英文或 `custom.<uuid>`）、`kind`（`builtin` / `custom`）、`unit`（`cm` | `ml` | `count`）、`symbolName`（允许列表内的 SF Symbol）、`isEnabled`、`sortOrder`、`updatedAt`。
     * `MetricLog`：`id`、`timestamp`、`metricKey`、`value`、`updatedAt`。一天可多条。无 Unique Constraint。
 * **内置目录**（首次进入 v1.2 写入定义，默认**关闭**，用户在设置里打开才会出现在录入表）：
@@ -211,18 +214,24 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
     | `water` | ml | 50 | 0–6000 | `drop` |
 * **自定义**：最多 **8** 条。名称用本地化显示字符串（用户输入，不进饮食 tags）。单位只能三选一。图标只能从一小份 SF Symbol 列表选。禁止 emoji、禁止自定义单位（kcal、% 宏量素等）。
 * **录入**：Log Sheet 在备注之上增加「已启用指标」可选数字行。保存时对填了的指标 **insert `MetricLog`**，空行不写。不把指标和体重绑在同一条 `WeightLog`。
-* **首页**：不新增马卡龙卡。若该所选日有任何已启用指标的 log，主卡次行之下用一行 gray 小号数字列出最新值（如 `Waist 68.0 cm`）。没有则整行隐藏。
+* **首页**：不新增马卡龙卡。主卡次行之下最多一行 gray 小号数字，只列出 **`isEnabled == true` 且该所选日有 log** 的指标最新值（如 `Waist 68.0 cm`）。关掉的指标即使当天已有 `MetricLog` 也**不得**出现在这一行，以保持界面清爽。没有任何已启用指标的当日值 → 整行隐藏。
 * **图**：体重趋势图不改成双轴。指标图放在 Log 里该指标的历史，或设置/主卡点进一个极简 Metric Sheet（白卡 + 单序列图）。v1.2 不做指标达标环、不做饮水 streak。
 * **导出**：`ease-metrics.csv` 列 `date,time,metricKey,value`。`value` 按该指标精度输出。
-* **删除**：删一条 `MetricLog` 只删该次；关掉内置指标只是 `isEnabled = false`，历史保留；清除全部数据时一并删除定义与 log。
+* **删除 / 禁用**：删一条 `MetricLog` 只删该次。关掉内置或自定义指标只把 `isEnabled = false`，**历史 `MetricLog` 全部保留**（设置/Metric Sheet 仍可看历史）；录入表不再出现该字段；首页主卡次行按上条规则立刻不渲染它。清除全部数据时一并删除定义与 log。
 
 ### 8.3 达标日估算（体重）
 不是机器学习，不是医疗建议，只是把当前斜率说成一个日期。
 
-* **序列**：用与趋势图相同的「每个日历日最后一次 `WeightLog`」。在这串点上算 7 日均线；**只用均线点**做回归（降低单日噪声）。
-* **窗口**：最近 28 个「有均线的日历日」。不足 **14** 个均线点 → 不展示估算。
-* **拟合**：均线值对日期的普通最小二乘直线。斜率朝向 `targetWeight`（减重则斜率为负，增肌式目标则相反）才有效。
-* **隐藏条件**（满足任一则不渲染，不要写「无法预测」警告）：
+* **序列**：用与趋势图相同的「每个日历日最后一次 `WeightLog`」。在这串点上算 7 日均线；回归**只用均线点**，不用原始散点。
+* **窗口**：取最近 28 个「有均线的日历日」。
+* **MAD 过滤（回归前）**：OLS 对单日手滑（如多打 10 kg）仍然敏感，7 日均线不够挡。对这 28 个均线**体重值**做中位数绝对偏差过滤后再拟合：
+    * `medianY = median(y)`，`MAD = median(|y_i − medianY|)`。
+    * `MAD == 0`（点几乎相同）→ 不过滤。
+    * 否则丢掉 `|y_i − medianY| > 3 × MAD` 的点。只影响本次估算，**不删** `WeightLog`、不改趋势图。
+    * 过滤后若均线点仍不足 **14** 个 → 不展示估算（与数据不足同一条隐藏条件，不另写文案）。
+* **拟合**：过滤后的均线值对日期做普通最小二乘直线。斜率朝向 `targetWeight`（减重则斜率为负，增肌式目标则相反）才有效。
+* **隐藏条件**（满足任一则不渲染，不要写「无法预测」警告；这些护栏必须全部实现）：
+    * 过滤后均线点不足 14 个。
     * 进度环已达 100%。
     * 斜率绝对值 &lt; 0.01 kg / 日。
     * 外推日期超过今天 + 730 天。
@@ -233,7 +242,9 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 
 ### 8.4 自定义提醒时刻
 * 设置在通知总开关下方：`Weight reminder`、`Diet reminder` 两个 `hourAndMinute` 选择器。默认 08:00 与 22:30。
+* **本地墙钟，不是绝对时刻**：`UserProfile` 只同步 hour/minute 整数。跨设备、跨时区都解读为**那台设备当前时区的墙钟**。iPhone 从北京飞到纽约后，8:00 仍是纽约早上 8:00，不要把「北京 8:00」换算成纽约 20:00 / 19:00。
+* **时区变化必须重排**：监听系统时区变化（及显著时间变化）。触发后取消全部 Ease pending，再用当前 `TimeZone` 按 §6 规则重排。不重排会出现漫游后半夜叫醒。
 * 只改**何时**发，不改**是否**发：当天已有 `WeightLog` 仍跳过体重提醒；已有 `dietStatus` 仍跳过饮食提醒。经期/睡眠不足仍是追加句，不另调时间。
 * 扩展指标（围度、饮水）v1.2 **不**增加第三、第四条提醒。
 * 总开关关闭 → 取消全部 pending，选择器可仍显示但调度不生效。
-* 时刻存 `UserProfile`，随 iCloud 同步；冲突取较新 `updatedAt` 的整份 profile（与现有 profile 去重策略一致）。
+* 时刻存 `UserProfile`，随 iCloud 同步；冲突取较新 `updatedAt` 的整份 profile（与现有 profile 去重策略一致）。hour/minute 冲突随整份 profile 走，不要单独按字段合并出「8 点 + 纽约分钟」这种半套。
