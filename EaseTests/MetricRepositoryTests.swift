@@ -194,4 +194,41 @@ final class MetricRepositoryTests: EaseStoreTestCase {
         XCTAssertTrue(try metrics.allLogs(metricKey: "hip").isEmpty)
         XCTAssertNotNil(try metrics.definition(key: "hip"))
     }
+
+    func test_批量写入_先校验后一次保存_失败则零写入() throws {
+        try metrics.seedBuiltinsIfNeeded()
+        XCTAssertTrue(try metrics.insertLogs([]).isEmpty)
+        XCTAssertThrowsError(
+            try metrics.insertLogs([
+                MetricLogDraft(
+                    timestamp: calendar.testDate(2026, 8, 10, hour: 8),
+                    metricKey: "waist",
+                    value: 68
+                ),
+                MetricLogDraft(
+                    timestamp: calendar.testDate(2026, 8, 10, hour: 8),
+                    metricKey: "wrist",
+                    value: 9
+                )
+            ])
+        ) { error in
+            XCTAssertEqual(error as? EaseDataError, .invalidMetric)
+        }
+        XCTAssertTrue(try metrics.allLogs().isEmpty)
+
+        let written = try metrics.insertLogs([
+            MetricLogDraft(
+                timestamp: calendar.testDate(2026, 8, 10, hour: 8),
+                metricKey: "leftArm",
+                value: 31.5
+            ),
+            MetricLogDraft(
+                timestamp: calendar.testDate(2026, 8, 10, hour: 8),
+                metricKey: "wrist",
+                value: 15.4
+            )
+        ])
+        XCTAssertEqual(written.count, 2)
+        XCTAssertEqual(try metrics.allLogs().count, 2)
+    }
 }

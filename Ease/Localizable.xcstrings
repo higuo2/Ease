@@ -326,6 +326,22 @@
         }
       }
     },
+    "dashboard.metrics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Measurements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "围度"
+          }
+        }
+      }
+    },
     "dashboard.trend": {
       "localizations": {
         "en": {
@@ -923,6 +939,38 @@
         }
       }
     },
+    "metric.error.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter at least one measurement."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至少填写一项。"
+          }
+        }
+      }
+    },
+    "metric.error.invalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the highlighted values."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查标红的数值。"
+          }
+        }
+      }
+    },
     "metric.head": {
       "localizations": {
         "en": {
@@ -1095,6 +1143,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "右小腿"
+          }
+        }
+      }
+    },
+    "metric.sheet.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Measurements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "围度"
           }
         }
       }

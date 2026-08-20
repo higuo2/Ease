@@ -123,10 +123,7 @@ struct SettingsSheet: View {
                 }
             }
             .sheet(item: $historyTarget) { target in
-                MetricHistorySheet(
-                    definitions: [target.definition],
-                    logs: metricLogs.filter { $0.metricKey == target.definition.key }
-                )
+                MetricSheet(date: .now, initialKey: target.definition.key)
             }
             .fileImporter(
                 isPresented: $isImporterPresented,
@@ -292,9 +289,7 @@ struct SettingsSheet: View {
             }
             do {
                 let data = try Data(contentsOf: url, options: .mappedIfSafe)
-                let specs = Dictionary(
-                    uniqueKeysWithValues: metricDefinitions.map { ($0.key, MetricCatalog.spec(for: $0)) }
-                )
+                let specs = MetricCatalog.specs(for: Array(metricDefinitions))
                 let preview = try CSVImporter.preview(
                     from: data,
                     existingLogs: logs,

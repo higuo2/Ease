@@ -62,9 +62,7 @@ enum CSVExporter {
         definitions: [MetricDefinition] = [],
         calendar: Calendar = .current
     ) -> String {
-        let specs = Dictionary(
-            uniqueKeysWithValues: definitions.map { ($0.key, MetricCatalog.spec(for: $0)) }
-        )
+        let specs = MetricCatalog.specs(for: definitions)
         let sorted = logs.sorted { $0.timestamp < $1.timestamp }
         let rows = sorted.map { log -> String in
             let spec = specs[log.metricKey] ?? MetricCatalog.builtin(for: log.metricKey)

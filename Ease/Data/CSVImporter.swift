@@ -454,18 +454,27 @@ enum CSVImporter {
         let metrics = MetricRepository(context: context, calendar: calendar)
         try metrics.seedBuiltinsIfNeeded()
         let definitions = (try? metrics.allDefinitions()) ?? []
-        let specs = Dictionary(uniqueKeysWithValues: definitions.map { ($0.key, MetricCatalog.spec(for: $0)) })
+        let specs = MetricCatalog.specs(for: definitions)
         let existing = (try? metrics.allLogs()) ?? []
         var seen = metricKeys(existing, specs: specs, calendar: calendar)
         var result = ApplyResult()
+        var drafts: [MetricLogDraft] = []
         for pending in preview.pendingMetrics {
-            let spec = try metrics.spec(forKey: pending.metricKey)
+            let spec = (try? metrics.spec(forKey: pending.metricKey)) ?? MetricCatalog.builtin(for: pending.metricKey)
+            guard let spec else { continue }
             let key = metricKey(pending.timestamp, metricKey: pending.metricKey, value: pending.value, spec: spec, calendar: calendar)
             if seen.contains(key) { continue }
             seen.insert(key)
-            _ = try metrics.insertLog(timestamp: pending.timestamp, metricKey: pending.metricKey, value: pending.value)
-            result.metricLogsWritten += 1
+            drafts.append(
+                MetricLogDraft(
+                    timestamp: pending.timestamp,
+                    metricKey: pending.metricKey,
+                    value: pending.value
+                )
+            )
         }
+        let written = try metrics.insertLogs(drafts)
+        result.metricLogsWritten = written.count
         return result
     }
 

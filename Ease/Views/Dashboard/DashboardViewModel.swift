@@ -28,8 +28,9 @@ final class DashboardViewModel {
     var isLogPresented = false
     var isSleepPresented = false
     var isCyclePresented = false
-    var isMetricHistoryPresented = false
-    var metricHistoryKey: String?
+    var isMetricSheetPresented = false
+    var metricsDate = Date.now
+    var metricFocusKey: String?
     var editingDate = Date.now
     var editingLogID: UUID?
     var healthByDay: [String: HealthDaySnapshot] = [:]
@@ -50,6 +51,12 @@ final class DashboardViewModel {
 
     func openSelectedLog() {
         openLog(for: selectedDate)
+    }
+
+    func openMetrics(on date: Date, key: String? = nil) {
+        metricsDate = CalendarDay.startOfDay(date)
+        metricFocusKey = key
+        isMetricSheetPresented = true
     }
 
     func reloadHealthAndNotifications(

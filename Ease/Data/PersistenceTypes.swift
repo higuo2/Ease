@@ -42,3 +42,9 @@ enum EaseDataError: Error, Equatable {
     case invalidMetric
     case tooManyCustomMetrics
 }
+
+struct MetricLogDraft: Sendable, Equatable {
+    var timestamp: Date
+    var metricKey: String
+    var value: Double
+}

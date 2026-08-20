@@ -38,20 +38,36 @@ struct DashboardView: View {
         ) else { return nil }
         return EaseFormatters.paceETA(eta)
     }
+    private var enabledMetrics: [MetricDefinition] {
+        metricDefinitions.filter(\.isEnabled)
+    }
+
     private var metricsLine: String? {
-        let enabled = metricDefinitions.filter(\.isEnabled)
-        guard !enabled.isEmpty else { return nil }
+        guard !enabledMetrics.isEmpty else { return nil }
         let key = CalendarDay.dayKey(from: selectedDate)
         var parts: [String] = []
-        for definition in enabled {
+        for definition in enabledMetrics {
             let onDay = metricLogs
                 .filter { $0.metricKey == definition.key && CalendarDay.dayKey(from: $0.timestamp) == key }
                 .sorted { $0.timestamp < $1.timestamp }
             guard let latest = onDay.last else { continue }
             parts.append(MetricCatalog.formattedReading(latest.value, spec: MetricCatalog.spec(for: definition)))
         }
-        guard !parts.isEmpty else { return nil }
+        if parts.isEmpty {
+            return String(localized: "dashboard.metrics")
+        }
         return parts.joined(separator: "  ")
+    }
+
+    private var metricsFocusKey: String? {
+        let key = CalendarDay.dayKey(from: selectedDate)
+        for definition in enabledMetrics {
+            let hasLog = metricLogs.contains {
+                $0.metricKey == definition.key && CalendarDay.dayKey(from: $0.timestamp) == key
+            }
+            if hasLog { return definition.key }
+        }
+        return enabledMetrics.first?.key
     }
 
     var body: some View {
@@ -84,8 +100,7 @@ struct DashboardView: View {
                             bmi: snapshot.bmi,
                             metricsLine: metricsLine,
                             onOpenMetrics: metricsLine == nil ? nil : {
-                                viewModel.metricHistoryKey = metricDefinitions.first(where: \.isEnabled)?.key
-                                viewModel.isMetricHistoryPresented = true
+                                viewModel.openMetrics(on: selectedDate, key: metricsFocusKey)
                             }
                         )
                         TrendChartCard(
@@ -142,12 +157,8 @@ struct DashboardView: View {
             .sheet(isPresented: $viewModel.isCyclePresented) {
                 CycleDetailSheet(history: viewModel.cycleHistory)
             }
-            .sheet(isPresented: $viewModel.isMetricHistoryPresented) {
-                MetricHistorySheet(
-                    definitions: metricDefinitions.filter(\.isEnabled),
-                    logs: Array(metricLogs),
-                    initialKey: viewModel.metricHistoryKey
-                )
+            .sheet(isPresented: $viewModel.isMetricSheetPresented) {
+                MetricSheet(date: viewModel.metricsDate, initialKey: viewModel.metricFocusKey)
             }
             .task(id: scenePhase) {
                 guard scenePhase == .active else { return }

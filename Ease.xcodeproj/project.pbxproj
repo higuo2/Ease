@@ -62,7 +62,7 @@
 		A100000000000000000000C4 /* CSVImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B4 /* CSVImporter.swift */; };
 		A100000000000000000000C5 /* PaceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B5 /* PaceEstimator.swift */; };
 		A100000000000000000000C6 /* ImportPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B6 /* ImportPreviewSheet.swift */; };
-		A100000000000000000000C7 /* MetricHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B7 /* MetricHistorySheet.swift */; };
+		A100000000000000000000C7 /* MetricSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B7 /* MetricSheet.swift */; };
 		T10000000000000000000013 /* EaseTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000003 /* EaseTestSupport.swift */; };
 		T10000000000000000000014 /* WeightMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000004 /* WeightMetricsTests.swift */; };
 		T10000000000000000000015 /* MeasurementBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000005 /* MeasurementBoundsTests.swift */; };
@@ -152,7 +152,7 @@
 		A100000000000000000000B4 /* CSVImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVImporter.swift; sourceTree = "<group>"; };
 		A100000000000000000000B5 /* PaceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaceEstimator.swift; sourceTree = "<group>"; };
 		A100000000000000000000B6 /* ImportPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportPreviewSheet.swift; sourceTree = "<group>"; };
-		A100000000000000000000B7 /* MetricHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricHistorySheet.swift; sourceTree = "<group>"; };
+		A100000000000000000000B7 /* MetricSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricSheet.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 		T10000000000000000000001 /* EaseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EaseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -356,7 +356,7 @@
 				A100000000000000000000A2 /* SleepDetailSheet.swift */,
 				A100000000000000000000A3 /* CycleDetailSheet.swift */,
 				A100000000000000000000B6 /* ImportPreviewSheet.swift */,
-				A100000000000000000000B7 /* MetricHistorySheet.swift */,
+				A100000000000000000000B7 /* MetricSheet.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -515,7 +515,7 @@
 				A100000000000000000000C4 /* CSVImporter.swift in Sources */,
 				A100000000000000000000C5 /* PaceEstimator.swift in Sources */,
 				A100000000000000000000C6 /* ImportPreviewSheet.swift in Sources */,
-				A100000000000000000000C7 /* MetricHistorySheet.swift in Sources */,
+				A100000000000000000000C7 /* MetricSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -63,7 +63,7 @@ The UI must replicate a clean, modern, soft-shadowed card aesthetic with generou
 ### Dashboard (single scrolling page, no Tab bar)
 Top → bottom, this order is mandatory:
 1. Nav: title `Ease` + trailing settings button.
-2. Day Picker Header (week / month). Selected day drives the ring, health cards, weight card, and FAB. No future dates.
+2. Day Picker Header (week / month). Selected day drives the ring, health cards, weight card, FAB, and the metrics sheet default date. No future dates.
 3. Purple weight-goal progress ring (already lost kg / remaining kg). At 100%, show `Target X.X kg` with no celebration. Clamp progress to 0...1.
    v1.2: optional gray pace line under the ring (`At this pace, around 12 Oct 2026.`). Hide per PRD §8.3 (incl. MAD filter then OLS, and all hide-guards). Never a countdown badge.
 4. Semantic health cards (hide any card with no permission or no data — no placeholder dashes):
@@ -72,9 +72,9 @@ Top → bottom, this order is mandatory:
    - Active Energy (orange) → display only, not tappable into a calorie goal.
    Diet pending/selected and travel/bowel icons stay neutral, not tinted.
 5. Main card: large **selected-day latest** `WeightLog` weight; optional body fat on a secondary line; `BMI 21.4` as a number only. If that day has no log, fall back to the global latest weight.
-   v1.2: one extra gray line of latest values **only for enabled metrics** that have a log that day. Disabled metrics never appear here, even if logs exist. No extra macaron cards for waist/water.
+   v1.2: one extra gray line when any metric is enabled. Readings only for enabled metrics that have a log that day; otherwise a quiet `Measurements` entry. Tap opens the metrics sheet, not the daily log. Disabled metrics never appear in the readings, even if logs exist. No extra macaron cards for waist/water.
 6. Chart card: `7 / 30 / 90` segmented control (X range only; MA window stays 7 calendar days). Plot **every** `WeightLog` in range. De-emphasize individual points; highlight 7-day MA (last weigh-in per calendar day). SF Symbol markers on days. A row of last-7-day diet icons under the chart. If fewer than 7 calendar days have a weight, draw points/line only — **no MA**. Do not overlay gray HealthKit sleep/energy bars on this chart.
-7. FAB `+` above the Home Indicator; opens the log sheet for the **selected day**.
+7. FAB `+` above the Home Indicator; opens the **daily** log sheet (weight / diet / tags / note) for the **selected day**. Circumferences use a separate metrics sheet from the weight-card gray line.
 
 Chart: drag to preview a point; tap an existing `WeightLog` point to edit **that log**. Backfill via the sheet, not by tapping empty chart space. Deleting a weigh-in must not delete that day's diet/tags/note.
 
@@ -83,8 +83,13 @@ Date picker (default selected day, no future dates) → weight + in-row photo OC
 - New weight **inserts** a `WeightLog`.
 - Opening from a chart point edits that `WeightLog` (de-emphasized Delete removes only that log).
 - Diet/tags/note field-merge into that day's `DailyRecord`.
-- v1.2: optional enabled-metric fields above the note; filled metrics insert `MetricLog`s. Empty metric fields write nothing.
+- Metrics are **not** on this sheet.
 OCR is not a separate screen; on failure leave fields empty, no error alert.
+
+### Metrics Sheet
+Date picker (default selected day, no future dates) → enabled-metric fields → black Capsule Save → history chart/list.
+- At least one valid filled field; empty fields write nothing; any invalid field aborts the whole save.
+- Filled metrics insert `MetricLog`s. Does not write weight or `DailyRecord`. No OCR.
 
 ### Settings Sheet
 Height, start weight, target weight, sleep target hours, notifications master switch, export CSV, delete all data (records + weight logs + v1.2 metrics + profile). Changing start/target recomputes the ring immediately.

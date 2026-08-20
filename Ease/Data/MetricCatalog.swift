@@ -110,6 +110,13 @@ enum MetricCatalog {
         )
     }
 
+    static func specs(for definitions: [MetricDefinition]) -> [String: MetricSpec] {
+        Dictionary(
+            definitions.map { ($0.key, spec(for: $0)) },
+            uniquingKeysWith: { _, latest in latest }
+        )
+    }
+
     static func step(for unit: MetricUnit) -> Double {
         switch unit {
         case .cm: 0.1

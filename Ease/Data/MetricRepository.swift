@@ -89,15 +89,34 @@ struct MetricRepository {
 
     @discardableResult
     func insertLog(timestamp: Date, metricKey: String, value: Double) throws -> MetricLog {
-        guard !CalendarDay.isFuture(timestamp, calendar: calendar) else {
-            throw EaseDataError.futureDate
-        }
-        let spec = try spec(forKey: metricKey)
-        let validated = try MetricCatalog.validated(value, spec: spec)
-        let log = MetricLog(timestamp: timestamp, metricKey: metricKey, value: validated)
-        context.insert(log)
-        try context.save()
+        let inserted = try insertLogs([
+            MetricLogDraft(timestamp: timestamp, metricKey: metricKey, value: value)
+        ])
+        guard let log = inserted.first else { throw EaseDataError.invalidMetric }
         return log
+    }
+
+    /// Validates every draft first, then writes once. Empty input is a no-op.
+    @discardableResult
+    func insertLogs(_ drafts: [MetricLogDraft]) throws -> [MetricLog] {
+        guard !drafts.isEmpty else { return [] }
+        var prepared: [(Date, String, Double)] = []
+        for draft in drafts {
+            guard !CalendarDay.isFuture(draft.timestamp, calendar: calendar) else {
+                throw EaseDataError.futureDate
+            }
+            let spec = try spec(forKey: draft.metricKey)
+            let validated = try MetricCatalog.validated(draft.value, spec: spec)
+            prepared.append((draft.timestamp, draft.metricKey, validated))
+        }
+        var logs: [MetricLog] = []
+        for (timestamp, metricKey, value) in prepared {
+            let log = MetricLog(timestamp: timestamp, metricKey: metricKey, value: value)
+            context.insert(log)
+            logs.append(log)
+        }
+        try context.save()
+        return logs
     }
 
     func logs(on date: Date, metricKey: String? = nil) throws -> [MetricLog] {
