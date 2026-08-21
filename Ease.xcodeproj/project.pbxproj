@@ -69,6 +69,7 @@
 		A100000000000000000000E3 /* TrendTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D3 /* TrendTabView.swift */; };
 		A100000000000000000000E4 /* CalendarTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D4 /* CalendarTabView.swift */; };
 		A100000000000000000000E5 /* HistoryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D5 /* HistoryTabView.swift */; };
+		A100000000000000000000E6 /* HomeModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D6 /* HomeModule.swift */; };
 		T10000000000000000000013 /* EaseTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000003 /* EaseTestSupport.swift */; };
 		T10000000000000000000014 /* WeightMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000004 /* WeightMetricsTests.swift */; };
 		T10000000000000000000015 /* MeasurementBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000005 /* MeasurementBoundsTests.swift */; };
@@ -165,6 +166,7 @@
 		A100000000000000000000D3 /* TrendTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendTabView.swift; sourceTree = "<group>"; };
 		A100000000000000000000D4 /* CalendarTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTabView.swift; sourceTree = "<group>"; };
 		A100000000000000000000D5 /* HistoryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabView.swift; sourceTree = "<group>"; };
+		A100000000000000000000D6 /* HomeModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModule.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 		T10000000000000000000001 /* EaseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EaseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -277,6 +279,7 @@
 				A10000000000000000000043 /* DailyRecord.swift */,
 				A1000000000000000000009B /* WeightLog.swift */,
 				A10000000000000000000044 /* UserProfile.swift */,
+				A100000000000000000000D6 /* HomeModule.swift */,
 				A100000000000000000000B0 /* MetricDefinition.swift */,
 				A100000000000000000000B1 /* MetricLog.swift */,
 			);
@@ -540,6 +543,7 @@
 				A100000000000000000000E3 /* TrendTabView.swift in Sources */,
 				A100000000000000000000E4 /* CalendarTabView.swift in Sources */,
 				A100000000000000000000E5 /* HistoryTabView.swift in Sources */,
+				A100000000000000000000E6 /* HomeModule.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

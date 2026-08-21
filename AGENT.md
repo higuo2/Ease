@@ -71,14 +71,14 @@ Root is a **TabView** with four tabs. Sheets (log, metrics, settings, sleep, cyc
 ### Tab 1 — 体重 (Dashboard)
 1. **Hero**：居中巨幅当前体重（所选日最新 `WeightLog`，否则全局最新）。下方一行小字周增减（如 `▼1.8 kg 本周`），coral on loss / quiet green on gain.
 2. **阶段目标卡片**：recessed `#F2F3F5` / `#F5F5F7` rounded card — linear progress bar, start weight, remaining days (or pace ETA when available), target weight. No purple ring.
-3. **双列健康网格 (2×2)**：四个等大正方形莫兰迪色块 — BMI（只读数字）、围度、体重录入、饮食录入。无饮水模块。右下角 **黑色圆形 FAB** 打开体重录入 Sheet。
-
-Sleep / Period / Active Energy：不再作为首页马卡龙主卡；有需要时从设置或次级入口进既有 Detail Sheet。
+3. **可自定义莫兰迪方块**：默认 BMI / 围度 / 体重 / 饮食。用户可新增睡眠、经期、HealthKit 活动消耗。虚线「添加」格打开模块编辑。
+4. **体重列表**：按日展示早（太阳）/ 晚（月亮）体重、相对昨日涨跌、备注。点行编辑该日最新 `WeightLog`。
+5. **FAB**：右下角黑色 `+`，打开体重录入 Sheet。
 
 ### Tab 2 — 趋势 (Trend)
-1. **顶部**：segmented 胶囊 `7天 | 30天 | 90天 | 全部`（X 范围；7 日均线窗口不变）。
-2. **平滑折线**：Catmull-Rom；目标体重虚线；点弱化、均线清晰。点击/拖动弹出 **黑色 Tooltip**（如 `6/18  61.8 kg`）。
-3. **数据卡片网格 (2×3)**：最高、最低、平均、体重变化、距离目标、记录天数 — recessed milk cells, large monospaced numbers.
+1. **顶部**：segmented 胶囊 `7天 | 30天 | 90天 | 全部`（选中黑底白字）。
+2. **折线**：按日最后一次体重连成清晰主线；X/Y 轴有刻度；目标虚线带文案；拖动黑色 Tooltip。**不显示经期/标签标记。**
+3. **数据卡片网格 (3×2)**：最高（含日期）、最低（含日期）、平均、体重变化、距离目标、记录天数。
 
 图表交互：预览不改数据；点已有 `WeightLog` 可编辑该条。删体重不得删当日饮食/标签/备注。
 

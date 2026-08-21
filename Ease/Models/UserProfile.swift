@@ -15,6 +15,8 @@ final class UserProfile {
     var weightReminderMinute: Int = 0
     var dietReminderHour: Int = 22
     var dietReminderMinute: Int = 30
+    /// Comma-separated `HomeModule` keys. Empty → default BMI / measurements / weight / diet.
+    var homeModulesRaw: String = "bmi,measurements,weight,diet"
     var updatedAt: Date = Date.now
 
     init() {
@@ -29,6 +31,12 @@ final class UserProfile {
         self.weightReminderMinute = 0
         self.dietReminderHour = 22
         self.dietReminderMinute = 30
+        self.homeModulesRaw = HomeModule.encode(HomeModule.defaults)
         self.updatedAt = .now
+    }
+
+    var homeModules: [HomeModule] {
+        get { HomeModule.decode(homeModulesRaw) }
+        set { homeModulesRaw = HomeModule.encode(newValue) }
     }
 }

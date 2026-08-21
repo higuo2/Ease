@@ -68,14 +68,21 @@ struct StageGoalCard: View {
     }
 }
 
-/// Four equal Morandi squares: BMI · Measurements · Weight · Diet
 struct HomeModuleGrid: View {
+    let modules: [HomeModule]
     let bmi: Double?
     let bodyFat: Double?
     let dietStatus: DietStatus?
+    let sleepHours: Double?
+    let isPeriodDay: Bool
+    let energyKcal: Double?
+    let canAddMore: Bool
     let onOpenMetrics: () -> Void
     let onOpenWeight: () -> Void
     let onOpenDiet: () -> Void
+    let onOpenSleep: () -> Void
+    let onOpenPeriod: () -> Void
+    let onAddModule: () -> Void
 
     private let spacing: CGFloat = 14
 
@@ -87,11 +94,20 @@ struct HomeModuleGrid: View {
             ],
             spacing: spacing
         ) {
-            moduleSquare(
-                title: "grid.bmi",
-                fill: EasePalette.morandiMist,
-                action: nil
-            ) {
+            ForEach(modules) { module in
+                moduleTile(module)
+            }
+            if canAddMore {
+                addTile
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func moduleTile(_ module: HomeModule) -> some View {
+        switch module {
+        case .bmi:
+            square(module, action: nil) {
                 if let bmi {
                     Text(EaseFormatters.oneDecimal(bmi))
                         .font(EaseFont.number(28))
@@ -109,40 +125,28 @@ struct HomeModuleGrid: View {
                         .foregroundStyle(EasePalette.secondaryText)
                 }
             }
-
-            moduleSquare(
-                title: "dashboard.metrics",
-                fill: EasePalette.morandiBlush,
-                action: onOpenMetrics
-            ) {
-                Image(systemName: "ruler")
-                    .font(.system(size: 28, weight: .regular))
+        case .measurements:
+            square(module, action: onOpenMetrics) {
+                Image(systemName: module.symbolName)
+                    .font(.system(size: 26, weight: .regular))
                     .foregroundStyle(EasePalette.primaryText)
                 Text("module.tapToLog")
                     .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(EasePalette.secondaryText)
             }
-
-            moduleSquare(
-                title: "module.weight",
-                fill: EasePalette.morandiSage,
-                action: onOpenWeight
-            ) {
-                Image(systemName: "scalemass")
-                    .font(.system(size: 28, weight: .regular))
+        case .weight:
+            square(module, action: onOpenWeight) {
+                Image(systemName: module.symbolName)
+                    .font(.system(size: 26, weight: .regular))
                     .foregroundStyle(EasePalette.primaryText)
                 Text("module.tapToLog")
                     .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(EasePalette.secondaryText)
             }
-
-            moduleSquare(
-                title: "module.diet",
-                fill: EasePalette.morandiSand,
-                action: onOpenDiet
-            ) {
-                Image(systemName: dietStatus?.systemImage ?? "fork.knife")
-                    .font(.system(size: 28, weight: .regular))
+        case .diet:
+            square(module, action: onOpenDiet) {
+                Image(systemName: dietStatus?.systemImage ?? module.symbolName)
+                    .font(.system(size: 26, weight: .regular))
                     .foregroundStyle(EasePalette.primaryText)
                 if let dietStatus {
                     Text(LocalizedStringKey(dietStatus.titleKey))
@@ -154,20 +158,82 @@ struct HomeModuleGrid: View {
                         .foregroundStyle(EasePalette.secondaryText)
                 }
             }
+        case .sleep:
+            square(module, action: onOpenSleep) {
+                if let sleepHours {
+                    Text(EaseFormatters.sleepDuration(sleepHours))
+                        .font(EaseFont.number(22))
+                        .monospacedDigit()
+                        .foregroundStyle(EasePalette.primaryText)
+                } else {
+                    Image(systemName: module.symbolName)
+                        .font(.system(size: 26, weight: .regular))
+                        .foregroundStyle(EasePalette.primaryText)
+                    Text("module.noData")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+            }
+        case .period:
+            square(module, action: onOpenPeriod) {
+                Image(systemName: module.symbolName)
+                    .font(.system(size: 26, weight: .regular))
+                    .foregroundStyle(EasePalette.primaryText)
+                Text(isPeriodDay ? "module.period.today" : "module.noData")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+            }
+        case .energy:
+            square(module, action: nil) {
+                if let energyKcal {
+                    Text(EaseFormatters.kcal(energyKcal))
+                        .font(EaseFont.number(18))
+                        .monospacedDigit()
+                        .foregroundStyle(EasePalette.primaryText)
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(2)
+                } else {
+                    Image(systemName: module.symbolName)
+                        .font(.system(size: 26, weight: .regular))
+                        .foregroundStyle(EasePalette.primaryText)
+                    Text("module.noData")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+            }
         }
     }
 
-    private func moduleSquare<Content: View>(
-        title: LocalizedStringKey,
-        fill: Color,
+    private var addTile: some View {
+        Button(action: onAddModule) {
+            VStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(EasePalette.secondaryText)
+                Text("module.add")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .aspectRatio(1, contentMode: .fit)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(EasePalette.hairline, style: StrokeStyle(lineWidth: 1, dash: [6, 5]))
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func square<Content: View>(
+        _ module: HomeModule,
         action: (() -> Void)?,
         @ViewBuilder content: () -> Content
     ) -> some View {
         Button {
             action?()
         } label: {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(title)
+            VStack(alignment: .leading, spacing: 10) {
+                Text(LocalizedStringKey(module.titleKey))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(EasePalette.primaryText)
                 Spacer(minLength: 0)
@@ -177,10 +243,155 @@ struct HomeModuleGrid: View {
             .padding(16)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .aspectRatio(1, contentMode: .fit)
-            .background(fill, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(module.fill, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
         .buttonStyle(.plain)
         .disabled(action == nil)
+    }
+}
+
+struct DailyWeightList: View {
+    let rows: [DailyWeightRow]
+    let onSelect: (DailyWeightRow) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("weight.list.title")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(EasePalette.primaryText)
+                .padding(.bottom, 8)
+            if rows.isEmpty {
+                Text("weight.list.empty")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+                    .padding(.vertical, 20)
+            } else {
+                EaseCard(padding: 4) {
+                    VStack(spacing: 0) {
+                        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                            Button {
+                                onSelect(row)
+                            } label: {
+                                DailyWeightRowView(row: row)
+                            }
+                            .buttonStyle(.plain)
+                            if index < rows.count - 1 {
+                                Divider()
+                                    .overlay(EasePalette.hairline)
+                                    .padding(.leading, 16)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct DailyWeightRowView: View {
+    let row: DailyWeightRow
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(row.day, format: .dateTime.month(.wide).day())
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(EasePalette.secondaryText)
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                labeledWeight("sun.max.fill", row.morning)
+                labeledWeight("moon.fill", row.evening)
+                Spacer(minLength: 8)
+                if let delta = row.dayDelta {
+                    HStack(spacing: 2) {
+                        Image(systemName: delta < 0 ? "arrowtriangle.down.fill" : (delta > 0 ? "arrowtriangle.up.fill" : "minus"))
+                            .font(.system(size: 9, weight: .bold))
+                        Text(EaseFormatters.oneDecimal(abs(delta)))
+                            .font(.system(size: 15, weight: .semibold).monospacedDigit())
+                    }
+                    .foregroundStyle(EasePalette.deltaColor(delta))
+                } else {
+                    Text("—")
+                        .font(.system(size: 15, weight: .regular))
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+            }
+            if let note = row.note, !note.isEmpty {
+                Text(note)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+                    .lineLimit(2)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func labeledWeight(_ symbol: String, _ value: Double?) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: symbol)
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(EasePalette.secondaryText)
+            if let value {
+                Text(EaseFormatters.kg(value))
+                    .font(.system(size: 16, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(EasePalette.primaryText)
+            } else {
+                Text("weight.missing")
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+            }
+        }
+    }
+}
+
+struct DailyWeightRow: Identifiable {
+    var id: String { dayKey }
+    var dayKey: String
+    var day: Date
+    var morning: Double?
+    var evening: Double?
+    var dayDelta: Double?
+    var note: String?
+    var latestLogID: UUID?
+
+    static func build(
+        records: [DailyRecord],
+        logs: [WeightLog],
+        calendar: Calendar = .current
+    ) -> [DailyWeightRow] {
+        let samples = WeightMetrics.samples(from: records, logs: logs, calendar: calendar)
+        let days = Set(samples.map { CalendarDay.dayKey(from: $0.date, calendar: calendar) })
+        let lastByDay = Dictionary(
+            uniqueKeysWithValues: WeightMetrics.lastPerDay(samples: samples, calendar: calendar).map {
+                (CalendarDay.dayKey(from: $0.date, calendar: calendar), $0.weight)
+            }
+        )
+        return days.compactMap { key -> DailyWeightRow? in
+            guard let day = CalendarDay.date(fromDayKey: key, calendar: calendar) else { return nil }
+            let onDay = logs
+                .filter { CalendarDay.dayKey(from: $0.timestamp, calendar: calendar) == key }
+                .sorted { $0.timestamp < $1.timestamp }
+            let morning = onDay.first?.weight ?? records.first(where: { $0.dayKey == key })?.weight
+            let evening = onDay.count >= 2 ? onDay.last?.weight : nil
+            let previous = CalendarDay.addingDays(-1, to: day, calendar: calendar)
+            let prevKey = CalendarDay.dayKey(from: previous, calendar: calendar)
+            let dayDelta: Double?
+            if let today = lastByDay[key], let yesterday = lastByDay[prevKey] {
+                dayDelta = MeasurementBounds.roundedToTenth(today - yesterday)
+            } else {
+                dayDelta = nil
+            }
+            return DailyWeightRow(
+                dayKey: key,
+                day: day,
+                morning: morning,
+                evening: evening,
+                dayDelta: dayDelta,
+                note: records.first(where: { $0.dayKey == key })?.note,
+                latestLogID: onDay.last?.id
+            )
+        }
+        .sorted { $0.day > $1.day }
     }
 }
 
@@ -212,6 +423,45 @@ struct WeightHeroView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, 8)
+    }
+}
+
+struct HomeModuleEditor: View {
+    @Binding var modules: [HomeModule]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("settings.homeModules")
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(EasePalette.secondaryText)
+            ForEach(HomeModule.allCases) { module in
+                Toggle(isOn: binding(for: module)) {
+                    Label {
+                        Text(LocalizedStringKey(module.titleKey))
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundStyle(EasePalette.primaryText)
+                    } icon: {
+                        Image(systemName: module.symbolName)
+                            .foregroundStyle(EasePalette.secondaryText)
+                    }
+                }
+                .tint(EasePalette.coral)
+            }
+        }
+    }
+
+    private func binding(for module: HomeModule) -> Binding<Bool> {
+        Binding(
+            get: { modules.contains(module) },
+            set: { isOn in
+                if isOn {
+                    if !modules.contains(module) { modules.append(module) }
+                } else {
+                    modules.removeAll { $0 == module }
+                    if modules.isEmpty { modules = HomeModule.defaults }
+                }
+            }
+        )
     }
 }

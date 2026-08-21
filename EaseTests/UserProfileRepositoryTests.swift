@@ -141,4 +141,13 @@ final class UserProfileRepositoryTests: EaseStoreTestCase {
         XCTAssertEqual(kept.dietReminderMinute, 0)
         XCTAssertEqual(try fetchAll(UserProfile.self).count, 1)
     }
+
+    func test_homeModules_空字符串回退默认且去重() {
+        XCTAssertEqual(HomeModule.decode(""), HomeModule.defaults)
+        XCTAssertEqual(
+            HomeModule.decode("bmi,weight,bmi,sleep"),
+            [.bmi, .weight, .sleep]
+        )
+        XCTAssertEqual(HomeModule.encode([.sleep, .sleep, .diet]), "sleep,diet")
+    }
 }

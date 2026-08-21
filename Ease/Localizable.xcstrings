@@ -827,6 +827,7 @@
       }
     },
     "grid.bodyFat": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -843,6 +844,7 @@
       }
     },
     "grid.water": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1197,6 +1199,7 @@
       }
     },
     "log.title": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1208,6 +1211,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "记录"
+          }
+        }
+      }
+    },
+    "log.title.diet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "饮食"
+          }
+        }
+      }
+    },
+    "log.title.weight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体重"
           }
         }
       }
@@ -1464,6 +1499,22 @@
         }
       }
     },
+    "metric.sheet.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable measurements in Settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在设置里启用围度指标。"
+          }
+        }
+      }
+    },
     "metric.sheet.title": {
       "localizations": {
         "en": {
@@ -1595,6 +1646,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "手腕"
+          }
+        }
+      }
+    },
+    "module.diet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "饮食"
+          }
+        }
+      }
+    },
+    "module.tapToLog": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点此记录"
+          }
+        }
+      }
+    },
+    "module.weight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体重"
           }
         }
       }
@@ -2563,6 +2662,7 @@
       }
     },
     "shortcut.diet": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2579,6 +2679,7 @@
       }
     },
     "shortcut.water": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2595,6 +2696,7 @@
       }
     },
     "shortcut.water.empty": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3048,98 +3150,162 @@
         }
       }
     },
-    "module.weight": {
+    "module.add": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Weight"
+            "value": "Add"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "体重"
+            "value": "添加"
           }
         }
       }
     },
-    "module.diet": {
+    "module.noData": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diet"
+            "value": "No data"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "饮食"
+            "value": "暂无数据"
           }
         }
       }
     },
-    "module.tapToLog": {
+    "module.period.today": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tap to log"
+            "value": "Today"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "点此记录"
+            "value": "今日"
           }
         }
       }
     },
-    "log.title.weight": {
+    "settings.homeModules": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Weight"
+            "value": "Home modules"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "体重"
+            "value": "首页模块"
           }
         }
       }
     },
-    "log.title.diet": {
+    "weight.list.title": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diet"
+            "value": "Weight log"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "饮食"
+            "value": "体重记录"
           }
         }
       }
     },
-    "metric.sheet.empty": {
+    "weight.list.empty": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enable measurements in Settings."
+            "value": "No weigh-ins yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先在设置里启用围度指标。"
+            "value": "还没有体重记录。"
+          }
+        }
+      }
+    },
+    "weight.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "— kg"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "— kg"
+          }
+        }
+      }
+    },
+    "trend.stats.avg.range": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last %d days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 %d 天均值"
+          }
+        }
+      }
+    },
+    "trend.stats.avg.all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部均值"
+          }
+        }
+      }
+    },
+    "trend.stats.days.value": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 天"
           }
         }
       }

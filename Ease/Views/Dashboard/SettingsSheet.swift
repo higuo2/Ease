@@ -85,6 +85,16 @@ struct SettingsSheet: View {
                                 reminderRow("settings.dietReminder", date: $dietReminderDate)
                             }
                         }
+                        EaseCard {
+                            HomeModuleEditor(modules: Binding(
+                                get: { profile.homeModules },
+                                set: { newValue in
+                                    profile.homeModules = newValue
+                                    profile.updatedAt = .now
+                                    try? modelContext.save()
+                                }
+                            ))
+                        }
                         if onOpenSleep != nil || onOpenCycle != nil {
                             EaseCard {
                                 VStack(spacing: 12) {

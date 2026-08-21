@@ -2,11 +2,13 @@ import SwiftUI
 
 struct WeightTabView: View {
     @Bindable var viewModel: DashboardViewModel
+    @Environment(\.modelContext) private var modelContext
     let profile: UserProfile?
     let records: [DailyRecord]
     let logs: [WeightLog]
     let metricDefinitions: [MetricDefinition]
     let metricLogs: [MetricLog]
+    @State private var isModuleEditorPresented = false
 
     private var selectedDate: Date { viewModel.selectedDate }
     private var snapshot: DashboardSnapshot {
@@ -20,6 +22,9 @@ struct WeightTabView: View {
     private var selectedRecord: DailyRecord? {
         let key = CalendarDay.dayKey(from: selectedDate)
         return records.first { $0.dayKey == key }
+    }
+    private var selectedHealth: HealthDaySnapshot? {
+        viewModel.healthByDay[CalendarDay.dayKey(from: selectedDate)]
     }
     private var paceLine: String? {
         guard let eta = PaceEstimator.estimate(
@@ -44,6 +49,15 @@ struct WeightTabView: View {
             on: selectedDate
         )
     }
+    private var homeModules: [HomeModule] {
+        profile?.homeModules ?? HomeModule.defaults
+    }
+    private var unusedModules: [HomeModule] {
+        HomeModule.allCases.filter { !homeModules.contains($0) }
+    }
+    private var weightRows: [DailyWeightRow] {
+        DailyWeightRow.build(records: records, logs: logs)
+    }
 
     var body: some View {
         NavigationStack {
@@ -62,9 +76,15 @@ struct WeightTabView: View {
                             )
                         }
                         HomeModuleGrid(
+                            modules: homeModules,
                             bmi: snapshot.bmi,
                             bodyFat: snapshot.bodyFat,
                             dietStatus: selectedRecord?.dietStatus,
+                            sleepHours: selectedHealth?.previousNightSleepHours,
+                            isPeriodDay: selectedHealth?.isMenstrual == true
+                                || selectedRecord?.variableTags.contains(.period) == true,
+                            energyKcal: selectedHealth?.activeEnergyKcal,
+                            canAddMore: !unusedModules.isEmpty,
                             onOpenMetrics: {
                                 viewModel.openMetrics(on: selectedDate, key: metricsFocusKey)
                             },
@@ -73,8 +93,18 @@ struct WeightTabView: View {
                             },
                             onOpenDiet: {
                                 viewModel.openDietEntry(for: selectedDate)
-                            }
+                            },
+                            onOpenSleep: { viewModel.isSleepPresented = true },
+                            onOpenPeriod: { viewModel.isCyclePresented = true },
+                            onAddModule: { isModuleEditorPresented = true }
                         )
+                        DailyWeightList(rows: weightRows) { row in
+                            if let id = row.latestLogID, let log = logs.first(where: { $0.id == id }) {
+                                viewModel.openWeightLog(log)
+                            } else {
+                                viewModel.openWeightEntry(for: row.day)
+                            }
+                        }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
@@ -100,6 +130,39 @@ struct WeightTabView: View {
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)
+            .sheet(isPresented: $isModuleEditorPresented) {
+                if let profile {
+                    NavigationStack {
+                        ZStack {
+                            EasePalette.background.ignoresSafeArea()
+                            ScrollView {
+                                EaseCard {
+                                    HomeModuleEditor(modules: Binding(
+                                        get: { profile.homeModules },
+                                        set: { newValue in
+                                            profile.homeModules = newValue
+                                            profile.updatedAt = .now
+                                            try? modelContext.save()
+                                        }
+                                    ))
+                                }
+                                .padding(20)
+                            }
+                        }
+                        .navigationTitle("settings.homeModules")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                EaseTextButton(title: "common.close") {
+                                    isModuleEditorPresented = false
+                                }
+                            }
+                        }
+                    }
+                    .presentationDetents([.medium, .large])
+                    .preferredColorScheme(.light)
+                }
+            }
         }
     }
 }
