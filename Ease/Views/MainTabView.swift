@@ -48,39 +48,21 @@ struct MainTabView: View {
             .tabItem { Label("tab.calendar", systemImage: "calendar") }
             .tag(AppTab.calendar)
 
-            HistoryTabView(
-                viewModel: viewModel,
-                records: Array(records),
-                logs: Array(weightLogs)
-            )
-            .tabItem { Label("tab.history", systemImage: "list.bullet") }
-            .tag(AppTab.history)
-        }
-        .tint(EasePalette.primaryText)
-        .preferredColorScheme(.light)
-        .sheet(isPresented: $viewModel.isSettingsPresented) {
             if let profile {
                 SettingsSheet(
                     profile: profile,
                     records: Array(records),
                     logs: Array(weightLogs),
-                    onOpenSleep: {
-                        viewModel.isSettingsPresented = false
-                        Task { @MainActor in
-                            try? await Task.sleep(for: .milliseconds(350))
-                            viewModel.isSleepPresented = true
-                        }
-                    },
-                    onOpenCycle: {
-                        viewModel.isSettingsPresented = false
-                        Task { @MainActor in
-                            try? await Task.sleep(for: .milliseconds(350))
-                            viewModel.isCyclePresented = true
-                        }
-                    }
+                    showsDismissButton: false,
+                    onOpenSleep: { viewModel.isSleepPresented = true },
+                    onOpenCycle: { viewModel.isCyclePresented = true }
                 )
+                .tabItem { Label("tab.settings", systemImage: "gearshape") }
+                .tag(AppTab.settings)
             }
         }
+        .tint(EasePalette.primaryText)
+        .preferredColorScheme(.light)
         .sheet(isPresented: $viewModel.isLogPresented) {
             LogSheetView(
                 date: viewModel.editingDate,
@@ -97,6 +79,12 @@ struct MainTabView: View {
         }
         .sheet(isPresented: $viewModel.isCyclePresented) {
             CycleDetailSheet(history: viewModel.cycleHistory)
+        }
+        .sheet(isPresented: $viewModel.isEnergyPresented) {
+            EnergyDetailSheet(
+                history: viewModel.energyHistory,
+                focusKcal: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.activeEnergyKcal
+            )
         }
         .sheet(isPresented: $viewModel.isMetricSheetPresented) {
             MetricSheet(date: viewModel.metricsDate, initialKey: viewModel.metricFocusKey)
@@ -117,9 +105,6 @@ struct MainTabView: View {
                 Task { await reloadHealthAndNotifications() }
             }
         }
-        .onChange(of: viewModel.isSettingsPresented) { _, presented in
-            if !presented { Task { await reloadHealthAndNotifications() } }
-        }
     }
 
     private func reloadHealthAndNotifications() async {
@@ -136,7 +121,7 @@ struct MainTabView: View {
 }
 
 private enum AppTab: Hashable {
-    case weight, trend, calendar, history
+    case weight, trend, calendar, settings
 }
 
 #Preview {

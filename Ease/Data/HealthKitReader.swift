@@ -24,12 +24,50 @@ struct HealthKitPayload: Sendable, Equatable {
     var byDay: [String: HealthDaySnapshot]
     var sleep: SleepHistory
     var cycle: CycleHistory
+    var energy: EnergyHistory
 
     static let empty = HealthKitPayload(
         byDay: [:],
         sleep: .empty,
-        cycle: .empty
+        cycle: .empty,
+        energy: .empty
     )
+}
+
+struct EnergyDay: Sendable, Equatable, Identifiable {
+    var id: String { dayKey }
+    var dayKey: String
+    var date: Date
+    var kcal: Double?
+}
+
+struct EnergyHistory: Sendable, Equatable {
+    var days: [EnergyDay]
+    var endingOn: Date
+
+    static let empty = EnergyHistory(days: [], endingOn: .distantPast)
+
+    var loggedDays: [EnergyDay] { days.filter { $0.kcal != nil } }
+
+    var averageKcal: Double? {
+        let values = loggedDays.compactMap(\.kcal)
+        guard !values.isEmpty else { return nil }
+        return (values.reduce(0, +) / Double(values.count)).rounded()
+    }
+
+    static func make(
+        kcalByDay: [String: Double],
+        days: Int,
+        endingOn date: Date = .now,
+        calendar: Calendar = .current
+    ) -> EnergyHistory {
+        let starts = CalendarDay.datesBack(max(days, 1), from: date, calendar: calendar)
+        let rows = starts.map { start in
+            let key = CalendarDay.dayKey(from: start, calendar: calendar)
+            return EnergyDay(dayKey: key, date: start, kcal: kcalByDay[key])
+        }
+        return EnergyHistory(days: rows, endingOn: CalendarDay.startOfDay(date, calendar: calendar))
+    }
 }
 
 enum HealthDisplay {
@@ -118,6 +156,12 @@ enum HealthKitReader {
             ),
             cycle: CycleMetrics.make(
                 periodDayKeys: periodSet,
+                endingOn: date,
+                calendar: calendar
+            ),
+            energy: EnergyHistory.make(
+                kcalByDay: energyMap,
+                days: snapshotDays,
                 endingOn: date,
                 calendar: calendar
             )
@@ -294,6 +338,17 @@ enum HealthKitReader {
             ),
             cycle: CycleMetrics.make(
                 periodDayKeys: periodSet,
+                endingOn: date,
+                calendar: calendar
+            ),
+            energy: EnergyHistory.make(
+                kcalByDay: Dictionary(
+                    uniqueKeysWithValues: byDay.compactMap { key, snap in
+                        guard let kcal = snap.activeEnergyKcal else { return nil }
+                        return (key, kcal)
+                    }
+                ),
+                days: snapshotDays,
                 endingOn: date,
                 calendar: calendar
             )

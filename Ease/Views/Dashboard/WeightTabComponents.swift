@@ -82,6 +82,7 @@ struct HomeModuleGrid: View {
     let onOpenDiet: () -> Void
     let onOpenSleep: () -> Void
     let onOpenPeriod: () -> Void
+    let onOpenEnergy: () -> Void
     let onAddModule: () -> Void
 
     private let spacing: CGFloat = 14
@@ -184,7 +185,7 @@ struct HomeModuleGrid: View {
                     .foregroundStyle(EasePalette.secondaryText)
             }
         case .energy:
-            square(module, action: nil) {
+            square(module, action: onOpenEnergy) {
                 if let energyKcal {
                     Text(EaseFormatters.kcal(energyKcal))
                         .font(EaseFont.number(18))
@@ -252,15 +253,36 @@ struct HomeModuleGrid: View {
 
 struct DailyWeightList: View {
     let rows: [DailyWeightRow]
+    var recentDays: Int = 30
+    @Binding var showsAll: Bool
     let onSelect: (DailyWeightRow) -> Void
+
+    private var visibleRows: [DailyWeightRow] {
+        if showsAll { return rows }
+        let cutoff = CalendarDay.addingDays(-(recentDays - 1), to: CalendarDay.startOfDay(.now))
+        return rows.filter { $0.day >= cutoff }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("weight.list.title")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(EasePalette.primaryText)
-                .padding(.bottom, 8)
-            if rows.isEmpty {
+            HStack {
+                Text("weight.list.title")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(EasePalette.primaryText)
+                Spacer()
+                if rows.count > visibleRows.count || showsAll {
+                    Button {
+                        showsAll.toggle()
+                    } label: {
+                        Text(showsAll ? "weight.list.recent" : "weight.list.all")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(EasePalette.primaryText)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.bottom, 8)
+            if visibleRows.isEmpty {
                 Text("weight.list.empty")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(EasePalette.secondaryText)
@@ -268,14 +290,14 @@ struct DailyWeightList: View {
             } else {
                 EaseCard(padding: 4) {
                     VStack(spacing: 0) {
-                        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                        ForEach(Array(visibleRows.enumerated()), id: \.element.id) { index, row in
                             Button {
                                 onSelect(row)
                             } label: {
                                 DailyWeightRowView(row: row)
                             }
                             .buttonStyle(.plain)
-                            if index < rows.count - 1 {
+                            if index < visibleRows.count - 1 {
                                 Divider()
                                     .overlay(EasePalette.hairline)
                                     .padding(.leading, 16)

@@ -13,6 +13,7 @@ struct SettingsSheet: View {
     let logs: [WeightLog]
     var onOpenSleep: (() -> Void)? = nil
     var onOpenCycle: (() -> Void)? = nil
+    var showsDismissButton: Bool = true
 
     @State private var heightText: String
     @State private var startText: String
@@ -22,6 +23,7 @@ struct SettingsSheet: View {
     @State private var weightReminderDate: Date
     @State private var dietReminderDate: Date
     @State private var showDeleteConfirm = false
+    @State private var showDeleteConfirmAgain = false
     @State private var sharePayload: SharePayload?
     @State private var errorKey: String?
     @State private var importResult: String?
@@ -36,12 +38,14 @@ struct SettingsSheet: View {
         profile: UserProfile,
         records: [DailyRecord],
         logs: [WeightLog] = [],
+        showsDismissButton: Bool = true,
         onOpenSleep: (() -> Void)? = nil,
         onOpenCycle: (() -> Void)? = nil
     ) {
         self.profile = profile
         self.records = records
         self.logs = logs
+        self.showsDismissButton = showsDismissButton
         self.onOpenSleep = onOpenSleep
         self.onOpenCycle = onOpenCycle
         _heightText = State(initialValue: EaseFormatters.oneDecimal(profile.heightCm))
@@ -145,6 +149,10 @@ struct SettingsSheet: View {
                         EasePrimaryButton(title: "settings.save", action: save)
                         EasePrimaryButton(title: "settings.export", action: exportCSV)
                         EasePrimaryButton(title: "settings.import", action: { isImporterPresented = true })
+                        Text("settings.import.hint")
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundStyle(EasePalette.secondaryText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         EaseTextButton(title: "settings.deleteAll") {
                             showDeleteConfirm = true
                         }
@@ -156,15 +164,25 @@ struct SettingsSheet: View {
             .navigationTitle("settings.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    EaseTextButton(title: "common.close", action: { dismiss() })
+                if showsDismissButton {
+                    ToolbarItem(placement: .cancellationAction) {
+                        EaseTextButton(title: "common.close", action: { dismiss() })
+                    }
                 }
             }
             .confirmationDialog("settings.deleteConfirm", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
-                Button("settings.deleteAll", role: .destructive, action: deleteAll)
+                Button("settings.deleteContinue", role: .destructive) {
+                    showDeleteConfirmAgain = true
+                }
                 Button("common.cancel", role: .cancel) {}
             } message: {
                 Text("settings.deleteConfirmMessage")
+            }
+            .alert("settings.deleteConfirmAgain", isPresented: $showDeleteConfirmAgain) {
+                Button("settings.deleteAll", role: .destructive, action: deleteAll)
+                Button("common.cancel", role: .cancel) {}
+            } message: {
+                Text("settings.deleteConfirmAgainMessage")
             }
             .sheet(item: $sharePayload) { payload in
                 ActivityView(items: payload.items)
@@ -402,7 +420,9 @@ struct SettingsSheet: View {
         withAnimation(.easeInOut(duration: 0.25)) {
             try? UserProfileRepository(context: modelContext).resetAll()
         }
-        dismiss()
+        if showsDismissButton {
+            dismiss()
+        }
     }
 
     private static func clockDate(hour: Int, minute: Int) -> Date {

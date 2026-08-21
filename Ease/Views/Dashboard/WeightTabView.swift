@@ -9,6 +9,7 @@ struct WeightTabView: View {
     let metricDefinitions: [MetricDefinition]
     let metricLogs: [MetricLog]
     @State private var isModuleEditorPresented = false
+    @State private var showsAllWeightRows = false
 
     private var selectedDate: Date { viewModel.selectedDate }
     private var snapshot: DashboardSnapshot {
@@ -61,7 +62,7 @@ struct WeightTabView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
+            ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 24) {
@@ -96,9 +97,10 @@ struct WeightTabView: View {
                             },
                             onOpenSleep: { viewModel.isSleepPresented = true },
                             onOpenPeriod: { viewModel.isCyclePresented = true },
+                            onOpenEnergy: { viewModel.isEnergyPresented = true },
                             onAddModule: { isModuleEditorPresented = true }
                         )
-                        DailyWeightList(rows: weightRows) { row in
+                        DailyWeightList(rows: weightRows, showsAll: $showsAllWeightRows) { row in
                             if let id = row.latestLogID, let log = logs.first(where: { $0.id == id }) {
                                 viewModel.openWeightLog(log)
                             } else {
@@ -108,27 +110,11 @@ struct WeightTabView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
-                    .padding(.bottom, 96)
+                    .padding(.bottom, 32)
                 }
-                EaseFAB(action: { viewModel.openWeightEntry(for: selectedDate) })
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 20)
             }
             .navigationTitle("app.name")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        viewModel.isSettingsPresented = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(EasePalette.primaryText)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("settings.title"))
-                }
-            }
             .toolbarBackground(EasePalette.background, for: .navigationBar)
             .sheet(isPresented: $isModuleEditorPresented) {
                 if let profile {

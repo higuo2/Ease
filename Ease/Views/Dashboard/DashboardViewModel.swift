@@ -89,6 +89,7 @@ final class DashboardViewModel {
     var isLogPresented = false
     var isSleepPresented = false
     var isCyclePresented = false
+    var isEnergyPresented = false
     var isMetricSheetPresented = false
     var metricsDate = Date.now
     var metricFocusKey: String?
@@ -98,6 +99,7 @@ final class DashboardViewModel {
     var healthByDay: [String: HealthDaySnapshot] = [:]
     var sleepHistory = SleepHistory.empty
     var cycleHistory = CycleHistory.empty
+    var energyHistory = EnergyHistory.empty
 
     func openLog(for date: Date, mode: LogSheetMode = .weight) {
         editingDate = CalendarDay.startOfDay(date)
@@ -144,6 +146,7 @@ final class DashboardViewModel {
         healthByDay = payload.byDay
         sleepHistory = payload.sleep
         cycleHistory = payload.cycle
+        energyHistory = payload.energy
         let todayKey = CalendarDay.dayKey(from: .now)
         await NotificationScheduler.refresh(
             enabled: enabled,
