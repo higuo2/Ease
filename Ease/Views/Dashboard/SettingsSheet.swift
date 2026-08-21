@@ -184,7 +184,7 @@ struct SettingsSheet: View {
                 Text("settings.metrics")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(EasePalette.secondaryText)
-                ForEach(metricDefinitions, id: \.key) { definition in
+                ForEach(metricDefinitions.filter { MetricCatalog.isActiveMetricKey($0.key) }, id: \.key) { definition in
                     metricRow(definition)
                 }
                 if customCount < MetricCatalog.maxCustom {

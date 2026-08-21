@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import Charts
 
 struct MetricSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -43,8 +42,15 @@ struct MetricSheet: View {
                                     .foregroundStyle(EasePalette.primaryText)
                             }
                             EasePrimaryButton(title: "log.save", isEnabled: canSave, action: save)
+                        } else {
+                            EaseCard {
+                                Text("metric.sheet.empty")
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundStyle(EasePalette.secondaryText)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
                         }
-                        historyCard
+                        historyListCard
                     }
                     .padding(20)
                 }
@@ -74,13 +80,15 @@ struct MetricSheet: View {
     }
 
     private var enabledMetrics: [MetricDefinition] {
-        metricDefinitions.filter(\.isEnabled)
+        metricDefinitions.filter { $0.isEnabled && MetricCatalog.isActiveMetricKey($0.key) }
     }
 
     private var historyDefinitions: [MetricDefinition] {
         var seen = Set<String>()
         var result: [MetricDefinition] = []
-        let extras = metricDefinitions.filter { $0.key == selectedKey }
+        let extras = metricDefinitions.filter {
+            $0.key == selectedKey && MetricCatalog.isActiveMetricKey($0.key)
+        }
         for definition in enabledMetrics + extras {
             if seen.insert(definition.key).inserted {
                 result.append(definition)
@@ -207,11 +215,14 @@ struct MetricSheet: View {
         }
     }
 
-    private var historyCard: some View {
+    private var historyListCard: some View {
         Group {
             if let selectedDefinition {
                 EaseCard {
                     VStack(alignment: .leading, spacing: 16) {
+                        Text("metric.history.title")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(EasePalette.primaryText)
                         if historyDefinitions.count > 1 {
                             Picker("metric.history.title", selection: $selectedKey) {
                                 ForEach(historyDefinitions, id: \.key) { definition in
@@ -231,7 +242,6 @@ struct MetricSheet: View {
                                 .font(.system(size: 16, weight: .regular))
                                 .foregroundStyle(EasePalette.secondaryText)
                         } else {
-                            chart(for: selectedDefinition)
                             ForEach(series.reversed(), id: \.id) { log in
                                 HStack {
                                     Text(EaseFormatters.numericDate(log.timestamp))
@@ -253,31 +263,6 @@ struct MetricSheet: View {
                 }
             }
         }
-    }
-
-    private func chart(for definition: MetricDefinition) -> some View {
-        let spec = MetricCatalog.spec(for: definition)
-        return Chart {
-            ForEach(series, id: \.id) { log in
-                LineMark(
-                    x: .value("chart.axis.date", log.timestamp),
-                    y: .value(spec.resolvedTitle, log.value)
-                )
-                .interpolationMethod(.catmullRom)
-                .foregroundStyle(EasePalette.primaryText.opacity(0.55))
-                PointMark(
-                    x: .value("chart.axis.date", log.timestamp),
-                    y: .value(spec.resolvedTitle, log.value)
-                )
-                .foregroundStyle(EasePalette.chartMuted)
-                .symbolSize(20)
-            }
-        }
-        .chartXAxis(.hidden)
-        .chartYAxis {
-            AxisMarks(position: .leading)
-        }
-        .frame(height: 160)
     }
 
     private func delete(_ log: MetricLog) {

@@ -34,29 +34,12 @@ struct WeightTabView: View {
     private var weekDelta: Double? {
         WeightMetrics.weekDelta(records: records, logs: logs, on: selectedDate)
     }
-    private var waterDefinition: MetricDefinition? {
-        metricDefinitions.first { $0.key == "water" }
-    }
-    private var waterLine: String? {
-        guard let waterDefinition else { return nil }
-        let key = CalendarDay.dayKey(from: selectedDate)
-        let onDay = metricLogs
-            .filter { $0.metricKey == "water" && CalendarDay.dayKey(from: $0.timestamp) == key }
-            .sorted { $0.timestamp < $1.timestamp }
-        guard let latest = onDay.last else {
-            return String(localized: "shortcut.water.empty")
-        }
-        return MetricCatalog.formattedReading(latest.value, spec: MetricCatalog.spec(for: waterDefinition))
-    }
-    private var otherMetrics: [MetricDefinition] {
-        metricDefinitions.filter { $0.key != "water" }
-    }
-    private var metricsEntry: String? {
-        DashboardMetricsLine.text(enabled: otherMetrics, logs: metricLogs, on: selectedDate)
+    private var circumferenceMetrics: [MetricDefinition] {
+        metricDefinitions.filter { MetricCatalog.isActiveMetricKey($0.key) }
     }
     private var metricsFocusKey: String? {
         DashboardMetricsLine.focusKey(
-            enabled: metricDefinitions,
+            enabled: circumferenceMetrics,
             logs: metricLogs,
             on: selectedDate
         )
@@ -78,30 +61,26 @@ struct WeightTabView: View {
                                 paceLine: paceLine
                             )
                         }
-                        HealthMetricGrid(
+                        HomeModuleGrid(
                             bmi: snapshot.bmi,
                             bodyFat: snapshot.bodyFat,
-                            waterLine: waterDefinition == nil ? nil : (waterLine ?? String(localized: "shortcut.water.empty")),
-                            metricsEntry: otherMetrics.isEmpty ? nil : (metricsEntry ?? String(localized: "dashboard.metrics")),
+                            dietStatus: selectedRecord?.dietStatus,
                             onOpenMetrics: {
                                 viewModel.openMetrics(on: selectedDate, key: metricsFocusKey)
                             },
-                            onOpenWater: {
-                                viewModel.openMetrics(on: selectedDate, key: "water")
+                            onOpenWeight: {
+                                viewModel.openWeightEntry(for: selectedDate)
+                            },
+                            onOpenDiet: {
+                                viewModel.openDietEntry(for: selectedDate)
                             }
-                        )
-                        ShortcutCardsRow(
-                            dietStatus: selectedRecord?.dietStatus,
-                            waterSummary: waterLine,
-                            onWater: { viewModel.openMetrics(on: selectedDate, key: "water") },
-                            onDiet: viewModel.openSelectedLog
                         )
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
                     .padding(.bottom, 96)
                 }
-                EaseFAB(action: viewModel.openSelectedLog)
+                EaseFAB(action: { viewModel.openWeightEntry(for: selectedDate) })
                     .padding(.trailing, 20)
                     .padding(.bottom, 20)
             }

@@ -32,6 +32,12 @@ enum EasePalette {
     static let periodRose = Color(red: 0.78, green: 0.40, blue: 0.54)
     static let energyOrange = Color(red: 251 / 255, green: 228 / 255, blue: 208 / 255)
 
+    /// Quiet Morandi fills for home square modules
+    static let morandiSage = Color(red: 197 / 255, green: 206 / 255, blue: 195 / 255)
+    static let morandiBlush = Color(red: 212 / 255, green: 193 / 255, blue: 192 / 255)
+    static let morandiMist = Color(red: 201 / 255, green: 208 / 255, blue: 212 / 255)
+    static let morandiSand = Color(red: 217 / 255, green: 207 / 255, blue: 197 / 255)
+
     static func deltaColor(_ delta: Double) -> Color {
         if delta < 0 { return coral }
         if delta > 0 { return mint }

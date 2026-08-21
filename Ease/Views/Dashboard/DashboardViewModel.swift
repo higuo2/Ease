@@ -28,6 +28,13 @@ enum ChartRange: Int, CaseIterable, Identifiable {
     }
 }
 
+enum LogSheetMode: Equatable {
+    /// Weight + body fat (+ OCR). No diet.
+    case weight
+    /// Diet + tags + note. No weight.
+    case diet
+}
+
 /// Home-card gray line. Nil when nothing is enabled.
 /// Enabled with no log that day → entry copy. Enabled with logs → readings only.
 enum DashboardMetricsLine {
@@ -87,29 +94,40 @@ final class DashboardViewModel {
     var metricFocusKey: String?
     var editingDate = Date.now
     var editingLogID: UUID?
+    var logMode: LogSheetMode = .weight
     var healthByDay: [String: HealthDaySnapshot] = [:]
     var sleepHistory = SleepHistory.empty
     var cycleHistory = CycleHistory.empty
 
-    func openLog(for date: Date) {
+    func openLog(for date: Date, mode: LogSheetMode = .weight) {
         editingDate = CalendarDay.startOfDay(date)
         editingLogID = nil
+        logMode = mode
         isLogPresented = true
+    }
+
+    func openWeightEntry(for date: Date) {
+        openLog(for: date, mode: .weight)
+    }
+
+    func openDietEntry(for date: Date) {
+        openLog(for: date, mode: .diet)
     }
 
     func openWeightLog(_ log: WeightLog) {
         editingDate = CalendarDay.startOfDay(log.timestamp)
         editingLogID = log.id
+        logMode = .weight
         isLogPresented = true
     }
 
     func openSelectedLog() {
-        openLog(for: selectedDate)
+        openWeightEntry(for: selectedDate)
     }
 
     func openMetrics(on date: Date, key: String? = nil) {
         metricsDate = CalendarDay.startOfDay(date)
-        metricFocusKey = key
+        metricFocusKey = key.flatMap { MetricCatalog.isActiveMetricKey($0) ? $0 : nil }
         isMetricSheetPresented = true
     }
 

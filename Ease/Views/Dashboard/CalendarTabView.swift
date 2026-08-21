@@ -196,7 +196,7 @@ struct CalendarTabView: View {
                     }
                     Spacer()
                     Button {
-                        viewModel.openLog(for: selectedDate)
+                        viewModel.openWeightEntry(for: selectedDate)
                     } label: {
                         Text("calendar.log")
                             .font(.system(size: 14, weight: .semibold))

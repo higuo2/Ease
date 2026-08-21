@@ -15,7 +15,14 @@ struct MetricRepository {
     func seedBuiltinsIfNeeded() throws -> [MetricDefinition] {
         let existing = try allDefinitions()
         let existingKeys = Set(existing.map(\.key))
-        var inserted = false
+        var dirty = false
+        for definition in existing where MetricCatalog.retiredBuiltinKeys.contains(definition.key) {
+            if definition.isEnabled {
+                definition.isEnabled = false
+                definition.updatedAt = .now
+                dirty = true
+            }
+        }
         for spec in MetricCatalog.builtins where !existingKeys.contains(spec.key) {
             context.insert(
                 MetricDefinition(
@@ -27,9 +34,9 @@ struct MetricRepository {
                     sortOrder: spec.sortOrder
                 )
             )
-            inserted = true
+            dirty = true
         }
-        if inserted {
+        if dirty {
             try context.save()
         }
         return try allDefinitions()
@@ -43,7 +50,7 @@ struct MetricRepository {
     }
 
     func enabledDefinitions() throws -> [MetricDefinition] {
-        try allDefinitions().filter(\.isEnabled)
+        try allDefinitions().filter { $0.isEnabled && MetricCatalog.isActiveMetricKey($0.key) }
     }
 
     func definition(key: String) throws -> MetricDefinition? {

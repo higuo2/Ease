@@ -59,14 +59,14 @@ final class MetricRepositoryTests: EaseStoreTestCase {
         }
     }
 
-    func test_饮水按50步进() throws {
+    func test_围度按0_1步进() throws {
         try metrics.seedBuiltinsIfNeeded()
         let log = try metrics.insertLog(
             timestamp: calendar.testDate(2026, 8, 10, hour: 9),
-            metricKey: "water",
-            value: 1230
+            metricKey: "waist",
+            value: 68.04
         )
-        XCTAssertEqual(log.value, 1250)
+        XCTAssertEqual(log.value, 68.0)
     }
 
     func test_不允许的符号_拒绝自定义() {
@@ -80,9 +80,9 @@ final class MetricRepositoryTests: EaseStoreTestCase {
     func test_首页行_只含已启用且所选日有log的最新值() throws {
         try metrics.seedBuiltinsIfNeeded()
         let waist = try metrics.definition(key: "waist")!
-        let water = try metrics.definition(key: "water")!
+        let hip = try metrics.definition(key: "hip")!
         try metrics.setEnabled(waist, isEnabled: true)
-        try metrics.setEnabled(water, isEnabled: true)
+        try metrics.setEnabled(hip, isEnabled: true)
 
         _ = try metrics.insertLog(
             timestamp: calendar.testDate(2026, 8, 10, hour: 8),
@@ -96,8 +96,8 @@ final class MetricRepositoryTests: EaseStoreTestCase {
         )
         _ = try metrics.insertLog(
             timestamp: calendar.testDate(2026, 8, 11, hour: 8),
-            metricKey: "water",
-            value: 1500
+            metricKey: "hip",
+            value: 90.0
         )
 
         let line = try metrics.homeLine(on: calendar.testDate(2026, 8, 10))
@@ -105,7 +105,7 @@ final class MetricRepositoryTests: EaseStoreTestCase {
             line,
             MetricCatalog.formattedReading(68.0, spec: MetricCatalog.builtin(for: "waist")!)
         )
-        XCTAssertFalse(line?.contains("1500") == true)
+        XCTAssertFalse(line?.contains("90") == true)
         XCTAssertNil(try metrics.homeLine(on: calendar.testDate(2026, 8, 12)))
     }
 
@@ -140,7 +140,7 @@ final class MetricRepositoryTests: EaseStoreTestCase {
         }
     }
 
-    func test_大腿与饮水边界() throws {
+    func test_大腿与手腕边界() throws {
         try metrics.seedBuiltinsIfNeeded()
         XCTAssertEqual(
             try metrics.insertLog(
@@ -153,10 +153,10 @@ final class MetricRepositoryTests: EaseStoreTestCase {
         XCTAssertEqual(
             try metrics.insertLog(
                 timestamp: calendar.testDate(2026, 8, 10, hour: 9),
-                metricKey: "water",
-                value: 0
+                metricKey: "wrist",
+                value: 15.4
             ).value,
-            0
+            15.4
         )
         XCTAssertThrowsError(
             try metrics.insertLog(
@@ -168,18 +168,16 @@ final class MetricRepositoryTests: EaseStoreTestCase {
         XCTAssertThrowsError(
             try metrics.insertLog(
                 timestamp: calendar.testDate(2026, 8, 10, hour: 11),
-                metricKey: "water",
-                value: 6500
+                metricKey: "wrist",
+                value: 40
             )
         )
     }
 
     func test_内置符号与单位() {
-        XCTAssertEqual(MetricCatalog.builtin(for: "water")?.symbolName, "drop")
-        XCTAssertNotEqual(MetricCatalog.builtin(for: "water")?.symbolName, "drop.fill")
+        XCTAssertNil(MetricCatalog.builtin(for: "water"))
         XCTAssertEqual(MetricCatalog.builtin(for: "waist")?.symbolName, "ruler")
         XCTAssertEqual(MetricCatalog.builtin(for: "waist")?.unit, .cm)
-        XCTAssertEqual(MetricCatalog.builtin(for: "water")?.unit, .ml)
         XCTAssertEqual(MetricCatalog.builtin(for: "thigh")?.range, 20...120)
     }
 

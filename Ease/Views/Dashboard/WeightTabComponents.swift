@@ -68,118 +68,119 @@ struct StageGoalCard: View {
     }
 }
 
-struct HealthMetricGrid: View {
+/// Four equal Morandi squares: BMI · Measurements · Weight · Diet
+struct HomeModuleGrid: View {
     let bmi: Double?
     let bodyFat: Double?
-    let waterLine: String?
-    let metricsEntry: String?
-    let onOpenMetrics: () -> Void
-    let onOpenWater: () -> Void
-
-    private var cells: [(title: LocalizedStringKey, value: String, action: (() -> Void)?)] {
-        var result: [(LocalizedStringKey, String, (() -> Void)?)] = []
-        if let bmi {
-            result.append(("grid.bmi", EaseFormatters.oneDecimal(bmi), nil))
-        }
-        if let bodyFat {
-            result.append(("grid.bodyFat", String(format: "%.1f%%", locale: .current, bodyFat), nil))
-        }
-        if let waterLine {
-            result.append(("grid.water", waterLine, onOpenWater))
-        }
-        if let metricsEntry {
-            result.append(("dashboard.metrics", metricsEntry, onOpenMetrics))
-        }
-        return result
-    }
-
-    var body: some View {
-        let items = cells
-        if items.isEmpty {
-            EmptyView()
-        } else {
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                    Button {
-                        item.action?()
-                    } label: {
-                        EaseRecessedCard {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(item.title)
-                                    .font(.system(size: 13, weight: .regular))
-                                    .foregroundStyle(EasePalette.secondaryText)
-                                Text(item.value)
-                                    .font(EaseFont.number(22))
-                                    .monospacedDigit()
-                                    .foregroundStyle(EasePalette.primaryText)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(item.action == nil)
-                }
-            }
-        }
-    }
-}
-
-struct ShortcutCardsRow: View {
     let dietStatus: DietStatus?
-    let waterSummary: String?
-    let onWater: () -> Void
-    let onDiet: () -> Void
+    let onOpenMetrics: () -> Void
+    let onOpenWeight: () -> Void
+    let onOpenDiet: () -> Void
+
+    private let spacing: CGFloat = 14
 
     var body: some View {
-        HStack(spacing: 12) {
-            shortcutCard(
-                title: "shortcut.water",
-                subtitle: waterSummary,
-                systemImage: "drop",
-                action: onWater
-            )
-            shortcutCard(
-                title: "shortcut.diet",
-                subtitle: nil,
-                systemImage: dietStatus?.systemImage ?? "fork.knife",
-                action: onDiet
-            )
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: spacing),
+                GridItem(.flexible(), spacing: spacing)
+            ],
+            spacing: spacing
+        ) {
+            moduleSquare(
+                title: "grid.bmi",
+                fill: EasePalette.morandiMist,
+                action: nil
+            ) {
+                if let bmi {
+                    Text(EaseFormatters.oneDecimal(bmi))
+                        .font(EaseFont.number(28))
+                        .monospacedDigit()
+                        .foregroundStyle(EasePalette.primaryText)
+                    if let bodyFat {
+                        Text(EaseFormatters.bodyFat(bodyFat))
+                            .font(.system(size: 13, weight: .regular))
+                            .monospacedDigit()
+                            .foregroundStyle(EasePalette.secondaryText)
+                    }
+                } else {
+                    Text("—")
+                        .font(EaseFont.number(28))
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+            }
+
+            moduleSquare(
+                title: "dashboard.metrics",
+                fill: EasePalette.morandiBlush,
+                action: onOpenMetrics
+            ) {
+                Image(systemName: "ruler")
+                    .font(.system(size: 28, weight: .regular))
+                    .foregroundStyle(EasePalette.primaryText)
+                Text("module.tapToLog")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+            }
+
+            moduleSquare(
+                title: "module.weight",
+                fill: EasePalette.morandiSage,
+                action: onOpenWeight
+            ) {
+                Image(systemName: "scalemass")
+                    .font(.system(size: 28, weight: .regular))
+                    .foregroundStyle(EasePalette.primaryText)
+                Text("module.tapToLog")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+            }
+
+            moduleSquare(
+                title: "module.diet",
+                fill: EasePalette.morandiSand,
+                action: onOpenDiet
+            ) {
+                Image(systemName: dietStatus?.systemImage ?? "fork.knife")
+                    .font(.system(size: 28, weight: .regular))
+                    .foregroundStyle(EasePalette.primaryText)
+                if let dietStatus {
+                    Text(LocalizedStringKey(dietStatus.titleKey))
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(EasePalette.secondaryText)
+                } else {
+                    Text("module.tapToLog")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+            }
         }
     }
 
-    private func shortcutCard(
+    private func moduleSquare<Content: View>(
         title: LocalizedStringKey,
-        subtitle: String?,
-        systemImage: String,
-        action: @escaping () -> Void
+        fill: Color,
+        action: (() -> Void)?,
+        @ViewBuilder content: () -> Content
     ) -> some View {
-        Button(action: action) {
-            EaseCard {
-                HStack {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(title)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(EasePalette.primaryText)
-                        if let subtitle {
-                            Text(subtitle)
-                                .font(.system(size: 13, weight: .regular))
-                                .foregroundStyle(EasePalette.secondaryText)
-                        } else {
-                            Image(systemName: systemImage)
-                                .font(.system(size: 18, weight: .regular))
-                                .foregroundStyle(EasePalette.secondaryText)
-                        }
-                    }
-                    Spacer()
-                    Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.white)
-                        .frame(width: 28, height: 28)
-                        .background(Color.black, in: Circle())
-                }
+        Button {
+            action?()
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(EasePalette.primaryText)
+                Spacer(minLength: 0)
+                content()
+                Spacer(minLength: 0)
             }
+            .padding(16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .aspectRatio(1, contentMode: .fit)
+            .background(fill, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
         .buttonStyle(.plain)
+        .disabled(action == nil)
     }
 }
 

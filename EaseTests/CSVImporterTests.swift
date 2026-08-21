@@ -153,7 +153,7 @@ final class CSVImporterTests: EaseStoreTestCase {
         \(CSVImporter.metricsHeader)
         2026-08-10,08:00,waist,68.0
         2026-08-10,08:00,unknown_metric,12
-        2026-08-10,09:00,water,1500
+        2026-08-10,09:00,hip,90.0
         """
         let specs = Dictionary(
             uniqueKeysWithValues: MetricCatalog.builtins.map { ($0.key, $0) }

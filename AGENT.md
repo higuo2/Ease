@@ -59,7 +59,8 @@ Core feel: generous whitespace, soft hierarchy via fill color (not borders/shado
   - Diet: Clean (`leaf.fill`), Normal (`fork.knife`), Cheat (`takeoutbag.and.cup.and.straw`).
   - Variables: Period (`drop.fill`), Travel (`airplane`), Bowel (`wind`).
   - Tabs: Weight (`scalemass` / `house`), Trend (`chart.xyaxis.line`), Calendar (`calendar`), History (`list.bullet`).
-  - Built-in metrics (v1.2): circumferences use `ruler`; water `drop` (not `drop.fill`, which is period).
+  - Built-in metrics (v1.2): circumferences use `ruler`. No water tracking.
+  - Home modules: four equal Morandi squares — BMI (display), Measurements, Weight, Diet.
 
 ## 4. Screen Layout — 4-Tab Root (match PRD §2)
 
@@ -70,8 +71,7 @@ Root is a **TabView** with four tabs. Sheets (log, metrics, settings, sleep, cyc
 ### Tab 1 — 体重 (Dashboard)
 1. **Hero**：居中巨幅当前体重（所选日最新 `WeightLog`，否则全局最新）。下方一行小字周增减（如 `▼1.8 kg 本周`），coral on loss / quiet green on gain.
 2. **阶段目标卡片**：recessed `#F2F3F5` / `#F5F5F7` rounded card — linear progress bar, start weight, remaining days (or pace ETA when available), target weight. No purple ring.
-3. **双列健康网格 (2×2)**：至少 BMI（number only）与体脂率；其余两格可为饮水 / 围度入口或已启用扩展指标。无数据时隐藏格子或整行，不画占位「—」硬凑。
-4. **底部快捷打卡**：喝水、饮食两张平行卡片，带 `+` 快捷。右下角 **黑色圆形 FAB** 打开日更录入 Sheet（所选日）。围度仍走独立 Metrics Sheet。
+3. **双列健康网格 (2×2)**：四个等大正方形莫兰迪色块 — BMI（只读数字）、围度、体重录入、饮食录入。无饮水模块。右下角 **黑色圆形 FAB** 打开体重录入 Sheet。
 
 Sleep / Period / Active Energy：不再作为首页马卡龙主卡；有需要时从设置或次级入口进既有 Detail Sheet。
 
@@ -93,8 +93,9 @@ Sleep / Period / Active Energy：不再作为首页马卡龙主卡；有需要�
 2. **列表**：单行极简文字表；长按或侧滑编辑/删除对应 `WeightLog`（或当日记录，按现有数据规则）。
 
 ### Shared Sheets (unchanged product rules, restyled to milk cards)
-- **Log Sheet**：日期 → 体重 + OCR → 体脂 → 饮食三选一 → 标签 → 备注 → 黑色 Capsule Save.
-- **Metrics Sheet**：日期 → 已启用指标 → Save → 历史。
+- **Weight Log Sheet**：日期 → 体重 + OCR → 体脂 → 黑色 Capsule Save（不含饮食）。
+- **Diet Log Sheet**：日期 → 饮食三选一 → 标签 → 备注 → Save（不含体重）。
+- **Metrics Sheet**：日期 → 已启用围度 → Save → 历史列表（**无趋势图**；体重趋势只在 Trend Tab）。
 - **Settings**：身高 / 起止体重 / 睡眠目标 / 通知 / CSV / 扩展指标；入口放体重 Tab 导航栏 trailing。
 - **Sleep / Cycle Detail**：仍为 Sheet；仅 sheet 内可用安静 tint。
 - **Onboarding**：三步不变；视觉跟随奶油底 + 黑 Capsule 主按钮。

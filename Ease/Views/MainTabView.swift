@@ -14,7 +14,7 @@ struct MainTabView: View {
 
     private var profile: UserProfile? { profiles.first }
     private var enabledMetrics: [MetricDefinition] {
-        metricDefinitions.filter(\.isEnabled)
+        metricDefinitions.filter { $0.isEnabled && MetricCatalog.isActiveMetricKey($0.key) }
     }
 
     var body: some View {
@@ -82,7 +82,11 @@ struct MainTabView: View {
             }
         }
         .sheet(isPresented: $viewModel.isLogPresented) {
-            LogSheetView(date: viewModel.editingDate, editingLogID: viewModel.editingLogID)
+            LogSheetView(
+                date: viewModel.editingDate,
+                editingLogID: viewModel.editingLogID,
+                mode: viewModel.logMode
+            )
         }
         .sheet(isPresented: $viewModel.isSleepPresented) {
             SleepDetailSheet(

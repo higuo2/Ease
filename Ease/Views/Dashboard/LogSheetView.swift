@@ -11,6 +11,7 @@ struct LogSheetView: View {
     @Query(sort: \WeightLog.timestamp, order: .forward) private var weightLogs: [WeightLog]
     @Query(sort: \UserProfile.updatedAt, order: .reverse) private var profiles: [UserProfile]
 
+    let mode: LogSheetMode
     @State private var selectedDate: Date
     @State private var editingLogID: UUID?
     @State private var weightText: String
@@ -24,7 +25,8 @@ struct LogSheetView: View {
     @State private var isPhotoPickerPresented = false
     @State private var isOCRBusy = false
 
-    init(date: Date, editingLogID: UUID? = nil) {
+    init(date: Date, editingLogID: UUID? = nil, mode: LogSheetMode = .weight) {
+        self.mode = mode
         let start = CalendarDay.startOfDay(date)
         _selectedDate = State(initialValue: start)
         _editingLogID = State(initialValue: editingLogID)
@@ -40,6 +42,13 @@ struct LogSheetView: View {
         return records.first { $0.dayKey == key }
     }
 
+    private var titleKey: LocalizedStringKey {
+        switch mode {
+        case .weight: "log.title.weight"
+        case .diet: "log.title.diet"
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -49,62 +58,13 @@ struct LogSheetView: View {
                         EaseCard {
                             logDateRow
                         }
-                        EaseCard {
-                            VStack(spacing: 20) {
-                                EaseField(
-                                    title: "log.weight",
-                                    placeholder: "onboarding.weight.placeholder",
-                                    text: $weightText,
-                                    suffix: "unit.kg",
-                                    isInvalid: isNumericError
-                                ) {
-                                    ocrButton
-                                }
-                                EaseField(
-                                    title: "log.bodyFat",
-                                    placeholder: "log.bodyFat.placeholder",
-                                    text: $bodyFatText,
-                                    suffix: "unit.percent",
-                                    isInvalid: isNumericError
-                                )
-                            }
-                        }
-                        EaseCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("log.diet")
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(EasePalette.secondaryText)
-                                HStack(spacing: 8) {
-                                    ForEach(DietStatus.allCases, id: \.self) { status in
-                                        dietChip(status)
-                                    }
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        EaseCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("log.tags")
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(EasePalette.secondaryText)
-                                HStack(spacing: 8) {
-                                    ForEach(VariableTag.allCases, id: \.self) { tag in
-                                        tagChip(tag)
-                                    }
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        EaseCard {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("log.note")
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(EasePalette.secondaryText)
-                                TextField("log.note.placeholder", text: $noteText, axis: .vertical)
-                                    .font(.system(size: 16, weight: .regular))
-                                    .foregroundStyle(EasePalette.primaryText)
-                                    .lineLimit(3...6)
-                            }
+                        switch mode {
+                        case .weight:
+                            weightCard
+                        case .diet:
+                            dietCard
+                            tagsCard
+                            noteCard
                         }
                         if let errorKey {
                             Text(LocalizedStringKey(errorKey))
@@ -119,7 +79,7 @@ struct LogSheetView: View {
                     .padding(20)
                 }
             }
-            .navigationTitle("log.title")
+            .navigationTitle(titleKey)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -141,6 +101,75 @@ struct LogSheetView: View {
             .sensoryFeedback(.error, trigger: errorPulse)
         }
         .preferredColorScheme(.light)
+    }
+
+    private var weightCard: some View {
+        EaseCard {
+            VStack(spacing: 20) {
+                EaseField(
+                    title: "log.weight",
+                    placeholder: "onboarding.weight.placeholder",
+                    text: $weightText,
+                    suffix: "unit.kg",
+                    isInvalid: isNumericError
+                ) {
+                    ocrButton
+                }
+                EaseField(
+                    title: "log.bodyFat",
+                    placeholder: "log.bodyFat.placeholder",
+                    text: $bodyFatText,
+                    suffix: "unit.percent",
+                    isInvalid: isNumericError
+                )
+            }
+        }
+    }
+
+    private var dietCard: some View {
+        EaseCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("log.diet")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+                HStack(spacing: 8) {
+                    ForEach(DietStatus.allCases, id: \.self) { status in
+                        dietChip(status)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var tagsCard: some View {
+        EaseCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("log.tags")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+                HStack(spacing: 8) {
+                    ForEach(VariableTag.allCases, id: \.self) { tag in
+                        tagChip(tag)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var noteCard: some View {
+        EaseCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("log.note")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+                TextField("log.note.placeholder", text: $noteText, axis: .vertical)
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(EasePalette.primaryText)
+                    .lineLimit(3...6)
+            }
+        }
     }
 
     private var logDateRow: some View {
@@ -184,12 +213,21 @@ struct LogSheetView: View {
     }
 
     private var showsDelete: Bool {
-        editingLog != nil || (existing != nil && logsOnSelectedDay.isEmpty)
+        switch mode {
+        case .weight:
+            return editingLog != nil
+        case .diet:
+            return existing != nil
+        }
     }
 
     private var canSave: Bool {
-        let hasWeight = EaseFormatters.parseDecimal(weightText) != nil
-        return hasWeight || diet != nil
+        switch mode {
+        case .weight:
+            return EaseFormatters.parseDecimal(weightText) != nil
+        case .diet:
+            return diet != nil || !tags.isEmpty || !noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || existing != nil
+        }
     }
 
     private var ocrButton: some View {
@@ -202,11 +240,11 @@ struct LogSheetView: View {
             ZStack {
                 Image(systemName: "photo")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(EasePalette.accent)
+                    .foregroundStyle(EasePalette.coral)
                     .opacity(isOCRBusy ? 0 : 1)
                 if isOCRBusy {
                     ProgressView()
-                        .tint(EasePalette.accent)
+                        .tint(EasePalette.coral)
                 }
             }
             .frame(width: 28, height: 28)
@@ -264,7 +302,7 @@ struct LogSheetView: View {
             .foregroundStyle(selected ? Color.white : EasePalette.primaryText)
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
-            .background(selected ? EasePalette.accent : EasePalette.track)
+            .background(selected ? EasePalette.coral : EasePalette.track)
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -273,16 +311,20 @@ struct LogSheetView: View {
     private func hydrateFromExisting() {
         let record = existing
         let log = editingLog ?? loadEditingLog()
-        if let log {
-            weightText = EaseFormatters.oneDecimal(log.weight)
-            bodyFatText = log.bodyFat.map(EaseFormatters.oneDecimal) ?? ""
-        } else {
-            weightText = ""
-            bodyFatText = ""
+        if mode == .weight {
+            if let log {
+                weightText = EaseFormatters.oneDecimal(log.weight)
+                bodyFatText = log.bodyFat.map(EaseFormatters.oneDecimal) ?? ""
+            } else {
+                weightText = ""
+                bodyFatText = ""
+            }
         }
-        diet = record?.dietStatus
-        tags = Set(record?.variableTags ?? [])
-        noteText = record?.note ?? ""
+        if mode == .diet {
+            diet = record?.dietStatus
+            tags = Set(record?.variableTags ?? [])
+            noteText = record?.note ?? ""
+        }
         errorKey = nil
     }
 
@@ -292,17 +334,25 @@ struct LogSheetView: View {
     }
 
     private func save() {
-        let weight = EaseFormatters.parseDecimal(weightText)
-        let bodyFat = EaseFormatters.parseDecimal(bodyFatText)
-        let note = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let noteValue = note.isEmpty ? nil : note
-        guard weight != nil || diet != nil else {
-            presentError("log.error.empty")
-            return
-        }
         do {
-            try saveWeight(weight: weight, bodyFat: bodyFat)
-            try saveJournal(note: noteValue)
+            switch mode {
+            case .weight:
+                let weight = EaseFormatters.parseDecimal(weightText)
+                let bodyFat = EaseFormatters.parseDecimal(bodyFatText)
+                guard weight != nil else {
+                    presentError("log.error.empty")
+                    return
+                }
+                try saveWeight(weight: weight, bodyFat: bodyFat)
+            case .diet:
+                let note = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
+                let noteValue = note.isEmpty ? nil : note
+                guard diet != nil || !tags.isEmpty || noteValue != nil || existing != nil else {
+                    presentError("log.error.empty")
+                    return
+                }
+                try saveJournal(note: noteValue)
+            }
             refreshReminders()
             dismiss()
         } catch let error as EaseDataError {
@@ -323,8 +373,6 @@ struct LogSheetView: View {
         let logs = WeightLogRepository(context: modelContext)
         if let editingLog {
             guard let weight else { return }
-            let fatUnchanged = editingLog.weight == weight && editingLog.bodyFat == bodyFat
-            if fatUnchanged { return }
             try logs.update(editingLog, weight: weight, bodyFat: bodyFat)
             return
         }
@@ -340,8 +388,6 @@ struct LogSheetView: View {
     }
 
     private func saveJournal(note: String?) throws {
-        let hasJournal = diet != nil || !tags.isEmpty || note != nil || existing != nil
-        guard hasJournal else { return }
         var patch = DailyRecordPatch()
         patch.dietStatus = .set(diet)
         patch.tags = .set(VariableTag.sanitized(Array(tags)))
@@ -356,9 +402,12 @@ struct LogSheetView: View {
 
     private func deleteCurrent() {
         do {
-            if let editingLog {
-                try WeightLogRepository(context: modelContext).delete(editingLog)
-            } else if logsOnSelectedDay.isEmpty {
+            switch mode {
+            case .weight:
+                if let editingLog {
+                    try WeightLogRepository(context: modelContext).delete(editingLog)
+                }
+            case .diet:
                 try DailyRecordRepository(context: modelContext).delete(on: selectedDate)
             }
             refreshReminders()

@@ -85,14 +85,14 @@ final class CSVExporterTests: EaseStoreTestCase {
         )
         let water = MetricLog(
             timestamp: calendar.testDate(2026, 8, 10, hour: 9),
-            metricKey: "water",
-            value: 1500
+            metricKey: "hip",
+            value: 92.0
         )
         let csv = CSVExporter.exportMetrics([water, waist], calendar: calendar)
         let rows = csv.split(separator: "\n").map(String.init)
         XCTAssertEqual(rows[0], CSVExporter.metricsHeader)
         XCTAssertEqual(rows[1], "2026-08-10,08:00,waist,68.0")
-        XCTAssertEqual(rows[2], "2026-08-10,09:00,water,1500")
+        XCTAssertEqual(rows[2], "2026-08-10,09:00,hip,92.0")
         XCTAssertFalse(csv.contains("dietStatus"))
     }
 }

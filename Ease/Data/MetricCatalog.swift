@@ -41,30 +41,26 @@ enum MetricCatalog {
         cm("hip", title: "metric.hip", range: 40...200, order: 1),
         cm("chest", title: "metric.chest", range: 40...200, order: 2),
         cm("thigh", title: "metric.thigh", range: 20...120, order: 3),
-        MetricSpec(
-            key: "water",
-            kind: .builtin,
-            unit: .ml,
-            step: 50,
-            range: 0...6000,
-            symbolName: "drop",
-            titleKey: "metric.water",
-            displayName: "",
-            sortOrder: 4
-        ),
-        cm("underbust", title: "metric.underbust", range: 40...200, order: 5),
-        cm("highWaist", title: "metric.highWaist", range: 40...200, order: 6),
-        cm("navel", title: "metric.navel", range: 40...200, order: 7),
-        cm("leftArm", title: "metric.leftArm", range: 15...60, order: 8),
-        cm("rightArm", title: "metric.rightArm", range: 15...60, order: 9),
-        cm("leftThigh", title: "metric.leftThigh", range: 20...120, order: 10),
-        cm("leftCalf", title: "metric.leftCalf", range: 20...60, order: 11),
-        cm("rightCalf", title: "metric.rightCalf", range: 20...60, order: 12),
-        cm("shoulderWidth", title: "metric.shoulderWidth", range: 20...80, order: 13),
-        cm("shoulder", title: "metric.shoulder", range: 50...160, order: 14),
-        cm("wrist", title: "metric.wrist", range: 10...30, order: 15),
-        cm("head", title: "metric.head", range: 40...70, order: 16)
+        cm("underbust", title: "metric.underbust", range: 40...200, order: 4),
+        cm("highWaist", title: "metric.highWaist", range: 40...200, order: 5),
+        cm("navel", title: "metric.navel", range: 40...200, order: 6),
+        cm("leftArm", title: "metric.leftArm", range: 15...60, order: 7),
+        cm("rightArm", title: "metric.rightArm", range: 15...60, order: 8),
+        cm("leftThigh", title: "metric.leftThigh", range: 20...120, order: 9),
+        cm("leftCalf", title: "metric.leftCalf", range: 20...60, order: 10),
+        cm("rightCalf", title: "metric.rightCalf", range: 20...60, order: 11),
+        cm("shoulderWidth", title: "metric.shoulderWidth", range: 20...80, order: 12),
+        cm("shoulder", title: "metric.shoulder", range: 50...160, order: 13),
+        cm("wrist", title: "metric.wrist", range: 10...30, order: 14),
+        cm("head", title: "metric.head", range: 40...70, order: 15)
     ]
+
+    /// Retired builtins stay out of home / settings / seed (legacy rows may remain in store).
+    static let retiredBuiltinKeys: Set<String> = ["water"]
+
+    static func isActiveMetricKey(_ key: String) -> Bool {
+        !retiredBuiltinKeys.contains(key)
+    }
 
     private static func cm(
         _ key: String,
