@@ -67,11 +67,11 @@ enum PaceEstimator {
     /// Drops `|y − median| > 3 × MAD` unless MAD is 0.
     static func filterMAD(_ points: [WeightSample]) -> [WeightSample] {
         let values = points.map(\.weight)
-        guard let median = median(values) else { return points }
-        let deviations = values.map { abs($0 - median) }
+        guard let medianValue = median(values) else { return points }
+        let deviations = values.map { abs($0 - medianValue) }
         guard let mad = median(deviations), mad > 0 else { return points }
         let limit = madMultiplier * mad
-        return points.filter { abs($0.weight - median) <= limit }
+        return points.filter { abs($0.weight - medianValue) <= limit }
     }
 
     static func ordinaryLeastSquares(
