@@ -159,4 +159,79 @@ enum WeightMetrics {
         }
         return records.first { $0.dayKey == key }?.bodyFat
     }
+
+    /// Earliest / latest weigh-in on a calendar day (for 早 / 晚).
+    static func dayBounds(
+        records: [DailyRecord],
+        logs: [WeightLog] = [],
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> (morning: Double?, evening: Double?) {
+        let key = CalendarDay.dayKey(from: date, calendar: calendar)
+        let onDay = logs
+            .filter { CalendarDay.dayKey(from: $0.timestamp, calendar: calendar) == key }
+            .sorted { $0.timestamp < $1.timestamp }
+        if let first = onDay.first, let last = onDay.last {
+            return (first.weight, last.weight)
+        }
+        if let legacy = records.first(where: { $0.dayKey == key })?.weight {
+            return (legacy, legacy)
+        }
+        return (nil, nil)
+    }
+
+    /// 日间波动 = 同日晚 − 早. Requires ≥2 weigh-ins that day.
+    static func daytimeSwing(
+        records: [DailyRecord],
+        logs: [WeightLog] = [],
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> Double? {
+        let key = CalendarDay.dayKey(from: date, calendar: calendar)
+        let count = logs.filter { CalendarDay.dayKey(from: $0.timestamp, calendar: calendar) == key }.count
+        guard count >= 2 else { return nil }
+        let bounds = dayBounds(records: records, logs: logs, on: date, calendar: calendar)
+        guard let morning = bounds.morning, let evening = bounds.evening else { return nil }
+        return MeasurementBounds.roundedToTenth(evening - morning)
+    }
+
+    /// 夜间代谢 = 前一日晚 − 本日早.
+    static func overnightMetabolism(
+        records: [DailyRecord],
+        logs: [WeightLog] = [],
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> Double? {
+        let previous = CalendarDay.addingDays(-1, to: date, calendar: calendar)
+        let prevEvening = dayBounds(records: records, logs: logs, on: previous, calendar: calendar).evening
+        let morning = dayBounds(records: records, logs: logs, on: date, calendar: calendar).morning
+        guard let prevEvening, let morning else { return nil }
+        return MeasurementBounds.roundedToTenth(prevEvening - morning)
+    }
+
+    /// Last-per-day weight N calendar days before `on` (that day only).
+    static func weightDaysAgo(
+        records: [DailyRecord],
+        logs: [WeightLog] = [],
+        on date: Date,
+        daysAgo: Int,
+        calendar: Calendar = .current
+    ) -> Double? {
+        let past = CalendarDay.addingDays(-daysAgo, to: date, calendar: calendar)
+        return weightOnDay(records: records, logs: logs, on: past, calendar: calendar)
+    }
+
+    static func weekDelta(
+        records: [DailyRecord],
+        logs: [WeightLog] = [],
+        on date: Date,
+        calendar: Calendar = .current
+    ) -> Double? {
+        guard let current = weightOnDay(records: records, logs: logs, on: date, calendar: calendar)
+            ?? displayWeight(records: records, logs: logs, on: date, calendar: calendar)
+        else { return nil }
+        guard let past = weightDaysAgo(records: records, logs: logs, on: date, daysAgo: 7, calendar: calendar)
+        else { return nil }
+        return MeasurementBounds.roundedToTenth(current - past)
+    }
 }

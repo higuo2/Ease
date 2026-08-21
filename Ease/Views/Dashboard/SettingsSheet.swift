@@ -11,6 +11,8 @@ struct SettingsSheet: View {
     let profile: UserProfile
     let records: [DailyRecord]
     let logs: [WeightLog]
+    var onOpenSleep: (() -> Void)? = nil
+    var onOpenCycle: (() -> Void)? = nil
 
     @State private var heightText: String
     @State private var startText: String
@@ -33,11 +35,15 @@ struct SettingsSheet: View {
     init(
         profile: UserProfile,
         records: [DailyRecord],
-        logs: [WeightLog] = []
+        logs: [WeightLog] = [],
+        onOpenSleep: (() -> Void)? = nil,
+        onOpenCycle: (() -> Void)? = nil
     ) {
         self.profile = profile
         self.records = records
         self.logs = logs
+        self.onOpenSleep = onOpenSleep
+        self.onOpenCycle = onOpenCycle
         _heightText = State(initialValue: EaseFormatters.oneDecimal(profile.heightCm))
         _startText = State(initialValue: EaseFormatters.oneDecimal(profile.startWeight))
         _targetText = State(initialValue: EaseFormatters.oneDecimal(profile.targetWeight))
@@ -74,9 +80,45 @@ struct SettingsSheet: View {
                                         .font(.system(size: 16, weight: .regular))
                                         .foregroundStyle(EasePalette.primaryText)
                                 }
-                                .tint(EasePalette.accent)
+                                .tint(EasePalette.coral)
                                 reminderRow("settings.weightReminder", date: $weightReminderDate)
                                 reminderRow("settings.dietReminder", date: $dietReminderDate)
+                            }
+                        }
+                        if onOpenSleep != nil || onOpenCycle != nil {
+                            EaseCard {
+                                VStack(spacing: 12) {
+                                    if let onOpenSleep {
+                                        Button {
+                                            dismiss()
+                                            onOpenSleep()
+                                        } label: {
+                                            HStack {
+                                                Text("health.sleep")
+                                                    .foregroundStyle(EasePalette.primaryText)
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .foregroundStyle(EasePalette.secondaryText)
+                                            }
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                    if let onOpenCycle {
+                                        Button {
+                                            dismiss()
+                                            onOpenCycle()
+                                        } label: {
+                                            HStack {
+                                                Text("health.period")
+                                                    .foregroundStyle(EasePalette.primaryText)
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .foregroundStyle(EasePalette.secondaryText)
+                                            }
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
                             }
                         }
                         metricsCard

@@ -6,6 +6,7 @@ enum ChartRange: Int, CaseIterable, Identifiable {
     case days7 = 7
     case days30 = 30
     case days90 = 90
+    case all = 0
 
     var id: Int { rawValue }
 
@@ -14,6 +15,15 @@ enum ChartRange: Int, CaseIterable, Identifiable {
         case .days7: "chart.range.7"
         case .days30: "chart.range.30"
         case .days90: "chart.range.90"
+        case .all: "chart.range.all"
+        }
+    }
+
+    /// Inclusive day count for X domain. `nil` means use earliest sample → today.
+    var dayCount: Int? {
+        switch self {
+        case .all: nil
+        default: rawValue
         }
     }
 }

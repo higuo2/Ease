@@ -27,29 +27,41 @@ struct TrendChartCard: View {
     let logs: [WeightLog]
     let healthByDay: [String: HealthDaySnapshot]
     let range: ChartRange
+    var targetWeight: Double? = nil
     let onSelectRange: (ChartRange) -> Void
     let onSelectLog: (WeightLog) -> Void
 
     @State private var preview: ChartDayPreview?
 
-    private var rangeStart: Date {
-        Calendar.current.date(
-            byAdding: .day,
-            value: -(range.rawValue - 1),
-            to: CalendarDay.startOfDay(.now)
-        ) ?? CalendarDay.startOfDay(.now)
-    }
-
     private var rangeEnd: Date {
         CalendarDay.startOfDay(.now)
+    }
+
+    private var rangeStart: Date {
+        if let count = range.dayCount {
+            return Calendar.current.date(
+                byAdding: .day,
+                value: -(count - 1),
+                to: rangeEnd
+            ) ?? rangeEnd
+        }
+        let samples = WeightMetrics.samples(from: records, logs: logs)
+        return samples.map(\.date).min().map { CalendarDay.startOfDay($0) } ?? rangeEnd
     }
 
     private var xDomain: ClosedRange<Date> {
         rangeStart...CalendarDay.endOfDay(rangeEnd)
     }
 
+    private var daySpan: Int {
+        max(
+            1,
+            Calendar.current.dateComponents([.day], from: rangeStart, to: rangeEnd).day.map { $0 + 1 } ?? 1
+        )
+    }
+
     private var visibleDays: [Date] {
-        CalendarDay.datesBack(range.rawValue, from: .now)
+        CalendarDay.datesBack(daySpan, from: .now).filter { $0 >= rangeStart }
     }
 
     private var recordsInRange: [DailyRecord] {
@@ -92,13 +104,9 @@ struct TrendChartCard: View {
             }
     }
 
-    private var recentDietDays: [Date] {
-        CalendarDay.datesBack(7, from: .now)
-    }
-
-    /// Keep a usable Y span so a single weight point does not collapse into a blank plot.
     private var weightYDomain: ClosedRange<Double> {
-        let values = weightPoints.map(\.weight) + movingAveragePoints.map(\.value)
+        var values = weightPoints.map(\.weight) + movingAveragePoints.map(\.value)
+        if let targetWeight { values.append(targetWeight) }
         let minV = values.min() ?? 0
         let maxV = values.max() ?? 0
         let mid = (minV + maxV) / 2
@@ -121,28 +129,20 @@ struct TrendChartCard: View {
     var body: some View {
         EaseCard {
             VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    Text("dashboard.trend")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(EasePalette.primaryText)
-                    Spacer()
-                    rangePicker
-                }
+                rangePicker
 
                 if let preview {
-                    previewRow(preview)
+                    tooltip(preview)
                 }
 
                 if weightPoints.isEmpty {
                     Text("dashboard.chart.empty")
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(EasePalette.secondaryText)
-                        .frame(maxWidth: .infinity, minHeight: 160, alignment: .center)
+                        .frame(maxWidth: .infinity, minHeight: 200, alignment: .center)
                 } else {
                     weightChart
                 }
-
-                dietRow
             }
         }
     }
@@ -154,20 +154,43 @@ struct TrendChartCard: View {
                     onSelectRange(item)
                 } label: {
                     Text(LocalizedStringKey(item.titleKey))
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(item == range ? Color.white : EasePalette.secondaryText)
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 10)
-                        .background(item == range ? EasePalette.accent : EasePalette.track)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(item == range ? EasePalette.primaryText : EasePalette.secondaryText)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(item == range ? EasePalette.card : Color.clear)
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
             }
         }
+        .padding(4)
+        .background(EasePalette.recessed, in: Capsule())
+    }
+
+    private func tooltip(_ preview: ChartDayPreview) -> some View {
+        HStack(spacing: 8) {
+            Text(preview.date, format: .dateTime.month(.defaultDigits).day())
+            if let weight = preview.weight {
+                Text(EaseFormatters.kg(weight))
+                    .monospacedDigit()
+            }
+        }
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(Color.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(EasePalette.tooltip, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private var weightChart: some View {
         Chart {
+            if let targetWeight {
+                RuleMark(y: .value("chart.axis.target", targetWeight))
+                    .foregroundStyle(EasePalette.secondaryText.opacity(0.45))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 4]))
+            }
+
             if chartWeightPoints.count >= 2 {
                 ForEach(chartWeightPoints) { point in
                     LineMark(
@@ -186,7 +209,7 @@ struct TrendChartCard: View {
                     y: .value("chart.axis.weight", point.weight)
                 )
                 .foregroundStyle(EasePalette.chartMuted)
-                .symbolSize(48)
+                .symbolSize(36)
             }
 
             ForEach(movingAveragePoints, id: \.date) { point in
@@ -194,9 +217,9 @@ struct TrendChartCard: View {
                     x: .value("chart.axis.date", point.date),
                     y: .value("chart.axis.ma", point.value)
                 )
-                .foregroundStyle(EasePalette.accent)
+                .foregroundStyle(EasePalette.coral)
                 .interpolationMethod(.catmullRom)
-                .lineStyle(StrokeStyle(lineWidth: 3))
+                .lineStyle(StrokeStyle(lineWidth: 2.5))
             }
 
             ForEach(tagMarks) { mark in
@@ -212,13 +235,13 @@ struct TrendChartCard: View {
                         }
                     }
                     .font(.system(size: 10, weight: .regular))
-                    .foregroundStyle(EasePalette.accent)
+                    .foregroundStyle(EasePalette.secondaryText)
                 }
             }
 
             if let preview {
                 RuleMark(x: .value("chart.axis.date", preview.date))
-                    .foregroundStyle(EasePalette.accent.opacity(0.35))
+                    .foregroundStyle(EasePalette.primaryText.opacity(0.2))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
             }
         }
@@ -229,70 +252,12 @@ struct TrendChartCard: View {
         .chartPlotStyle { plot in
             plot.padding(.top, 18)
         }
-        .frame(height: 180)
+        .frame(height: 220)
         .chartOverlay { proxy in
             GeometryReader { geometry in
                 dragLayer(proxy: proxy, geometry: geometry)
             }
         }
-    }
-
-    private var dietRow: some View {
-        HStack {
-            ForEach(recentDietDays, id: \.self) { day in
-                let record = record(on: day)
-                let merged = tags(on: day)
-                VStack(spacing: 4) {
-                    Image(systemName: record?.dietStatus?.systemImage ?? "circle")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(record?.dietStatus == nil ? EasePalette.secondaryText.opacity(0.4) : EasePalette.primaryText)
-                    if let tag = merged.first {
-                        Image(systemName: tag.systemImage)
-                            .font(.system(size: 10, weight: .regular))
-                            .foregroundStyle(EasePalette.accent)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .accessibilityLabel(Text("dashboard.dietRow"))
-    }
-
-    private func previewRow(_ preview: ChartDayPreview) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(preview.date, format: .dateTime.month(.abbreviated).day())
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
-                if let weight = preview.weight {
-                    Text(EaseFormatters.kg(weight))
-                        .font(EaseFont.number(18))
-                        .monospacedDigit()
-                        .foregroundStyle(EasePalette.primaryText)
-                }
-                if let ma = preview.movingAverage {
-                    Text(String(format: String(localized: "chart.preview.ma"), locale: .current, ma))
-                        .font(.system(size: 12, weight: .regular))
-                        .monospacedDigit()
-                        .foregroundStyle(EasePalette.accent)
-                }
-            }
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 4) {
-                HStack(spacing: 8) {
-                    if let diet = preview.diet {
-                        Image(systemName: diet.systemImage)
-                    }
-                    ForEach(preview.tags, id: \.self) { tag in
-                        Image(systemName: tag.systemImage)
-                    }
-                }
-                .font(.system(size: 14, weight: .regular))
-                .foregroundStyle(EasePalette.primaryText)
-            }
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text("chart.preview.a11y"))
     }
 
     private func dragLayer(proxy: ChartProxy, geometry: GeometryProxy) -> some View {

@@ -63,6 +63,12 @@
 		A100000000000000000000C5 /* PaceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B5 /* PaceEstimator.swift */; };
 		A100000000000000000000C6 /* ImportPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B6 /* ImportPreviewSheet.swift */; };
 		A100000000000000000000C7 /* MetricSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B7 /* MetricSheet.swift */; };
+		A100000000000000000000E0 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D0 /* MainTabView.swift */; };
+		A100000000000000000000E1 /* WeightTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D1 /* WeightTabView.swift */; };
+		A100000000000000000000E2 /* WeightTabComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D2 /* WeightTabComponents.swift */; };
+		A100000000000000000000E3 /* TrendTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D3 /* TrendTabView.swift */; };
+		A100000000000000000000E4 /* CalendarTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D4 /* CalendarTabView.swift */; };
+		A100000000000000000000E5 /* HistoryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D5 /* HistoryTabView.swift */; };
 		T10000000000000000000013 /* EaseTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000003 /* EaseTestSupport.swift */; };
 		T10000000000000000000014 /* WeightMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000004 /* WeightMetricsTests.swift */; };
 		T10000000000000000000015 /* MeasurementBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000005 /* MeasurementBoundsTests.swift */; };
@@ -153,6 +159,12 @@
 		A100000000000000000000B5 /* PaceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaceEstimator.swift; sourceTree = "<group>"; };
 		A100000000000000000000B6 /* ImportPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportPreviewSheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000B7 /* MetricSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricSheet.swift; sourceTree = "<group>"; };
+		A100000000000000000000D0 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		A100000000000000000000D1 /* WeightTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightTabView.swift; sourceTree = "<group>"; };
+		A100000000000000000000D2 /* WeightTabComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightTabComponents.swift; sourceTree = "<group>"; };
+		A100000000000000000000D3 /* TrendTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendTabView.swift; sourceTree = "<group>"; };
+		A100000000000000000000D4 /* CalendarTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTabView.swift; sourceTree = "<group>"; };
+		A100000000000000000000D5 /* HistoryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabView.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 		T10000000000000000000001 /* EaseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EaseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -310,6 +322,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000080 /* RootView.swift */,
+				A100000000000000000000D0 /* MainTabView.swift */,
 				A10000000000000000000095 /* Onboarding */,
 				A10000000000000000000096 /* Dashboard */,
 				A10000000000000000000085 /* Components */,
@@ -345,6 +358,11 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000082 /* DashboardView.swift */,
+				A100000000000000000000D1 /* WeightTabView.swift */,
+				A100000000000000000000D2 /* WeightTabComponents.swift */,
+				A100000000000000000000D3 /* TrendTabView.swift */,
+				A100000000000000000000D4 /* CalendarTabView.swift */,
+				A100000000000000000000D5 /* HistoryTabView.swift */,
 				A1000000000000000000008F /* DashboardViewModel.swift */,
 				A100000000000000000000A0 /* DayPickerHeader.swift */,
 				A100000000000000000000A1 /* HealthCardsView.swift */,
@@ -516,6 +534,12 @@
 				A100000000000000000000C5 /* PaceEstimator.swift in Sources */,
 				A100000000000000000000C6 /* ImportPreviewSheet.swift in Sources */,
 				A100000000000000000000C7 /* MetricSheet.swift in Sources */,
+				A100000000000000000000E0 /* MainTabView.swift in Sources */,
+				A100000000000000000000E1 /* WeightTabView.swift in Sources */,
+				A100000000000000000000E2 /* WeightTabComponents.swift in Sources */,
+				A100000000000000000000E3 /* TrendTabView.swift in Sources */,
+				A100000000000000000000E4 /* CalendarTabView.swift in Sources */,
+				A100000000000000000000E5 /* HistoryTabView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

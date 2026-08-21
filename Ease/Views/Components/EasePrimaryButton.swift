@@ -49,14 +49,10 @@ struct EaseFAB: View {
         Button(action: action) {
             Image(systemName: "plus")
                 .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(EasePalette.accent)
+                .foregroundStyle(Color.white)
                 .frame(width: 58, height: 58)
-                .background(Color.white, in: Circle())
-                .overlay {
-                    Circle()
-                        .stroke(EasePalette.accent, lineWidth: 1.5)
-                }
-                .shadow(color: Color.black.opacity(0.04), radius: 15, x: 0, y: 8)
+                .background(Color.black, in: Circle())
+                .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 4)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("dashboard.fab"))
