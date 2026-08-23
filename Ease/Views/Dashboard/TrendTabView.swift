@@ -15,25 +15,29 @@ struct TrendTabView: View {
         )
     }
 
+    private var stats: TrendRangeStats {
+        TrendRangeStats.make(
+            records: records,
+            logs: logs,
+            range: viewModel.chartRange,
+            targetWeight: snapshot.targetWeight
+        )
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 28) {
                         TrendChartCard(
                             records: records,
                             logs: logs,
                             range: viewModel.chartRange,
                             targetWeight: snapshot.targetWeight > 0 ? snapshot.targetWeight : nil,
+                            footer: { TrendSummaryStrip(stats: stats) },
                             onSelectRange: { viewModel.chartRange = $0 },
                             onSelectLog: { viewModel.openWeightLog($0) }
-                        )
-                        TrendStatsGrid(
-                            records: records,
-                            logs: logs,
-                            range: viewModel.chartRange,
-                            targetWeight: snapshot.targetWeight
                         )
                         AdvancedPaceCard(
                             profile: profile,
@@ -57,6 +61,54 @@ struct TrendTabView: View {
     }
 }
 
+/// Three quiet figures under the chart — no nested mini-cards.
+struct TrendSummaryStrip: View {
+    let stats: TrendRangeStats
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            summaryItem(
+                "trend.stats.change",
+                stats.change.map(Self.signedKg) ?? "—",
+                color: stats.change.map(EasePalette.deltaColor)
+            )
+            summaryItem(
+                "trend.stats.avg",
+                stats.average.map(EaseFormatters.kg) ?? "—"
+            )
+            summaryItem(
+                "trend.stats.toTarget",
+                stats.distanceToTarget.map(EaseFormatters.kg) ?? "—"
+            )
+        }
+        .padding(.top, 4)
+    }
+
+    private func summaryItem(
+        _ title: LocalizedStringKey,
+        _ value: String,
+        color: Color? = nil
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(EasePalette.secondaryText)
+            Text(value)
+                .font(EaseFont.number(20))
+                .monospacedDigit()
+                .foregroundStyle(color ?? EasePalette.primaryText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private static func signedKg(_ value: Double) -> String {
+        let sign = value > 0 ? "+" : ""
+        return "\(sign)\(EaseFormatters.kg(value))"
+    }
+}
+
 struct AdvancedPaceCard: View {
     let profile: UserProfile?
     let records: [DailyRecord]
@@ -66,6 +118,8 @@ struct AdvancedPaceCard: View {
     let energyHistory: EnergyHistory
     let cycleHistory: CycleHistory
     let snapshot: DashboardSnapshot
+
+    @State private var showsFactors = false
 
     private var estimate: AdvancedPaceEstimator.Result? {
         var sleepMap: [String: Double] = [:]
@@ -112,164 +166,84 @@ struct AdvancedPaceCard: View {
     }
 
     var body: some View {
-        EaseCard {
-            VStack(alignment: .leading, spacing: 14) {
-                Text("trend.advanced.title")
-                    .font(.system(size: 15, weight: .semibold))
+        VStack(alignment: .leading, spacing: 10) {
+            Text("trend.advanced.title")
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(EasePalette.secondaryText)
+
+            if let estimate {
+                Text(EaseFormatters.advancedPaceETA(days: estimate.daysRemaining, date: estimate.eta))
+                    .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(EasePalette.primaryText)
-                Text("trend.advanced.subtitle")
-                    .font(.system(size: 13, weight: .regular))
+
+                Text(EaseFormatters.signedKgPerDay(estimate.adjustedSlopeKg))
+                    .font(.system(size: 14, weight: .regular).monospacedDigit())
                     .foregroundStyle(EasePalette.secondaryText)
 
-                if let estimate {
-                    Text(EaseFormatters.advancedPaceETA(days: estimate.daysRemaining, date: estimate.eta))
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(EasePalette.primaryText)
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showsFactors.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("trend.advanced.factors")
+                            .font(.system(size: 13, weight: .medium))
+                        Image(systemName: showsFactors ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(EasePalette.secondaryText)
+                }
+                .buttonStyle(.plain)
 
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible(), spacing: 10),
-                            GridItem(.flexible(), spacing: 10)
-                        ],
-                        spacing: 10
-                    ) {
-                        factorCell(
+                if showsFactors {
+                    VStack(alignment: .leading, spacing: 8) {
+                        factorLine(
                             "trend.advanced.sleep",
                             estimate.averageSleepHours.map(EaseFormatters.sleepDuration) ?? "—",
-                            factor: estimate.sleepFactor
+                            estimate.sleepFactor
                         )
-                        factorCell(
+                        factorLine(
                             "trend.advanced.energy",
                             estimate.averageEnergyKcal.map { EaseFormatters.kcal($0) } ?? "—",
-                            factor: estimate.energyFactor
+                            estimate.energyFactor
                         )
-                        factorCell(
+                        factorLine(
                             "trend.advanced.period",
                             String(
                                 format: String(localized: "trend.advanced.periodDays"),
                                 locale: .current,
                                 estimate.periodDaysInWindow
                             ),
-                            factor: estimate.periodFactor
-                        )
-                        factorCell(
-                            "trend.advanced.slope",
-                            EaseFormatters.signedKgPerDay(estimate.adjustedSlopeKg),
-                            factor: nil
+                            estimate.periodFactor
                         )
                     }
-                } else {
-                    Text("trend.advanced.unavailable")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+                    .padding(.top, 4)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    private func factorCell(_ title: LocalizedStringKey, _ value: String, factor: Double?) -> some View {
-        EaseRecessedCard {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 12, weight: .regular))
+            } else {
+                Text("trend.advanced.unavailable")
+                    .font(.system(size: 15, weight: .regular))
                     .foregroundStyle(EasePalette.secondaryText)
-                Text(value)
-                    .font(.system(size: 15, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(EasePalette.primaryText)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                if let factor {
-                    Text(EaseFormatters.paceFactor(factor))
-                        .font(.system(size: 11, weight: .regular).monospacedDigit())
-                        .foregroundStyle(EasePalette.secondaryText)
-                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-    }
-}
-
-struct TrendStatsGrid: View {
-    let records: [DailyRecord]
-    let logs: [WeightLog]
-    let range: ChartRange
-    let targetWeight: Double
-
-    private var stats: TrendRangeStats {
-        TrendRangeStats.make(records: records, logs: logs, range: range, targetWeight: targetWeight)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 4)
     }
 
-    var body: some View {
-        LazyVGrid(
-            columns: [
-                GridItem(.flexible(), spacing: 10),
-                GridItem(.flexible(), spacing: 10),
-                GridItem(.flexible(), spacing: 10)
-            ],
-            spacing: 10
-        ) {
-            statCell(
-                "trend.stats.high",
-                stats.high.map(EaseFormatters.oneDecimal),
-                subtitle: stats.highDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) }
-            )
-            statCell(
-                "trend.stats.low",
-                stats.low.map(EaseFormatters.oneDecimal),
-                subtitle: stats.lowDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) }
-            )
-            statCell(
-                "trend.stats.avg",
-                stats.average.map(EaseFormatters.oneDecimal),
-                subtitle: stats.averageCaption
-            )
-            statCell(
-                "trend.stats.change",
-                stats.change.map(Self.signedKg),
-                valueColor: stats.change.map(EasePalette.deltaColor)
-            )
-            statCell(
-                "trend.stats.toTarget",
-                stats.distanceToTarget.map(EaseFormatters.kg)
-            )
-            statCell(
-                "trend.stats.days",
-                stats.recordedDays.map { String(format: String(localized: "trend.stats.days.value"), locale: .current, $0) }
-            )
+    private func factorLine(_ title: LocalizedStringKey, _ value: String, _ factor: Double) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(EasePalette.secondaryText)
+            Spacer()
+            Text(value)
+                .font(.system(size: 13, weight: .regular).monospacedDigit())
+                .foregroundStyle(EasePalette.primaryText)
+            Text(EaseFormatters.paceFactor(factor))
+                .font(.system(size: 13, weight: .regular).monospacedDigit())
+                .foregroundStyle(EasePalette.secondaryText)
+                .frame(minWidth: 44, alignment: .trailing)
         }
-    }
-
-    private func statCell(
-        _ title: LocalizedStringKey,
-        _ value: String?,
-        subtitle: String? = nil,
-        valueColor: Color? = nil
-    ) -> some View {
-        EaseRecessedCard {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
-                Text(value ?? "—")
-                    .font(EaseFont.number(20))
-                    .monospacedDigit()
-                    .foregroundStyle(valueColor ?? EasePalette.primaryText)
-                    .minimumScaleFactor(0.7)
-                    .lineLimit(1)
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.system(size: 11, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
-                }
-            }
-            .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
-        }
-    }
-
-    private static func signedKg(_ value: Double) -> String {
-        let sign = value > 0 ? "+" : ""
-        return "\(sign)\(EaseFormatters.kg(value))"
     }
 }
 
