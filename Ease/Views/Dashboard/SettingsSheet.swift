@@ -32,6 +32,8 @@ struct SettingsSheet: View {
     @State private var customSymbol = MetricCatalog.allowedSymbols[0]
     @State private var historyTarget: MetricHistoryTarget?
     @State private var isAddingMetric = false
+    @State private var isWeightReminderExpanded = false
+    @State private var isDietReminderExpanded = false
 
     init(
         profile: UserProfile,
@@ -167,34 +169,50 @@ struct SettingsSheet: View {
     private var remindersSection: some View {
         Section {
             Toggle("settings.notifications", isOn: $notificationsEnabled)
-            VStack(alignment: .leading, spacing: 8) {
-                Text("settings.weightReminder")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+
+            DisclosureGroup(isExpanded: $isWeightReminderExpanded) {
                 DatePicker(
-                    "settings.weightReminder",
+                    "",
                     selection: $weightReminderDate,
                     displayedComponents: .hourAndMinute
                 )
                 .datePickerStyle(.wheel)
                 .labelsHidden()
                 .frame(maxWidth: .infinity)
+            } label: {
+                HStack {
+                    Text("settings.weightReminder")
+                    Spacer()
+                    Text(weightReminderDate, format: .dateTime.hour().minute())
+                        .font(.body.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
-            .padding(.vertical, 4)
-            VStack(alignment: .leading, spacing: 8) {
-                Text("settings.dietReminder")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+            .onChange(of: isWeightReminderExpanded) { _, expanded in
+                if expanded { isDietReminderExpanded = false }
+            }
+
+            DisclosureGroup(isExpanded: $isDietReminderExpanded) {
                 DatePicker(
-                    "settings.dietReminder",
+                    "",
                     selection: $dietReminderDate,
                     displayedComponents: .hourAndMinute
                 )
                 .datePickerStyle(.wheel)
                 .labelsHidden()
                 .frame(maxWidth: .infinity)
+            } label: {
+                HStack {
+                    Text("settings.dietReminder")
+                    Spacer()
+                    Text(dietReminderDate, format: .dateTime.hour().minute())
+                        .font(.body.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
-            .padding(.vertical, 4)
+            .onChange(of: isDietReminderExpanded) { _, expanded in
+                if expanded { isWeightReminderExpanded = false }
+            }
         } header: {
             Text("settings.section.reminders")
         }
