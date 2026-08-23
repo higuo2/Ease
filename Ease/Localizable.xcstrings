@@ -825,6 +825,22 @@
         }
       }
     },
+    "format.advancedPaceDays": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %lld days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大约 %lld 天"
+          }
+        }
+      }
+    },
     "format.advancedPaceETA": {
       "localizations": {
         "en": {
@@ -3310,7 +3326,24 @@
         }
       }
     },
+    "trend.advanced.factor.neutral": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正常"
+          }
+        }
+      }
+    },
     "trend.advanced.factors": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3375,7 +3408,6 @@
       }
     },
     "trend.advanced.slope": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3392,7 +3424,6 @@
       }
     },
     "trend.advanced.subtitle": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3505,7 +3536,6 @@
       }
     },
     "trend.stats.days": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3517,6 +3547,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "记录天数"
+          }
+        }
+      }
+    },
+    "trend.stats.days.unit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "天"
           }
         }
       }
@@ -3539,7 +3585,6 @@
       }
     },
     "trend.stats.high": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3556,7 +3601,6 @@
       }
     },
     "trend.stats.low": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3863,50 +3907,66 @@
         }
       }
     },
-    "format.advancedPaceDays": {
+    "calendar.overview.title": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "About %lld days"
+            "value": "%@ Overview"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "大约 %lld 天"
+            "value": "%@概览"
           }
         }
       }
     },
-    "trend.advanced.factor.neutral": {
+    "calendar.detail.am": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Normal"
+            "value": "AM"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正常"
+            "value": "早"
           }
         }
       }
     },
-    "trend.stats.days.unit": {
+    "calendar.detail.pm": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "days"
+            "value": "PM"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "天"
+            "value": "晚"
+          }
+        }
+      }
+    },
+    "calendar.detail.day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日间"
           }
         }
       }
