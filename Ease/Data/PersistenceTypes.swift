@@ -19,16 +19,30 @@ struct DailyRecordPatch: Sendable {
     var dietStatus: FieldUpdate<DietStatus?> = .unchanged
     var tags: FieldUpdate<[VariableTag]> = .unchanged
     var note: FieldUpdate<String?> = .unchanged
+    var breakfastPhoto: FieldUpdate<Data?> = .unchanged
+    var lunchPhoto: FieldUpdate<Data?> = .unchanged
+    var dinnerPhoto: FieldUpdate<Data?> = .unchanged
 
     var isEmpty: Bool {
         if case .unchanged = weight,
            case .unchanged = bodyFat,
            case .unchanged = dietStatus,
            case .unchanged = tags,
-           case .unchanged = note {
+           case .unchanged = note,
+           case .unchanged = breakfastPhoto,
+           case .unchanged = lunchPhoto,
+           case .unchanged = dinnerPhoto {
             return true
         }
         return false
+    }
+
+    mutating func setMealPhoto(_ data: Data?, for slot: MealSlot) {
+        switch slot {
+        case .breakfast: breakfastPhoto = .set(data)
+        case .lunch: lunchPhoto = .set(data)
+        case .dinner: dinnerPhoto = .set(data)
+        }
     }
 }
 

@@ -73,6 +73,8 @@
 		A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D7 /* EnergyDetailSheet.swift */; };
 		A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D8 /* AdvancedPaceEstimator.swift */; };
 		A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D9 /* WeightHistorySheet.swift */; };
+		A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DA /* CalendarDayDetailSheet.swift */; };
+		A100000000000000000000EB /* MealSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DB /* MealSlot.swift */; };
 		T10000000000000000000013 /* EaseTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000003 /* EaseTestSupport.swift */; };
 		T10000000000000000000014 /* WeightMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000004 /* WeightMetricsTests.swift */; };
 		T10000000000000000000015 /* MeasurementBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000005 /* MeasurementBoundsTests.swift */; };
@@ -173,6 +175,8 @@
 		A100000000000000000000D7 /* EnergyDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnergyDetailSheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000D8 /* AdvancedPaceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedPaceEstimator.swift; sourceTree = "<group>"; };
 		A100000000000000000000D9 /* WeightHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightHistorySheet.swift; sourceTree = "<group>"; };
+		A100000000000000000000DA /* CalendarDayDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarDayDetailSheet.swift; sourceTree = "<group>"; };
+		A100000000000000000000DB /* MealSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealSlot.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 		T10000000000000000000001 /* EaseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EaseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -283,6 +287,7 @@
 				A10000000000000000000041 /* DietStatus.swift */,
 				A10000000000000000000042 /* VariableTag.swift */,
 				A10000000000000000000043 /* DailyRecord.swift */,
+				A100000000000000000000DB /* MealSlot.swift */,
 				A1000000000000000000009B /* WeightLog.swift */,
 				A10000000000000000000044 /* UserProfile.swift */,
 				A100000000000000000000D6 /* HomeModule.swift */,
@@ -372,6 +377,7 @@
 				A100000000000000000000D2 /* WeightTabComponents.swift */,
 				A100000000000000000000D3 /* TrendTabView.swift */,
 				A100000000000000000000D4 /* CalendarTabView.swift */,
+				A100000000000000000000DA /* CalendarDayDetailSheet.swift */,
 				A100000000000000000000D5 /* HistoryTabView.swift */,
 				A1000000000000000000008F /* DashboardViewModel.swift */,
 				A100000000000000000000A0 /* DayPickerHeader.swift */,
@@ -556,6 +562,8 @@
 				A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */,
 				A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */,
 				A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */,
+				A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */,
+				A100000000000000000000EB /* MealSlot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -87,10 +87,10 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 图表交互：预览不改数据；点已有日可编辑体重。删体重不得删当日饮食/标签/备注。
 
 ### Tab 3 — 日历 (Calendar)
-1. **月历网格**：7 列。每格 — 日号、当日体重、涨跌（`▼0.2` / `▲0.2`）。
+1. **月历网格**：7 列。每格 — 日号、当日体重、涨跌（`▼0.2` / `▲0.2`）。点日期打开日明细 Sheet（非内嵌卡片）。
 2. **周均 / 月均**体重卡（选中日所在周 / 当前浏览月）。
-3. **月度统计横栏**：打卡天数、减重天数、增重天数、日均变化、本月变化。
-4. **底部明细**：早晚体重、日间波动、饮食打卡。**禁止**卡路里合计或宏量营养素。
+3. **月度 Overview**：净变化、清淡天数、最长连续清淡、打卡 / 减重 / 增重天数。
+4. **日明细 Sheet**（`.medium` / `.large`）：早晚体重、三餐照片格、饮食三选一芯片（立即写入 `DailyRecord`）。**禁止**卡路里合计或宏量营养素。
 
 ### Tab 4 — 设置 (Settings)
 Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).

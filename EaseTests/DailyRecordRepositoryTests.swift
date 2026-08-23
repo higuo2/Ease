@@ -3,18 +3,33 @@ import XCTest
 
 @MainActor
 final class DailyRecordRepositoryTests: EaseStoreTestCase {
-    func test_upsert_只改饮食_不插入WeightLog且不写legacy_weight() throws {
+    func test_upsert_仅餐食照片_创建DailyRecord() throws {
         let day = calendar.testDate(2026, 8, 10)
         var patch = DailyRecordPatch()
-        patch.dietStatus = .set(.clean)
+        patch.breakfastPhoto = .set(Data([0xFF, 0xD8, 0xFF]))
 
         let record = try dailyRecords.upsert(on: day, patch: patch)
 
-        XCTAssertEqual(record?.dietStatus, .clean)
-        XCTAssertNil(record?.weight)
-        XCTAssertNil(record?.bodyFat)
+        XCTAssertNotNil(record)
+        XCTAssertEqual(record?.breakfastPhotoData, Data([0xFF, 0xD8, 0xFF]))
+        XCTAssertNil(record?.dietStatus)
         XCTAssertTrue(try fetchAll(WeightLog.self).isEmpty)
     }
+
+    func test_upsert_字段级合并_改饮食保留餐食照片() throws {
+        let day = calendar.testDate(2026, 8, 10)
+        var initial = DailyRecordPatch()
+        initial.lunchPhoto = .set(Data([0x01, 0x02]))
+        try dailyRecords.upsert(on: day, patch: initial)
+
+        var dietOnly = DailyRecordPatch()
+        dietOnly.dietStatus = .set(.clean)
+        let updated = try dailyRecords.upsert(on: day, patch: dietOnly)
+
+        XCTAssertEqual(updated?.dietStatus, .clean)
+        XCTAssertEqual(updated?.lunchPhotoData, Data([0x01, 0x02]))
+    }
+
 
     func test_upsert_仅称重_insert一条WeightLog_不创建DailyRecord() throws {
         let day = calendar.testDate(2026, 8, 10)

@@ -17,6 +17,9 @@ final class DailyRecord {
     var dietStatusRaw: String?
     var tags: [String] = []
     var note: String?
+    @Attribute(.externalStorage) var breakfastPhotoData: Data?
+    @Attribute(.externalStorage) var lunchPhotoData: Data?
+    @Attribute(.externalStorage) var dinnerPhotoData: Data?
     var updatedAt: Date = Date.now
 
     var dietStatus: DietStatus? {
@@ -42,6 +45,29 @@ final class DailyRecord {
         self.dietStatusRaw = nil
         self.tags = []
         self.note = nil
+        self.breakfastPhotoData = nil
+        self.lunchPhotoData = nil
+        self.dinnerPhotoData = nil
         self.updatedAt = .now
+    }
+
+    func mealPhotoData(for slot: MealSlot) -> Data? {
+        switch slot {
+        case .breakfast: breakfastPhotoData
+        case .lunch: lunchPhotoData
+        case .dinner: dinnerPhotoData
+        }
+    }
+
+    func setMealPhotoData(_ data: Data?, for slot: MealSlot) {
+        switch slot {
+        case .breakfast: breakfastPhotoData = data
+        case .lunch: lunchPhotoData = data
+        case .dinner: dinnerPhotoData = data
+        }
+    }
+
+    var hasMealPhoto: Bool {
+        breakfastPhotoData != nil || lunchPhotoData != nil || dinnerPhotoData != nil
     }
 }

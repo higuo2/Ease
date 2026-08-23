@@ -23,7 +23,7 @@ struct DailyRecordRepository {
         return try context.fetch(descriptor)
     }
 
-    /// Journal fields (`dietStatus` / `tags` / `note`) upsert into `DailyRecord`.
+    /// Journal fields (`dietStatus` / `tags` / `note` / meal photos) upsert into `DailyRecord`.
     /// `patch.weight` / `patch.bodyFat` insert a `WeightLog` and never write the legacy fields.
     @discardableResult
     func upsert(on date: Date, patch: DailyRecordPatch) throws -> DailyRecord? {
@@ -35,7 +35,7 @@ struct DailyRecordRepository {
         let insertedLog = try insertWeightIfNeeded(on: date, patch: patch)
         let next = try journalState(on: date, patch: patch)
         let existing = try record(on: date)
-        let hasJournal = next.diet != nil || !next.tags.isEmpty || next.note != nil
+        let hasJournal = next.hasContent
         if !insertedLog && !hasJournal && existing == nil {
             throw EaseDataError.emptyRecord
         }
@@ -47,6 +47,9 @@ struct DailyRecordRepository {
         record.dietStatus = next.diet
         record.variableTags = next.tags
         record.note = next.note
+        record.breakfastPhotoData = next.breakfastPhoto
+        record.lunchPhotoData = next.lunchPhoto
+        record.dinnerPhotoData = next.dinnerPhoto
         record.updatedAt = .now
         if existing == nil {
             context.insert(record)
@@ -102,6 +105,18 @@ struct DailyRecordRepository {
         var diet: DietStatus?
         var tags: [VariableTag]
         var note: String?
+        var breakfastPhoto: Data?
+        var lunchPhoto: Data?
+        var dinnerPhoto: Data?
+
+        var hasContent: Bool {
+            diet != nil
+                || !tags.isEmpty
+                || note != nil
+                || breakfastPhoto != nil
+                || lunchPhoto != nil
+                || dinnerPhoto != nil
+        }
     }
 
     private func journalState(on date: Date, patch: DailyRecordPatch) throws -> JournalState {
@@ -109,6 +124,9 @@ struct DailyRecordRepository {
         var diet = existing?.dietStatus
         var tags = existing?.variableTags ?? []
         var note = existing?.note
+        var breakfastPhoto = existing?.breakfastPhotoData
+        var lunchPhoto = existing?.lunchPhotoData
+        var dinnerPhoto = existing?.dinnerPhotoData
 
         switch patch.dietStatus {
         case .unchanged:
@@ -129,20 +147,55 @@ struct DailyRecordRepository {
             let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
             note = (trimmed?.isEmpty == false) ? trimmed : nil
         }
+        switch patch.breakfastPhoto {
+        case .unchanged:
+            break
+        case .set(let value):
+            breakfastPhoto = value
+        }
+        switch patch.lunchPhoto {
+        case .unchanged:
+            break
+        case .set(let value):
+            lunchPhoto = value
+        }
+        switch patch.dinnerPhoto {
+        case .unchanged:
+            break
+        case .set(let value):
+            dinnerPhoto = value
+        }
 
         let journalTouched: Bool = {
             if case .unchanged = patch.dietStatus,
                case .unchanged = patch.tags,
-               case .unchanged = patch.note {
+               case .unchanged = patch.note,
+               case .unchanged = patch.breakfastPhoto,
+               case .unchanged = patch.lunchPhoto,
+               case .unchanged = patch.dinnerPhoto {
                 return false
             }
             return true
         }()
 
         if !journalTouched && existing == nil {
-            return JournalState(diet: nil, tags: [], note: nil)
+            return JournalState(
+                diet: nil,
+                tags: [],
+                note: nil,
+                breakfastPhoto: nil,
+                lunchPhoto: nil,
+                dinnerPhoto: nil
+            )
         }
-        return JournalState(diet: diet, tags: tags, note: note)
+        return JournalState(
+            diet: diet,
+            tags: tags,
+            note: note,
+            breakfastPhoto: breakfastPhoto,
+            lunchPhoto: lunchPhoto,
+            dinnerPhoto: dinnerPhoto
+        )
     }
 
     @discardableResult
