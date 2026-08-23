@@ -22,6 +22,8 @@ struct CalendarDayDetailSheet: View {
     @State private var isPhotoBusy = false
     @State private var dietSelectionToken = ""
     @State private var dietNote = ""
+    @State private var noteSaveTask: Task<Void, Never>?
+    @State private var photoPersistTask: Task<Void, Never>?
     @FocusState private var isNoteFocused: Bool
 
     private var record: DailyRecord? {
@@ -84,19 +86,30 @@ struct CalendarDayDetailSheet: View {
                 dietNote = newNote ?? ""
             }
             .onChange(of: dietNote) { _, _ in
-                saveNoteIfNeeded()
+                scheduleNoteSave()
             }
             .onChange(of: isNoteFocused) { _, focused in
-                if !focused { saveNoteIfNeeded() }
+                if !focused { scheduleNoteSave(immediate: true) }
             }
-            .onDisappear(perform: saveNoteIfNeeded)
+            .onDisappear {
+                // Don't block scene teardown — flush note off the critical path.
+                scheduleNoteSave(immediate: true)
+            }
             .onChange(of: photoItem) { _, item in
                 guard let item, let pendingMeal else { return }
-                Task { await applyLibraryPhoto(from: item, slot: pendingMeal) }
+                let slot = pendingMeal
+                photoPersistTask?.cancel()
+                photoPersistTask = Task {
+                    await applyLibraryPhoto(from: item, slot: slot)
+                }
             }
             .onChange(of: capturedImage) { _, image in
                 guard let image, let pendingMeal else { return }
-                persistCapturedImage(image, for: pendingMeal)
+                let slot = pendingMeal
+                photoPersistTask?.cancel()
+                photoPersistTask = Task {
+                    await persistCapturedImage(image, for: slot)
+                }
             }
             .confirmationDialog(
                 "calendar.meal.source.title",
@@ -211,35 +224,16 @@ struct CalendarDayDetailSheet: View {
 
     private func mealTile(_ slot: MealSlot) -> some View {
         let fileName = record?.mealPhotoFileName(for: slot)
-        let image = MealPhotoStore.loadImage(fileName: fileName)
 
         return Button {
             pendingMeal = slot
             isSourceDialogPresented = true
         } label: {
             VStack(spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(EasePalette.recessed)
-                    if let image {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    } else {
-                        Image(systemName: "camera")
-                            .font(.title3)
-                            .foregroundStyle(.tertiary)
-                    }
-                    if isPhotoBusy && pendingMeal == slot {
-                        ProgressView()
-                            .tint(EasePalette.accent)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .aspectRatio(1, contentMode: .fit)
-                .clipped()
-
+                MealPhotoThumbnail(
+                    fileName: fileName,
+                    isBusy: isPhotoBusy && pendingMeal == slot
+                )
                 Text(LocalizedStringKey(slot.titleKey))
                     .font(.caption.weight(.medium))
                     .foregroundStyle(EasePalette.secondaryText)
@@ -317,6 +311,19 @@ struct CalendarDayDetailSheet: View {
         dietNote = record?.note ?? ""
     }
 
+    private func scheduleNoteSave(immediate: Bool = false) {
+        noteSaveTask?.cancel()
+        noteSaveTask = Task {
+            if !immediate {
+                try? await Task.sleep(for: .milliseconds(450))
+            }
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                saveNoteIfNeeded()
+            }
+        }
+    }
+
     private func saveDiet(_ status: DietStatus?) {
         var patch = DailyRecordPatch()
         patch.dietStatus = .set(status)
@@ -344,31 +351,49 @@ struct CalendarDayDetailSheet: View {
         }
     }
 
-    private func persistCapturedImage(_ image: UIImage, for slot: MealSlot) {
-        isPhotoBusy = true
-        defer {
-            isPhotoBusy = false
+    private func persistCapturedImage(_ image: UIImage, for slot: MealSlot) async {
+        await MainActor.run {
+            isPhotoBusy = true
             capturedImage = nil
-            pendingMeal = nil
+        }
+        defer {
+            Task { @MainActor in
+                isPhotoBusy = false
+                pendingMeal = nil
+            }
         }
         do {
-            let fileName = try MealPhotoStore.saveJPEG(image, compressionQuality: 0.8)
-            try saveMealPhotoFileName(fileName, for: slot)
+            let fileName = try await MealPhotoStore.saveJPEG(image, compressionQuality: 0.8)
+            guard !Task.isCancelled else {
+                MealPhotoStore.deleteAsync(fileName: fileName)
+                return
+            }
+            try await MainActor.run {
+                try saveMealPhotoFileName(fileName, for: slot)
+            }
         } catch {
             // Leave previous photo in place.
         }
     }
 
     private func applyLibraryPhoto(from item: PhotosPickerItem, slot: MealSlot) async {
-        isPhotoBusy = true
+        await MainActor.run {
+            isPhotoBusy = true
+        }
         defer {
-            isPhotoBusy = false
-            photoItem = nil
-            pendingMeal = nil
+            Task { @MainActor in
+                isPhotoBusy = false
+                photoItem = nil
+                pendingMeal = nil
+            }
         }
         guard let picked = try? await item.loadTransferable(type: PickedMealImage.self) else { return }
         do {
-            let fileName = try MealPhotoStore.saveJPEG(picked.image, compressionQuality: 0.8)
+            let fileName = try await MealPhotoStore.saveJPEG(picked.image, compressionQuality: 0.8)
+            guard !Task.isCancelled else {
+                MealPhotoStore.deleteAsync(fileName: fileName)
+                return
+            }
             try await MainActor.run {
                 try saveMealPhotoFileName(fileName, for: slot)
             }
@@ -395,6 +420,42 @@ struct CalendarDayDetailSheet: View {
         let enabled = profiles.first?.notificationsEnabled == true
         Task {
             await NotificationScheduler.refresh(enabled: enabled, context: modelContext)
+        }
+    }
+}
+
+private struct MealPhotoThumbnail: View {
+    let fileName: String?
+    var isBusy: Bool = false
+
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(EasePalette.recessed)
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            } else if fileName == nil {
+                Image(systemName: "camera")
+                    .font(.title3)
+                    .foregroundStyle(.tertiary)
+            }
+            if isBusy {
+                ProgressView()
+                    .tint(EasePalette.accent)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .aspectRatio(1, contentMode: .fit)
+        .clipped()
+        .task(id: fileName) {
+            image = nil
+            guard fileName != nil else { return }
+            image = await MealPhotoStore.loadImage(fileName: fileName)
         }
     }
 }

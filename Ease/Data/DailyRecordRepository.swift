@@ -68,15 +68,16 @@ struct DailyRecordRepository {
 
     func delete(on date: Date) throws {
         if let record = try record(on: date) {
-            MealPhotoStore.deleteAll(in: record)
+            MealPhotoStore.deleteAllAsync(in: record)
             context.delete(record)
             try context.save()
         }
     }
 
     func deleteAll() throws {
-        for record in try context.fetch(FetchDescriptor<DailyRecord>()) {
-            MealPhotoStore.deleteAll(in: record)
+        let records = try context.fetch(FetchDescriptor<DailyRecord>())
+        for record in records {
+            MealPhotoStore.deleteAllAsync(in: record)
             context.delete(record)
         }
         try context.save()
@@ -220,7 +221,7 @@ struct DailyRecordRepository {
 
     private func cleanupIfReplaced(old: String?, update: FieldUpdate<String?>) {
         if case .set(let newValue) = update, old != newValue {
-            MealPhotoStore.delete(fileName: old)
+            MealPhotoStore.deleteAsync(fileName: old)
         }
     }
 
@@ -233,7 +234,7 @@ struct DailyRecordRepository {
         let matches = try context.fetch(descriptor)
         guard let keeper = matches.first else { return nil }
         for duplicate in matches.dropFirst() {
-            MealPhotoStore.deleteAll(in: duplicate)
+            MealPhotoStore.deleteAllAsync(in: duplicate)
             context.delete(duplicate)
         }
         if matches.count > 1 {
@@ -249,7 +250,7 @@ struct DailyRecordRepository {
         for group in grouped.values {
             let sorted = group.sorted { $0.updatedAt > $1.updatedAt }
             for duplicate in sorted.dropFirst() {
-                MealPhotoStore.deleteAll(in: duplicate)
+                MealPhotoStore.deleteAllAsync(in: duplicate)
                 context.delete(duplicate)
                 removed = true
             }

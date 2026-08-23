@@ -88,6 +88,7 @@ struct MainTabView: View {
             MetricSheet(date: viewModel.metricsDate, initialKey: viewModel.metricFocusKey)
         }
         .task(id: scenePhase) {
+            // Only refresh when returning to foreground — avoid heavy work during background/teardown.
             guard scenePhase == .active else { return }
             await reloadHealthAndNotifications()
         }
