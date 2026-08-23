@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct TrendTabView: View {
     @Bindable var viewModel: DashboardViewModel
@@ -15,29 +16,25 @@ struct TrendTabView: View {
         )
     }
 
-    private var stats: TrendRangeStats {
-        TrendRangeStats.make(
-            records: records,
-            logs: logs,
-            range: viewModel.chartRange,
-            targetWeight: snapshot.targetWeight
-        )
-    }
-
     var body: some View {
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 28) {
+                    VStack(alignment: .leading, spacing: 20) {
                         TrendChartCard(
                             records: records,
                             logs: logs,
                             range: viewModel.chartRange,
                             targetWeight: snapshot.targetWeight > 0 ? snapshot.targetWeight : nil,
-                            footer: { TrendSummaryStrip(stats: stats) },
                             onSelectRange: { viewModel.chartRange = $0 },
                             onSelectLog: { viewModel.openWeightLog($0) }
+                        )
+                        TrendStatsGrid(
+                            records: records,
+                            logs: logs,
+                            range: viewModel.chartRange,
+                            targetWeight: snapshot.targetWeight
                         )
                         AdvancedPaceCard(
                             profile: profile,
@@ -61,54 +58,6 @@ struct TrendTabView: View {
     }
 }
 
-/// Three quiet figures under the chart — no nested mini-cards.
-struct TrendSummaryStrip: View {
-    let stats: TrendRangeStats
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 0) {
-            summaryItem(
-                "trend.stats.change",
-                stats.change.map(Self.signedKg) ?? "—",
-                color: stats.change.map(EasePalette.deltaColor)
-            )
-            summaryItem(
-                "trend.stats.avg",
-                stats.average.map(EaseFormatters.kg) ?? "—"
-            )
-            summaryItem(
-                "trend.stats.toTarget",
-                stats.distanceToTarget.map(EaseFormatters.kg) ?? "—"
-            )
-        }
-        .padding(.top, 4)
-    }
-
-    private func summaryItem(
-        _ title: LocalizedStringKey,
-        _ value: String,
-        color: Color? = nil
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.system(size: 12, weight: .regular))
-                .foregroundStyle(EasePalette.secondaryText)
-            Text(value)
-                .font(EaseFont.number(20))
-                .monospacedDigit()
-                .foregroundStyle(color ?? EasePalette.primaryText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private static func signedKg(_ value: Double) -> String {
-        let sign = value > 0 ? "+" : ""
-        return "\(sign)\(EaseFormatters.kg(value))"
-    }
-}
-
 struct AdvancedPaceCard: View {
     let profile: UserProfile?
     let records: [DailyRecord]
@@ -118,8 +67,6 @@ struct AdvancedPaceCard: View {
     let energyHistory: EnergyHistory
     let cycleHistory: CycleHistory
     let snapshot: DashboardSnapshot
-
-    @State private var showsFactors = false
 
     private var estimate: AdvancedPaceEstimator.Result? {
         var sleepMap: [String: Double] = [:]
@@ -166,84 +113,241 @@ struct AdvancedPaceCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("trend.advanced.title")
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(EasePalette.secondaryText)
-
-            if let estimate {
-                Text(EaseFormatters.advancedPaceETA(days: estimate.daysRemaining, date: estimate.eta))
-                    .font(.system(size: 22, weight: .semibold))
+        EaseCard(padding: 20) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("trend.advanced.title")
+                    .font(.headline)
                     .foregroundStyle(EasePalette.primaryText)
 
-                Text(EaseFormatters.signedKgPerDay(estimate.adjustedSlopeKg))
-                    .font(.system(size: 14, weight: .regular).monospacedDigit())
-                    .foregroundStyle(EasePalette.secondaryText)
+                if let estimate {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(EaseFormatters.advancedPaceDate(estimate.eta))
+                            .font(.system(.title, design: .rounded, weight: .bold))
+                            .foregroundStyle(EasePalette.primaryText)
+                        Text(EaseFormatters.advancedPaceDays(estimate.daysRemaining))
+                            .font(.subheadline)
+                            .foregroundStyle(EasePalette.secondaryText)
+                    }
+                    .padding(.top, 12)
 
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        showsFactors.toggle()
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("trend.advanced.factors")
-                            .font(.system(size: 13, weight: .medium))
-                        Image(systemName: showsFactors ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 11, weight: .semibold))
-                    }
-                    .foregroundStyle(EasePalette.secondaryText)
-                }
-                .buttonStyle(.plain)
+                    Divider()
+                        .overlay(EasePalette.hairline)
+                        .padding(.vertical, 16)
 
-                if showsFactors {
-                    VStack(alignment: .leading, spacing: 8) {
-                        factorLine(
-                            "trend.advanced.sleep",
-                            estimate.averageSleepHours.map(EaseFormatters.sleepDuration) ?? "—",
-                            estimate.sleepFactor
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: 16),
+                            GridItem(.flexible(), spacing: 16)
+                        ],
+                        alignment: .leading,
+                        spacing: 16
+                    ) {
+                        factorItem(
+                            symbol: "moon.fill",
+                            title: "trend.advanced.sleep",
+                            detail: estimate.averageSleepHours.map(EaseFormatters.sleepDuration),
+                            factor: estimate.sleepFactor
                         )
-                        factorLine(
-                            "trend.advanced.energy",
-                            estimate.averageEnergyKcal.map { EaseFormatters.kcal($0) } ?? "—",
-                            estimate.energyFactor
+                        factorItem(
+                            symbol: "bolt.fill",
+                            title: "trend.advanced.energy",
+                            detail: estimate.averageEnergyKcal.map { EaseFormatters.kcal($0) },
+                            factor: estimate.energyFactor
                         )
-                        factorLine(
-                            "trend.advanced.period",
-                            String(
-                                format: String(localized: "trend.advanced.periodDays"),
-                                locale: .current,
-                                estimate.periodDaysInWindow
-                            ),
-                            estimate.periodFactor
+                        factorItem(
+                            symbol: "drop.fill",
+                            title: "trend.advanced.period",
+                            detail: estimate.periodDaysInWindow > 0
+                                ? String(
+                                    format: String(localized: "trend.advanced.periodDays"),
+                                    locale: .current,
+                                    estimate.periodDaysInWindow
+                                )
+                                : nil,
+                            factor: estimate.periodFactor,
+                            inactiveWhenNilDetail: true
+                        )
+                        factorItem(
+                            symbol: "chart.line.downtrend.xyaxis",
+                            title: "trend.advanced.slope",
+                            detail: EaseFormatters.signedKgPerDay(estimate.adjustedSlopeKg),
+                            factor: nil,
+                            inactiveWhenNilDetail: false
                         )
                     }
-                    .padding(.top, 4)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+
+                    Text("trend.advanced.subtitle")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 18)
+                } else {
+                    Text("trend.advanced.unavailable")
+                        .font(.subheadline)
+                        .foregroundStyle(EasePalette.secondaryText)
+                        .padding(.top, 12)
                 }
-            } else {
-                Text("trend.advanced.unavailable")
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func factorItem(
+        symbol: String,
+        title: LocalizedStringKey,
+        detail: String?,
+        factor: Double?,
+        inactiveWhenNilDetail: Bool = true
+    ) -> some View {
+        let inactive = inactiveWhenNilDetail && detail == nil
+        let detailText: String = {
+            if let detail { return detail }
+            if let factor, abs(factor - 1) < 0.02 {
+                return String(localized: "trend.advanced.factor.neutral")
+            }
+            return "—"
+        }()
+
+        return HStack(alignment: .top, spacing: 10) {
+            Image(systemName: symbol)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(inactive ? EasePalette.secondaryText.opacity(0.45) : EasePalette.secondaryText)
+                .frame(width: 18, alignment: .center)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(inactive ? EasePalette.secondaryText.opacity(0.55) : EasePalette.primaryText)
+                Text(detailText)
+                    .font(.footnote)
+                    .monospacedDigit()
+                    .foregroundStyle(inactive ? EasePalette.secondaryText.opacity(0.45) : EasePalette.secondaryText)
+                if let factor, abs(factor - 1) >= 0.02, !inactive {
+                    Text(EaseFormatters.paceFactor(factor))
+                        .font(.caption2)
+                        .monospacedDigit()
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .opacity(inactive ? 0.7 : 1)
+    }
+}
+
+struct TrendStatsGrid: View {
+    let records: [DailyRecord]
+    let logs: [WeightLog]
+    let range: ChartRange
+    let targetWeight: Double
+
+    private var stats: TrendRangeStats {
+        TrendRangeStats.make(records: records, logs: logs, range: range, targetWeight: targetWeight)
+    }
+
+    var body: some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: 10),
+                GridItem(.flexible(), spacing: 10),
+                GridItem(.flexible(), spacing: 10)
+            ],
+            spacing: 10
+        ) {
+            weightStat(
+                "trend.stats.high",
+                value: stats.high,
+                subtitle: stats.highDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) }
+            )
+            weightStat(
+                "trend.stats.low",
+                value: stats.low,
+                subtitle: stats.lowDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) }
+            )
+            weightStat(
+                "trend.stats.avg",
+                value: stats.average,
+                subtitle: stats.averageCaption
+            )
+            weightStat(
+                "trend.stats.change",
+                value: stats.change,
+                signed: true,
+                valueColor: stats.change.map(EasePalette.deltaColor)
+            )
+            weightStat(
+                "trend.stats.toTarget",
+                value: stats.distanceToTarget
+            )
+            statCell(
+                title: "trend.stats.days",
+                number: stats.recordedDays.map(String.init),
+                unit: stats.recordedDays == nil
+                    ? nil
+                    : String(localized: "trend.stats.days.unit"),
+                subtitle: nil,
+                valueColor: nil
+            )
+        }
+    }
+
+    private func weightStat(
+        _ title: LocalizedStringKey,
+        value: Double?,
+        signed: Bool = false,
+        subtitle: String? = nil,
+        valueColor: Color? = nil
+    ) -> some View {
+        let number: String? = {
+            guard let value else { return nil }
+            let core = EaseFormatters.oneDecimal(abs(value))
+            if signed {
+                if value > 0 { return "+\(core)" }
+                if value < 0 { return "-\(core)" }
+            }
+            return core
+        }()
+        return statCell(
+            title: title,
+            number: number,
+            unit: number == nil ? nil : String(localized: "unit.kg"),
+            subtitle: subtitle,
+            valueColor: valueColor
+        )
+    }
+
+    private func statCell(
+        title: LocalizedStringKey,
+        number: String?,
+        unit: String?,
+        subtitle: String?,
+        valueColor: Color?
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                Text(number ?? "—")
+                    .font(.system(.title3, design: .rounded, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(valueColor ?? EasePalette.primaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                if let unit, number != nil {
+                    Text(unit)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            if let subtitle {
+                Text(subtitle)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 4)
-    }
-
-    private func factorLine(_ title: LocalizedStringKey, _ value: String, _ factor: Double) -> some View {
-        HStack {
-            Text(title)
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(EasePalette.secondaryText)
-            Spacer()
-            Text(value)
-                .font(.system(size: 13, weight: .regular).monospacedDigit())
-                .foregroundStyle(EasePalette.primaryText)
-            Text(EaseFormatters.paceFactor(factor))
-                .font(.system(size: 13, weight: .regular).monospacedDigit())
-                .foregroundStyle(EasePalette.secondaryText)
-                .frame(minWidth: 44, alignment: .trailing)
-        }
+        .padding(14)
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }
 

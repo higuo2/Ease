@@ -12,12 +12,11 @@ private struct ChartWeightPoint: Identifiable {
     var weight: Double
 }
 
-struct TrendChartCard<Footer: View>: View {
+struct TrendChartCard: View {
     let records: [DailyRecord]
     let logs: [WeightLog]
     let range: ChartRange
     var targetWeight: Double? = nil
-    @ViewBuilder var footer: () -> Footer
     let onSelectRange: (ChartRange) -> Void
     let onSelectLog: (WeightLog) -> Void
 
@@ -95,17 +94,16 @@ struct TrendChartCard<Footer: View>: View {
 
     var body: some View {
         EaseCard {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 16) {
                 rangePicker
                 if chartWeightPoints.isEmpty {
                     Text("dashboard.chart.empty")
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(EasePalette.secondaryText)
-                        .frame(maxWidth: .infinity, minHeight: 200, alignment: .center)
+                        .frame(maxWidth: .infinity, minHeight: 220, alignment: .center)
                 } else {
                     weightChart
                 }
-                footer()
             }
         }
     }
@@ -220,7 +218,7 @@ struct TrendChartCard<Footer: View>: View {
         .chartPlotStyle { plot in
             plot.padding(.top, 28)
         }
-        .frame(height: 220)
+        .frame(height: 260)
         .chartOverlay { proxy in
             GeometryReader { geometry in
                 dragLayer(proxy: proxy, geometry: geometry)

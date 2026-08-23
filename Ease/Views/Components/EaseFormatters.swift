@@ -87,6 +87,19 @@ enum EaseFormatters {
         return String(format: String(localized: "format.advancedPaceETA"), locale: .current, days, stamp)
     }
 
+    static func advancedPaceDate(_ date: Date) -> String {
+        date.formatted(
+            Date.FormatStyle()
+                .year(.defaultDigits)
+                .month(.abbreviated)
+                .day()
+        )
+    }
+
+    static func advancedPaceDays(_ days: Int) -> String {
+        String(format: String(localized: "format.advancedPaceDays"), locale: .current, days)
+    }
+
     static func paceFactor(_ value: Double) -> String {
         String(format: String(localized: "format.paceFactor"), locale: .current, value)
     }

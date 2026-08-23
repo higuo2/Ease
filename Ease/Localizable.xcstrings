@@ -3310,6 +3310,22 @@
         }
       }
     },
+    "trend.advanced.factors": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Factors"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修正因子"
+          }
+        }
+      }
+    },
     "trend.advanced.period": {
       "localizations": {
         "en": {
@@ -3359,6 +3375,7 @@
       }
     },
     "trend.advanced.slope": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3375,6 +3392,7 @@
       }
     },
     "trend.advanced.subtitle": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3487,6 +3505,7 @@
       }
     },
     "trend.stats.days": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3503,6 +3522,7 @@
       }
     },
     "trend.stats.days.value": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3519,6 +3539,7 @@
       }
     },
     "trend.stats.high": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3535,6 +3556,7 @@
       }
     },
     "trend.stats.low": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3841,18 +3863,50 @@
         }
       }
     },
-    "trend.advanced.factors": {
+    "format.advancedPaceDays": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Factors"
+            "value": "About %lld days"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "修正因子"
+            "value": "大约 %lld 天"
+          }
+        }
+      }
+    },
+    "trend.advanced.factor.neutral": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正常"
+          }
+        }
+      }
+    },
+    "trend.stats.days.unit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "天"
           }
         }
       }
