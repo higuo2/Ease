@@ -254,13 +254,16 @@ struct HomeModuleGrid: View {
 struct DailyWeightList: View {
     let rows: [DailyWeightRow]
     var recentDays: Int = 30
-    @Binding var showsAll: Bool
     let onSelect: (DailyWeightRow) -> Void
+    let onShowAll: () -> Void
 
     private var visibleRows: [DailyWeightRow] {
-        if showsAll { return rows }
         let cutoff = CalendarDay.addingDays(-(recentDays - 1), to: CalendarDay.startOfDay(.now))
         return rows.filter { $0.day >= cutoff }
+    }
+
+    private var hasMoreHistory: Bool {
+        rows.count > visibleRows.count
     }
 
     var body: some View {
@@ -270,11 +273,9 @@ struct DailyWeightList: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(EasePalette.primaryText)
                 Spacer()
-                if rows.count > visibleRows.count || showsAll {
-                    Button {
-                        showsAll.toggle()
-                    } label: {
-                        Text(showsAll ? "weight.list.recent" : "weight.list.all")
+                if hasMoreHistory || !rows.isEmpty {
+                    Button(action: onShowAll) {
+                        Text("weight.list.all")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(EasePalette.primaryText)
                     }

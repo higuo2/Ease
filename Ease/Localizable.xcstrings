@@ -159,7 +159,6 @@
       }
     },
     "chart.axis.energy": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -389,6 +388,70 @@
         }
       }
     },
+    "cycle.calendar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日历"
+          }
+        }
+      }
+    },
+    "cycle.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No period days in HealthKit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HealthKit 里还没有经期日。"
+          }
+        }
+      }
+    },
+    "cycle.lastDuration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last period %d days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次持续 %d 天"
+          }
+        }
+      }
+    },
+    "cycle.length": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %d days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大约 %d 天"
+          }
+        }
+      }
+    },
     "cycle.next": {
       "localizations": {
         "en": {
@@ -401,6 +464,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "下次经期大约 %@"
+          }
+        }
+      }
+    },
+    "cycle.recent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent cycles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近期周期"
+          }
+        }
+      }
+    },
+    "cycle.spanDays": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 天"
           }
         }
       }
@@ -646,6 +741,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "适量"
+          }
+        }
+      }
+    },
+    "energy.average": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Average %d kcal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平均 %d kcal"
+          }
+        }
+      }
+    },
+    "energy.chart.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active energy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动消耗"
+          }
+        }
+      }
+    },
+    "energy.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No HealthKit energy yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有 HealthKit 消耗数据。"
           }
         }
       }
@@ -2230,6 +2373,38 @@
         }
       }
     },
+    "settings.deleteConfirmAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset all data?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确定清除全部数据？"
+          }
+        }
+      }
+    },
+    "settings.deleteConfirmAgainMessage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This cannot be undone. Records, weigh-ins, and measurements will be deleted, and you will return to onboarding."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作无法撤销。记录、体重和围度都会删除，并回到启航。"
+          }
+        }
+      }
+    },
     "settings.deleteConfirmMessage": {
       "localizations": {
         "en": {
@@ -2242,6 +2417,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "记录与目标将被删除，并重新进入启航。"
+          }
+        }
+      }
+    },
+    "settings.deleteContinue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续"
           }
         }
       }
@@ -2388,6 +2579,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法读取该文件。"
+          }
+        }
+      }
+    },
+    "settings.import.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick ease-export.csv (weight/diet) or ease-metrics.csv (measurements). One file at a time. Headers must match exactly."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择 ease-export.csv（体重/饮食）或 ease-metrics.csv（围度）。一次一个文件，表头必须完全一致。"
           }
         }
       }
@@ -2795,6 +3002,38 @@
         }
       }
     },
+    "sleep.chart.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 30 nights"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 30 夜"
+          }
+        }
+      }
+    },
+    "sleep.targetLine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标 %@"
+          }
+        }
+      }
+    },
     "sleep.title": {
       "localizations": {
         "en": {
@@ -2839,6 +3078,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "历史"
+          }
+        }
+      }
+    },
+    "tab.settings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
           }
         }
       }
@@ -3185,6 +3440,22 @@
         }
       }
     },
+    "weight.list.all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部"
+          }
+        }
+      }
+    },
     "weight.list.empty": {
       "localizations": {
         "en": {
@@ -3197,6 +3468,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "还没有体重记录。"
+          }
+        }
+      }
+    },
+    "weight.list.recent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 30 days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 30 天"
           }
         }
       }
@@ -3313,290 +3600,242 @@
         }
       }
     },
-    "tab.settings": {
+    "log.date.hint": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settings"
+            "value": "Choose a past day to backfill"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "设置"
+            "value": "可选择过去日期补记"
           }
         }
       }
     },
-    "weight.list.all": {
+    "weight.history.title": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All"
+            "value": "Weight history"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "全部"
+            "value": "体重历史"
           }
         }
       }
     },
-    "weight.list.recent": {
+    "format.advancedPaceETA": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last 30 days"
+            "value": "About %lld days · around %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "近 30 天"
+            "value": "大约 %lld 天 · 约 %@"
           }
         }
       }
     },
-    "settings.import.hint": {
+    "format.paceFactor": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pick ease-export.csv (weight/diet) or ease-metrics.csv (measurements). One file at a time. Headers must match exactly."
+            "value": "×%.2f"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择 ease-export.csv（体重/饮食）或 ease-metrics.csv（围度）。一次一个文件，表头必须完全一致。"
+            "value": "×%.2f"
           }
         }
       }
     },
-    "settings.deleteContinue": {
+    "format.kgPerDay": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "%@ kg/day"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "继续"
+            "value": "%@ kg/日"
           }
         }
       }
     },
-    "settings.deleteConfirmAgain": {
+    "trend.advanced.title": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reset all data?"
+            "value": "Advanced estimate"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确定清除全部数据？"
+            "value": "高级估算"
           }
         }
       }
     },
-    "settings.deleteConfirmAgainMessage": {
+    "trend.advanced.subtitle": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This cannot be undone. Records, weigh-ins, and measurements will be deleted, and you will return to onboarding."
+            "value": "Weight trend adjusted softly by recent sleep, active energy, and period days. Not medical advice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此操作无法撤销。记录、体重和围度都会删除，并回到启航。"
+            "value": "在体重趋势上，用近期睡眠、活动消耗与经期日做轻度修正。非医疗建议。"
           }
         }
       }
     },
-    "sleep.chart.title": {
+    "trend.advanced.unavailable": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last 30 nights"
+            "value": "Need more weigh-ins heading toward your target."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "近 30 夜"
+            "value": "需要更多朝向目标的体重记录。"
           }
         }
       }
     },
-    "sleep.targetLine": {
+    "trend.advanced.sleep": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Target %@"
+            "value": "Sleep"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "目标 %@"
+            "value": "睡眠"
           }
         }
       }
     },
-    "energy.chart.title": {
+    "trend.advanced.energy": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Active energy"
+            "value": "Energy"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "活动消耗"
+            "value": "消耗"
           }
         }
       }
     },
-    "energy.average": {
+    "trend.advanced.period": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Average %d kcal"
+            "value": "Period"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "平均 %d kcal"
+            "value": "经期"
           }
         }
       }
     },
-    "energy.empty": {
+    "trend.advanced.periodDays": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No HealthKit energy yet."
+            "value": "%lld days in window"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有 HealthKit 消耗数据。"
+            "value": "窗口内 %lld 天"
           }
         }
       }
     },
-    "cycle.calendar": {
+    "trend.advanced.slope": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Calendar"
+            "value": "Adjusted pace"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "日历"
+            "value": "修正斜率"
           }
         }
       }
     },
-    "cycle.recent": {
+    "calendar.stat.weekAvg": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recent cycles"
+            "value": "Week avg"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "近期周期"
+            "value": "周均"
           }
         }
       }
     },
-    "cycle.length": {
+    "calendar.stat.monthAvg": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "About %d days"
+            "value": "Month avg"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "大约 %d 天"
-          }
-        }
-      }
-    },
-    "cycle.lastDuration": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Last period %d days"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "上次持续 %d 天"
-          }
-        }
-      }
-    },
-    "cycle.spanDays": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%d days"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%d 天"
-          }
-        }
-      }
-    },
-    "cycle.empty": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No period days in HealthKit."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HealthKit 里还没有经期日。"
+            "value": "月均"
           }
         }
       }

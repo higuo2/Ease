@@ -24,6 +24,7 @@ struct LogSheetView: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var isPhotoPickerPresented = false
     @State private var isOCRBusy = false
+    @State private var isCalendarExpanded = false
 
     init(date: Date, editingLogID: UUID? = nil, mode: LogSheetMode = .weight) {
         self.mode = mode
@@ -173,28 +174,41 @@ struct LogSheetView: View {
     }
 
     private var logDateRow: some View {
-        HStack {
-            Text("log.date")
-                .font(.system(size: 16, weight: .regular))
-                .foregroundStyle(EasePalette.primaryText)
-            Spacer(minLength: 12)
-            Text(EaseFormatters.numericDate(selectedDate))
-                .font(.system(size: 16, weight: .regular))
-                .monospacedDigit()
-                .foregroundStyle(EasePalette.primaryText)
-                .frame(minWidth: 120, minHeight: 32, alignment: .trailing)
-                .overlay {
-                    DatePicker(
-                        "log.date",
-                        selection: $selectedDate,
-                        in: ...Date.now,
-                        displayedComponents: .date
-                    )
-                    .datePickerStyle(.compact)
-                    .labelsHidden()
-                    .tint(EasePalette.accent)
-                    .opacity(0.02)
+        VStack(alignment: .leading, spacing: 12) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isCalendarExpanded.toggle()
                 }
+            } label: {
+                HStack {
+                    Text("log.date")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundStyle(EasePalette.primaryText)
+                    Spacer(minLength: 12)
+                    Text(EaseFormatters.numericDate(selectedDate))
+                        .font(.system(size: 16, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(EasePalette.primaryText)
+                    Image(systemName: isCalendarExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text("log.date.hint"))
+
+            if isCalendarExpanded {
+                DatePicker(
+                    "log.date",
+                    selection: $selectedDate,
+                    in: ...Date.now,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .tint(EasePalette.accent)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
     }
 

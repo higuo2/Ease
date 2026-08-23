@@ -77,6 +77,29 @@ enum EaseFormatters {
         return String(format: String(localized: "format.paceETA"), locale: .current, stamp)
     }
 
+    static func advancedPaceETA(days: Int, date: Date) -> String {
+        let stamp = date.formatted(
+            Date.FormatStyle()
+                .year(.defaultDigits)
+                .month(.abbreviated)
+                .day()
+        )
+        return String(format: String(localized: "format.advancedPaceETA"), locale: .current, days, stamp)
+    }
+
+    static func paceFactor(_ value: Double) -> String {
+        String(format: String(localized: "format.paceFactor"), locale: .current, value)
+    }
+
+    static func signedKgPerDay(_ value: Double) -> String {
+        let sign = value > 0 ? "+" : ""
+        return String(
+            format: String(localized: "format.kgPerDay"),
+            locale: .current,
+            "\(sign)\(oneDecimal(value))"
+        )
+    }
+
     static func parseUnrounded(_ text: String) -> Double? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }

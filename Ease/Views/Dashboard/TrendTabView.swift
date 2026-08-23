@@ -35,6 +35,16 @@ struct TrendTabView: View {
                             range: viewModel.chartRange,
                             targetWeight: snapshot.targetWeight
                         )
+                        AdvancedPaceCard(
+                            profile: profile,
+                            records: records,
+                            logs: logs,
+                            healthByDay: viewModel.healthByDay,
+                            sleepHistory: viewModel.sleepHistory,
+                            energyHistory: viewModel.energyHistory,
+                            cycleHistory: viewModel.cycleHistory,
+                            snapshot: snapshot
+                        )
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
@@ -43,6 +53,139 @@ struct TrendTabView: View {
             .navigationTitle("tab.trend")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
+        }
+    }
+}
+
+struct AdvancedPaceCard: View {
+    let profile: UserProfile?
+    let records: [DailyRecord]
+    let logs: [WeightLog]
+    let healthByDay: [String: HealthDaySnapshot]
+    let sleepHistory: SleepHistory
+    let energyHistory: EnergyHistory
+    let cycleHistory: CycleHistory
+    let snapshot: DashboardSnapshot
+
+    private var estimate: AdvancedPaceEstimator.Result? {
+        var sleepMap: [String: Double] = [:]
+        for night in sleepHistory.nights {
+            if let hours = night.hours {
+                sleepMap[night.dayKey] = hours
+            }
+        }
+        for (key, snap) in healthByDay {
+            if let hours = snap.previousNightSleepHours {
+                sleepMap[key] = sleepMap[key] ?? hours
+            }
+        }
+
+        var energyMap: [String: Double] = [:]
+        for day in energyHistory.days {
+            if let kcal = day.kcal {
+                energyMap[day.dayKey] = kcal
+            }
+        }
+        for (key, snap) in healthByDay {
+            if let kcal = snap.activeEnergyKcal {
+                energyMap[key] = energyMap[key] ?? kcal
+            }
+        }
+
+        var periodKeys = cycleHistory.periodDayKeys
+        for (key, snap) in healthByDay where snap.isMenstrual {
+            periodKeys.insert(key)
+        }
+
+        return AdvancedPaceEstimator.estimate(
+            samples: WeightMetrics.samples(from: records, logs: logs),
+            targetWeight: snapshot.targetWeight,
+            displayWeight: snapshot.displayWeight,
+            progress: snapshot.progress,
+            context: .init(
+                sleepHoursByDay: sleepMap,
+                energyKcalByDay: energyMap,
+                periodDayKeys: periodKeys,
+                sleepTargetHours: profile?.sleepTargetHours ?? 8.0
+            )
+        )
+    }
+
+    var body: some View {
+        EaseCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("trend.advanced.title")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(EasePalette.primaryText)
+                Text("trend.advanced.subtitle")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+
+                if let estimate {
+                    Text(EaseFormatters.advancedPaceETA(days: estimate.daysRemaining, date: estimate.eta))
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(EasePalette.primaryText)
+
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: 10),
+                            GridItem(.flexible(), spacing: 10)
+                        ],
+                        spacing: 10
+                    ) {
+                        factorCell(
+                            "trend.advanced.sleep",
+                            estimate.averageSleepHours.map(EaseFormatters.sleepDuration) ?? "—",
+                            factor: estimate.sleepFactor
+                        )
+                        factorCell(
+                            "trend.advanced.energy",
+                            estimate.averageEnergyKcal.map { EaseFormatters.kcal($0) } ?? "—",
+                            factor: estimate.energyFactor
+                        )
+                        factorCell(
+                            "trend.advanced.period",
+                            String(
+                                format: String(localized: "trend.advanced.periodDays"),
+                                locale: .current,
+                                estimate.periodDaysInWindow
+                            ),
+                            factor: estimate.periodFactor
+                        )
+                        factorCell(
+                            "trend.advanced.slope",
+                            EaseFormatters.signedKgPerDay(estimate.adjustedSlopeKg),
+                            factor: nil
+                        )
+                    }
+                } else {
+                    Text("trend.advanced.unavailable")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func factorCell(_ title: LocalizedStringKey, _ value: String, factor: Double?) -> some View {
+        EaseRecessedCard {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+                Text(value)
+                    .font(.system(size: 15, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(EasePalette.primaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                if let factor {
+                    Text(EaseFormatters.paceFactor(factor))
+                        .font(.system(size: 11, weight: .regular).monospacedDigit())
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

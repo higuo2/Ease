@@ -13,6 +13,13 @@ struct CalendarTabView: View {
     private var monthStats: MonthWeightStats {
         MonthWeightStats.make(records: records, logs: logs, monthContaining: visibleMonth)
     }
+    private var weekAverageWeight: Double? {
+        WeekWeightStats.averageWeight(
+            records: records,
+            logs: logs,
+            weekContaining: selectedDate
+        )
+    }
 
     var body: some View {
         NavigationStack {
@@ -23,6 +30,7 @@ struct CalendarTabView: View {
                         monthHeader
                         weekdayHeader
                         monthGrid
+                        averageWeightBar
                         monthStatsBar
                         dayDetailCard
                     }
@@ -137,6 +145,37 @@ struct CalendarTabView: View {
         .disabled(isFuture)
     }
 
+    private var averageWeightBar: some View {
+        EaseCard {
+            HStack(spacing: 0) {
+                averageCell(
+                    "calendar.stat.weekAvg",
+                    weekAverageWeight.map(EaseFormatters.kg) ?? "—"
+                )
+                Rectangle()
+                    .fill(EasePalette.hairline)
+                    .frame(width: 1, height: 36)
+                averageCell(
+                    "calendar.stat.monthAvg",
+                    monthStats.averageWeight.map(EaseFormatters.kg) ?? "—"
+                )
+            }
+        }
+    }
+
+    private func averageCell(_ title: LocalizedStringKey, _ value: String) -> some View {
+        VStack(spacing: 6) {
+            Text(title)
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(EasePalette.secondaryText)
+            Text(value)
+                .font(EaseFont.number(22))
+                .monospacedDigit()
+                .foregroundStyle(EasePalette.primaryText)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     private var monthStatsBar: some View {
         EaseRecessedCard {
             HStack(spacing: 0) {
@@ -247,6 +286,7 @@ struct MonthWeightStats {
     var gainDays: Int
     var averageDelta: Double?
     var monthDelta: Double?
+    var averageWeight: Double?
 
     static func make(
         records: [DailyRecord],
@@ -260,6 +300,7 @@ struct MonthWeightStats {
         var loss = 0
         var gain = 0
         var deltas: [Double] = []
+        var weights: [Double] = []
         var firstWeight: Double?
         var lastWeight: Double?
 
@@ -268,6 +309,7 @@ struct MonthWeightStats {
                 continue
             }
             checkins += 1
+            weights.append(weight)
             if firstWeight == nil { firstWeight = weight }
             lastWeight = weight
             let previous = CalendarDay.addingDays(-1, to: day, calendar: calendar)
@@ -288,13 +330,34 @@ struct MonthWeightStats {
         } else {
             monthDelta = nil
         }
+        let averageWeight = weights.isEmpty
+            ? nil
+            : MeasurementBounds.roundedToTenth(weights.reduce(0, +) / Double(weights.count))
 
         return MonthWeightStats(
             checkinDays: checkins,
             lossDays: loss,
             gainDays: gain,
             averageDelta: average,
-            monthDelta: monthDelta
+            monthDelta: monthDelta,
+            averageWeight: averageWeight
         )
+    }
+}
+
+enum WeekWeightStats {
+    static func averageWeight(
+        records: [DailyRecord],
+        logs: [WeightLog],
+        weekContaining date: Date,
+        calendar: Calendar = .current
+    ) -> Double? {
+        let days = CalendarDay.weekDates(containing: date, calendar: calendar)
+            .filter { !CalendarDay.isFuture($0, calendar: calendar) }
+        let weights = days.compactMap {
+            WeightMetrics.weightOnDay(records: records, logs: logs, on: $0, calendar: calendar)
+        }
+        guard !weights.isEmpty else { return nil }
+        return MeasurementBounds.roundedToTenth(weights.reduce(0, +) / Double(weights.count))
     }
 }

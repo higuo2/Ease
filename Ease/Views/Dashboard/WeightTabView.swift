@@ -9,7 +9,7 @@ struct WeightTabView: View {
     let metricDefinitions: [MetricDefinition]
     let metricLogs: [MetricLog]
     @State private var isModuleEditorPresented = false
-    @State private var showsAllWeightRows = false
+    @State private var isWeightHistoryPresented = false
 
     private var selectedDate: Date { viewModel.selectedDate }
     private var snapshot: DashboardSnapshot {
@@ -100,13 +100,13 @@ struct WeightTabView: View {
                             onOpenEnergy: { viewModel.isEnergyPresented = true },
                             onAddModule: { isModuleEditorPresented = true }
                         )
-                        DailyWeightList(rows: weightRows, showsAll: $showsAllWeightRows) { row in
-                            if let id = row.latestLogID, let log = logs.first(where: { $0.id == id }) {
-                                viewModel.openWeightLog(log)
-                            } else {
-                                viewModel.openWeightEntry(for: row.day)
-                            }
-                        }
+                        DailyWeightList(
+                            rows: weightRows,
+                            onSelect: { row in
+                                openWeightRow(row)
+                            },
+                            onShowAll: { isWeightHistoryPresented = true }
+                        )
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
@@ -116,6 +116,15 @@ struct WeightTabView: View {
             .navigationTitle("app.name")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
+            .sheet(isPresented: $isWeightHistoryPresented) {
+                WeightHistorySheet(rows: weightRows) { row in
+                    isWeightHistoryPresented = false
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(350))
+                        openWeightRow(row)
+                    }
+                }
+            }
             .sheet(isPresented: $isModuleEditorPresented) {
                 if let profile {
                     NavigationStack {
@@ -149,6 +158,14 @@ struct WeightTabView: View {
                     .preferredColorScheme(.light)
                 }
             }
+        }
+    }
+
+    private func openWeightRow(_ row: DailyWeightRow) {
+        if let id = row.latestLogID, let log = logs.first(where: { $0.id == id }) {
+            viewModel.openWeightLog(log)
+        } else {
+            viewModel.openWeightEntry(for: row.day)
         }
     }
 }

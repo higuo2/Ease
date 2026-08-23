@@ -71,6 +71,8 @@
 		A100000000000000000000E5 /* HistoryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D5 /* HistoryTabView.swift */; };
 		A100000000000000000000E6 /* HomeModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D6 /* HomeModule.swift */; };
 		A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D7 /* EnergyDetailSheet.swift */; };
+		A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D8 /* AdvancedPaceEstimator.swift */; };
+		A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D9 /* WeightHistorySheet.swift */; };
 		T10000000000000000000013 /* EaseTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000003 /* EaseTestSupport.swift */; };
 		T10000000000000000000014 /* WeightMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000004 /* WeightMetricsTests.swift */; };
 		T10000000000000000000015 /* MeasurementBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000005 /* MeasurementBoundsTests.swift */; };
@@ -169,6 +171,8 @@
 		A100000000000000000000D5 /* HistoryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabView.swift; sourceTree = "<group>"; };
 		A100000000000000000000D6 /* HomeModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModule.swift; sourceTree = "<group>"; };
 		A100000000000000000000D7 /* EnergyDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnergyDetailSheet.swift; sourceTree = "<group>"; };
+		A100000000000000000000D8 /* AdvancedPaceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedPaceEstimator.swift; sourceTree = "<group>"; };
+		A100000000000000000000D9 /* WeightHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightHistorySheet.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 		T10000000000000000000001 /* EaseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EaseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -305,6 +309,7 @@
 				A100000000000000000000B2 /* MetricCatalog.swift */,
 				A100000000000000000000B3 /* MetricRepository.swift */,
 				A100000000000000000000B5 /* PaceEstimator.swift */,
+				A100000000000000000000D8 /* AdvancedPaceEstimator.swift */,
 				A1000000000000000000008A /* PermissionsService.swift */,
 				A10000000000000000000098 /* HealthKitReader.swift */,
 				A1000000000000000000009E /* SleepHistory.swift */,
@@ -381,6 +386,7 @@
 				A100000000000000000000B6 /* ImportPreviewSheet.swift */,
 				A100000000000000000000B7 /* MetricSheet.swift */,
 				A100000000000000000000D7 /* EnergyDetailSheet.swift */,
+				A100000000000000000000D9 /* WeightHistorySheet.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -548,6 +554,8 @@
 				A100000000000000000000E5 /* HistoryTabView.swift in Sources */,
 				A100000000000000000000E6 /* HomeModule.swift in Sources */,
 				A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */,
+				A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */,
+				A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
