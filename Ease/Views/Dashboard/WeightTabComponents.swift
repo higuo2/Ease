@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct StageGoalCard: View {
     let progress: Double
@@ -8,63 +9,66 @@ struct StageGoalCard: View {
     let paceLine: String?
 
     var body: some View {
-        EaseRecessedCard {
-            VStack(alignment: .leading, spacing: 14) {
-                Text("weight.stageGoal")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(EasePalette.primaryText)
+        VStack(alignment: .leading, spacing: 14) {
+            Text("weight.stageGoal")
+                .font(.headline)
+                .foregroundStyle(EasePalette.primaryText)
 
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(EasePalette.track)
-                            .frame(height: 8)
-                        Capsule()
-                            .fill(EasePalette.coral)
-                            .frame(width: max(8, geo.size.width * progress), height: 8)
-                    }
-                }
-                .frame(height: 8)
-
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("weight.start")
-                            .font(.system(size: 12, weight: .regular))
-                            .foregroundStyle(EasePalette.secondaryText)
-                        Text(EaseFormatters.kg(startWeight))
-                            .font(EaseFont.number(15))
-                            .monospacedDigit()
-                            .foregroundStyle(EasePalette.primaryText)
-                    }
-                    Spacer()
-                    VStack(spacing: 2) {
-                        Text("weight.remaining")
-                            .font(.system(size: 12, weight: .regular))
-                            .foregroundStyle(EasePalette.secondaryText)
-                        Text(EaseFormatters.kg(remainingKg))
-                            .font(EaseFont.number(15))
-                            .monospacedDigit()
-                            .foregroundStyle(EasePalette.coral)
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("weight.target")
-                            .font(.system(size: 12, weight: .regular))
-                            .foregroundStyle(EasePalette.secondaryText)
-                        Text(EaseFormatters.kg(targetWeight))
-                            .font(EaseFont.number(15))
-                            .monospacedDigit()
-                            .foregroundStyle(EasePalette.primaryText)
-                    }
-                }
-
-                if let paceLine {
-                    Text(paceLine)
-                        .font(.system(size: 13, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color(uiColor: .tertiarySystemFill))
+                        .frame(height: 8)
+                    Capsule()
+                        .fill(EasePalette.coral)
+                        .frame(width: max(8, geo.size.width * min(max(progress, 0), 1)), height: 8)
                 }
             }
+            .frame(height: 8)
+
+            HStack(alignment: .top) {
+                stageLabel("weight.start", value: EaseFormatters.kg(startWeight), alignment: .leading)
+                Spacer(minLength: 8)
+                stageLabel(
+                    "weight.remaining",
+                    value: EaseFormatters.kg(remainingKg),
+                    alignment: .center,
+                    valueColor: EasePalette.coral.opacity(0.85)
+                )
+                Spacer(minLength: 8)
+                stageLabel("weight.target", value: EaseFormatters.kg(targetWeight), alignment: .trailing)
+            }
+
+            if let paceLine {
+                Text(paceLine)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            Color(uiColor: .secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+    }
+
+    private func stageLabel(
+        _ title: LocalizedStringKey,
+        value: String,
+        alignment: HorizontalAlignment,
+        valueColor: Color = EasePalette.primaryText
+    ) -> some View {
+        VStack(alignment: alignment, spacing: 4) {
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.subheadline.bold())
+                .monospacedDigit()
+                .foregroundStyle(valueColor)
+        }
+        .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment, vertical: .center))
     }
 }
 
@@ -267,101 +271,122 @@ struct DailyWeightList: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("weight.list.title")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.headline)
                     .foregroundStyle(EasePalette.primaryText)
                 Spacer()
                 if hasMoreHistory || !rows.isEmpty {
                     Button(action: onShowAll) {
                         Text("weight.list.all")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(EasePalette.primaryText)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.bottom, 8)
+
             if visibleRows.isEmpty {
                 Text("weight.list.empty")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
-                    .padding(.vertical, 20)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 16)
             } else {
-                EaseCard(padding: 4) {
-                    VStack(spacing: 0) {
-                        ForEach(Array(visibleRows.enumerated()), id: \.element.id) { index, row in
-                            Button {
-                                onSelect(row)
-                            } label: {
-                                DailyWeightRowView(row: row)
-                            }
-                            .buttonStyle(.plain)
-                            if index < visibleRows.count - 1 {
-                                Divider()
-                                    .overlay(EasePalette.hairline)
-                                    .padding(.leading, 16)
-                            }
+                VStack(spacing: 0) {
+                    ForEach(Array(visibleRows.enumerated()), id: \.element.id) { index, row in
+                        Button {
+                            onSelect(row)
+                        } label: {
+                            DailyWeightRowView(row: row, style: .list)
+                        }
+                        .buttonStyle(.plain)
+                        if index < visibleRows.count - 1 {
+                            Divider()
+                                .overlay(EasePalette.hairline)
+                                .padding(.leading, 16)
                         }
                     }
                 }
+                .background(Color.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
         }
     }
 }
 
+enum DailyWeightRowStyle {
+    case list
+    case history
+}
+
 struct DailyWeightRowView: View {
     let row: DailyWeightRow
+    var style: DailyWeightRowStyle = .list
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(row.day, format: .dateTime.month(.wide).day())
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(EasePalette.secondaryText)
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                labeledWeight("sun.max.fill", row.morning)
-                labeledWeight("moon.fill", row.evening)
-                Spacer(minLength: 8)
-                if let delta = row.dayDelta {
-                    HStack(spacing: 2) {
-                        Image(systemName: delta < 0 ? "arrowtriangle.down.fill" : (delta > 0 ? "arrowtriangle.up.fill" : "minus"))
-                            .font(.system(size: 9, weight: .bold))
-                        Text(EaseFormatters.oneDecimal(abs(delta)))
-                            .font(.system(size: 15, weight: .semibold).monospacedDigit())
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(row.day, format: .dateTime.month(.wide).day())
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    labeledWeight("sun.max.fill", row.morning)
+                    if row.evening != nil {
+                        labeledWeight("moon.fill", row.evening)
+                    } else if style == .history {
+                        Image(systemName: "moon.fill")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
                     }
-                    .foregroundStyle(EasePalette.deltaColor(delta))
-                } else {
-                    Text("—")
-                        .font(.system(size: 15, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+                }
+                if let note = row.note, !note.isEmpty, style == .list {
+                    Text(note)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
             }
-            if let note = row.note, !note.isEmpty {
-                Text(note)
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
-                    .lineLimit(2)
-            }
+            Spacer(minLength: 8)
+            deltaBadge
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .padding(.vertical, style == .history ? 12 : 10)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    @ViewBuilder
+    private var deltaBadge: some View {
+        if let delta = row.dayDelta {
+            HStack(spacing: 2) {
+                Image(systemName: delta < 0 ? "arrowtriangle.down.fill" : (delta > 0 ? "arrowtriangle.up.fill" : "minus"))
+                    .font(.system(size: 9, weight: .bold))
+                Text(EaseFormatters.oneDecimal(abs(delta)))
+                    .font(.caption.weight(.semibold))
+                    .monospacedDigit()
+            }
+            .foregroundStyle(EasePalette.deltaColor(delta))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(
+                EasePalette.deltaColor(delta).opacity(0.12),
+                in: RoundedRectangle(cornerRadius: 4, style: .continuous)
+            )
+        }
+    }
+
     private func labeledWeight(_ symbol: String, _ value: Double?) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: symbol)
-                .font(.system(size: 12, weight: .regular))
-                .foregroundStyle(EasePalette.secondaryText)
+        Group {
             if let value {
-                Text(EaseFormatters.kg(value))
-                    .font(.system(size: 16, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(EasePalette.primaryText)
-            } else {
-                Text("weight.missing")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
+                HStack(spacing: 4) {
+                    Image(systemName: symbol)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(EaseFormatters.kg(value))
+                        .font(.subheadline.weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(EasePalette.primaryText)
+                }
             }
         }
     }

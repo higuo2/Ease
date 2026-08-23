@@ -11,8 +11,6 @@ struct SettingsSheet: View {
     let profile: UserProfile
     let records: [DailyRecord]
     let logs: [WeightLog]
-    var onOpenSleep: (() -> Void)? = nil
-    var onOpenCycle: (() -> Void)? = nil
     var showsDismissButton: Bool = true
 
     @State private var heightText: String
@@ -33,6 +31,7 @@ struct SettingsSheet: View {
     @State private var customUnit: MetricUnit = .cm
     @State private var customSymbol = MetricCatalog.allowedSymbols[0]
     @State private var historyTarget: MetricHistoryTarget?
+    @State private var isAddingMetric = false
 
     init(
         profile: UserProfile,
@@ -46,8 +45,8 @@ struct SettingsSheet: View {
         self.records = records
         self.logs = logs
         self.showsDismissButton = showsDismissButton
-        self.onOpenSleep = onOpenSleep
-        self.onOpenCycle = onOpenCycle
+        _ = onOpenSleep
+        _ = onOpenCycle
         _heightText = State(initialValue: EaseFormatters.oneDecimal(profile.heightCm))
         _startText = State(initialValue: EaseFormatters.oneDecimal(profile.startWeight))
         _targetText = State(initialValue: EaseFormatters.oneDecimal(profile.targetWeight))
@@ -63,111 +62,59 @@ struct SettingsSheet: View {
         ))
     }
 
+    private var homeModulesBinding: Binding<[HomeModule]> {
+        Binding(
+            get: { profile.homeModules },
+            set: { newValue in
+                profile.homeModules = newValue
+                profile.updatedAt = .now
+                try? modelContext.save()
+            }
+        )
+    }
+
+    private var customCount: Int {
+        metricDefinitions.filter { $0.kind == .custom }.count
+    }
+
     var body: some View {
         NavigationStack {
-            ZStack {
-                EasePalette.background.ignoresSafeArea()
-                ScrollView {
-                    VStack(spacing: 20) {
-                        EaseCard {
-                            VStack(spacing: 20) {
-                                EaseField(title: "settings.height", placeholder: "onboarding.height.placeholder", text: $heightText, suffix: "unit.cm")
-                                EaseField(title: "settings.startWeight", placeholder: "onboarding.weight.placeholder", text: $startText, suffix: "unit.kg")
-                                EaseField(title: "settings.targetWeight", placeholder: "onboarding.weight.placeholder", text: $targetText, suffix: "unit.kg")
-                                EaseField(title: "settings.sleepTarget", placeholder: "settings.sleepTarget.placeholder", text: $sleepTargetText, suffix: "unit.hours")
-                            }
-                        }
-                        EaseCard {
-                            VStack(alignment: .leading, spacing: 16) {
-                                Toggle(isOn: $notificationsEnabled) {
-                                    Text("settings.notifications")
-                                        .font(.system(size: 16, weight: .regular))
-                                        .foregroundStyle(EasePalette.primaryText)
-                                }
-                                .tint(EasePalette.coral)
-                                reminderRow("settings.weightReminder", date: $weightReminderDate)
-                                reminderRow("settings.dietReminder", date: $dietReminderDate)
-                            }
-                        }
-                        EaseCard {
-                            HomeModuleEditor(modules: Binding(
-                                get: { profile.homeModules },
-                                set: { newValue in
-                                    profile.homeModules = newValue
-                                    profile.updatedAt = .now
-                                    try? modelContext.save()
-                                }
-                            ))
-                        }
-                        if onOpenSleep != nil || onOpenCycle != nil {
-                            EaseCard {
-                                VStack(spacing: 12) {
-                                    if let onOpenSleep {
-                                        Button {
-                                            dismiss()
-                                            onOpenSleep()
-                                        } label: {
-                                            HStack {
-                                                Text("health.sleep")
-                                                    .foregroundStyle(EasePalette.primaryText)
-                                                Spacer()
-                                                Image(systemName: "chevron.right")
-                                                    .foregroundStyle(EasePalette.secondaryText)
-                                            }
-                                        }
-                                        .buttonStyle(.plain)
-                                    }
-                                    if let onOpenCycle {
-                                        Button {
-                                            dismiss()
-                                            onOpenCycle()
-                                        } label: {
-                                            HStack {
-                                                Text("health.period")
-                                                    .foregroundStyle(EasePalette.primaryText)
-                                                Spacer()
-                                                Image(systemName: "chevron.right")
-                                                    .foregroundStyle(EasePalette.secondaryText)
-                                            }
-                                        }
-                                        .buttonStyle(.plain)
-                                    }
-                                }
-                            }
-                        }
-                        metricsCard
-                        if let errorKey {
-                            Text(LocalizedStringKey(errorKey))
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundStyle(EasePalette.secondaryText)
-                        }
-                        if let importResult {
-                            Text(importResult)
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundStyle(EasePalette.secondaryText)
-                        }
-                        EasePrimaryButton(title: "settings.save", action: save)
-                        EasePrimaryButton(title: "settings.export", action: exportCSV)
-                        EasePrimaryButton(title: "settings.import", action: { isImporterPresented = true })
-                        Text("settings.import.hint")
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundStyle(EasePalette.secondaryText)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        EaseTextButton(title: "settings.deleteAll") {
-                            showDeleteConfirm = true
-                        }
-                        .padding(.bottom, 12)
+            Form {
+                personalSection
+                remindersSection
+                modulesSection
+                metricsSection
+                dataSection
+                if let errorKey {
+                    Section {
+                        Text(LocalizedStringKey(errorKey))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
-                    .padding(20)
+                }
+                if let importResult {
+                    Section {
+                        Text(importResult)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
+            .background(EasePalette.background.ignoresSafeArea())
+            .tint(EasePalette.coral)
             .navigationTitle("settings.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if showsDismissButton {
                     ToolbarItem(placement: .cancellationAction) {
-                        EaseTextButton(title: "common.close", action: { dismiss() })
+                        Button("common.close") { dismiss() }
                     }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("common.done", action: save)
+                        .fontWeight(.semibold)
                 }
             }
             .confirmationDialog("settings.deleteConfirm", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
@@ -206,84 +153,185 @@ struct SettingsSheet: View {
         .preferredColorScheme(.light)
     }
 
-    private var metricsCard: some View {
-        EaseCard {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("settings.metrics")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
-                ForEach(metricDefinitions.filter { MetricCatalog.isActiveMetricKey($0.key) }, id: \.key) { definition in
-                    metricRow(definition)
-                }
-                if customCount < MetricCatalog.maxCustom {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("settings.metrics.add")
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundStyle(EasePalette.secondaryText)
-                        TextField("settings.metrics.name", text: $customName)
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundStyle(EasePalette.primaryText)
-                        Picker("settings.metrics.unit", selection: $customUnit) {
-                            ForEach(MetricUnit.allCases, id: \.self) { unit in
-                                Text(LocalizedStringKey(unit.titleKey)).tag(unit)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        Picker("settings.metrics.symbol", selection: $customSymbol) {
-                            ForEach(MetricCatalog.allowedSymbols, id: \.self) { symbol in
-                                Image(systemName: symbol).tag(symbol)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .tint(EasePalette.primaryText)
-                        EasePrimaryButton(title: "settings.metrics.add", isEnabled: !customName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, action: addCustom)
+    private var personalSection: some View {
+        Section {
+            settingsField("settings.height", text: $heightText, suffix: "unit.cm", placeholder: "onboarding.height.placeholder")
+            settingsField("settings.startWeight", text: $startText, suffix: "unit.kg", placeholder: "onboarding.weight.placeholder")
+            settingsField("settings.targetWeight", text: $targetText, suffix: "unit.kg", placeholder: "onboarding.weight.placeholder")
+            settingsField("settings.sleepTarget", text: $sleepTargetText, suffix: "unit.hours", placeholder: "settings.sleepTarget.placeholder")
+        } header: {
+            Text("settings.section.personal")
+        }
+    }
+
+    private var remindersSection: some View {
+        Section {
+            Toggle("settings.notifications", isOn: $notificationsEnabled)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("settings.weightReminder")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                DatePicker(
+                    "settings.weightReminder",
+                    selection: $weightReminderDate,
+                    displayedComponents: .hourAndMinute
+                )
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .frame(maxWidth: .infinity)
+            }
+            .padding(.vertical, 4)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("settings.dietReminder")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                DatePicker(
+                    "settings.dietReminder",
+                    selection: $dietReminderDate,
+                    displayedComponents: .hourAndMinute
+                )
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .frame(maxWidth: .infinity)
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("settings.section.reminders")
+        }
+    }
+
+    private var modulesSection: some View {
+        Section {
+            ForEach(HomeModule.allCases) { module in
+                Toggle(isOn: moduleBinding(module)) {
+                    Label {
+                        Text(LocalizedStringKey(module.titleKey))
+                    } icon: {
+                        Image(systemName: module.symbolName)
                     }
+                }
+            }
+        } header: {
+            Text("settings.section.modules")
+        } footer: {
+            Text("settings.section.modules.footer")
+        }
+    }
+
+    private var metricsSection: some View {
+        Section {
+            ForEach(metricDefinitions.filter { MetricCatalog.isActiveMetricKey($0.key) }, id: \.key) { definition in
+                let spec = MetricCatalog.spec(for: definition)
+                Toggle(isOn: enabledBinding(definition)) {
+                    Label {
+                        Text(verbatim: spec.resolvedTitle)
+                    } icon: {
+                        Image(systemName: spec.symbolName)
+                    }
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button("metric.history.title") {
+                        historyTarget = MetricHistoryTarget(definition: definition)
+                    }
+                    .tint(EasePalette.primaryText)
+                }
+            }
+
+            if customCount < MetricCatalog.maxCustom {
+                DisclosureGroup(isExpanded: $isAddingMetric) {
+                    TextField("settings.metrics.name", text: $customName)
+                    Picker("settings.metrics.unit", selection: $customUnit) {
+                        ForEach(MetricUnit.allCases, id: \.self) { unit in
+                            Text(LocalizedStringKey(unit.titleKey)).tag(unit)
+                        }
+                    }
+                    Picker("settings.metrics.symbol", selection: $customSymbol) {
+                        ForEach(MetricCatalog.allowedSymbols, id: \.self) { symbol in
+                            Image(systemName: symbol).tag(symbol)
+                        }
+                    }
+                    Button("settings.metrics.add", action: addCustom)
+                        .disabled(customName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                } label: {
+                    Label("settings.metrics.add", systemImage: "plus")
+                }
+            } else {
+                Text("settings.metrics.maxCustom")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("settings.section.metrics")
+        } footer: {
+            Text("settings.section.metrics.footer")
+        }
+    }
+
+    private var dataSection: some View {
+        Section {
+            Button {
+                exportCSV()
+            } label: {
+                Label("settings.export", systemImage: "square.and.arrow.up")
+            }
+            Button {
+                isImporterPresented = true
+            } label: {
+                Label("settings.import", systemImage: "square.and.arrow.down")
+            }
+            Button("settings.deleteAll", role: .destructive) {
+                showDeleteConfirm = true
+            }
+        } header: {
+            Text("settings.section.data")
+        } footer: {
+            Text("settings.import.hint")
+        }
+    }
+
+    private func settingsField(
+        _ title: LocalizedStringKey,
+        text: Binding<String>,
+        suffix: LocalizedStringKey,
+        placeholder: LocalizedStringKey
+    ) -> some View {
+        HStack {
+            Text(title)
+            Spacer(minLength: 12)
+            TextField(placeholder, text: text)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .monospacedDigit()
+                .frame(maxWidth: 120)
+            Text(suffix)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func moduleBinding(_ module: HomeModule) -> Binding<Bool> {
+        Binding(
+            get: { homeModulesBinding.wrappedValue.contains(module) },
+            set: { isOn in
+                var modules = homeModulesBinding.wrappedValue
+                if isOn {
+                    if !modules.contains(module) { modules.append(module) }
                 } else {
-                    Text("settings.metrics.maxCustom")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+                    modules.removeAll { $0 == module }
+                    if modules.isEmpty { modules = HomeModule.defaults }
                 }
+                homeModulesBinding.wrappedValue = modules
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
+        )
     }
 
-    private var customCount: Int {
-        metricDefinitions.filter { $0.kind == .custom }.count
-    }
-
-    private func metricRow(_ definition: MetricDefinition) -> some View {
-        let spec = MetricCatalog.spec(for: definition)
-        return HStack(spacing: 12) {
-            Image(systemName: spec.symbolName)
-                .foregroundStyle(EasePalette.secondaryText)
-                .frame(width: 22)
-            Text(verbatim: spec.resolvedTitle)
-                .font(.system(size: 16, weight: .regular))
-                .foregroundStyle(EasePalette.primaryText)
-            Spacer(minLength: 8)
-            Button("metric.history.title") {
-                historyTarget = MetricHistoryTarget(definition: definition)
+    private func enabledBinding(_ definition: MetricDefinition) -> Binding<Bool> {
+        Binding(
+            get: { definition.isEnabled },
+            set: { newValue in
+                try? MetricRepository(context: modelContext).setEnabled(definition, isEnabled: newValue)
             }
-            .font(.system(size: 13, weight: .regular))
-            .foregroundStyle(EasePalette.secondaryText)
-            .buttonStyle(.plain)
-            Toggle("", isOn: Binding(
-                get: { definition.isEnabled },
-                set: { newValue in
-                    try? MetricRepository(context: modelContext).setEnabled(definition, isEnabled: newValue)
-                }
-            ))
-            .labelsHidden()
-            .tint(EasePalette.accent)
-        }
-    }
-
-    private func reminderRow(_ title: LocalizedStringKey, date: Binding<Date>) -> some View {
-        DatePicker(title, selection: date, displayedComponents: .hourAndMinute)
-            .font(.system(size: 16, weight: .regular))
-            .foregroundStyle(EasePalette.primaryText)
-            .tint(EasePalette.accent)
+        )
     }
 
     private func save() {
@@ -316,7 +364,10 @@ struct SettingsSheet: View {
                 await NotificationScheduler.refresh(enabled: enabled, context: modelContext)
                 await MainActor.run {
                     errorKey = nil
-                    dismiss()
+                    notificationsEnabled = enabled
+                    if showsDismissButton {
+                        dismiss()
+                    }
                 }
             } catch {
                 await MainActor.run {
@@ -405,6 +456,7 @@ struct SettingsSheet: View {
                 symbolName: customSymbol
             )
             customName = ""
+            isAddingMetric = false
             errorKey = nil
         } catch EaseDataError.tooManyCustomMetrics {
             errorKey = "settings.metrics.maxCustom"

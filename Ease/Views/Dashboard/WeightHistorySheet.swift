@@ -11,36 +11,40 @@ struct WeightHistorySheet: View {
                 EasePalette.background.ignoresSafeArea()
                 if rows.isEmpty {
                     Text("weight.list.empty")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 } else {
                     ScrollView {
-                        EaseCard(padding: 4) {
-                            VStack(spacing: 0) {
-                                ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                                    Button {
-                                        onSelect(row)
-                                    } label: {
-                                        DailyWeightRowView(row: row)
-                                    }
-                                    .buttonStyle(.plain)
-                                    if index < rows.count - 1 {
-                                        Divider()
-                                            .overlay(EasePalette.hairline)
-                                            .padding(.leading, 16)
-                                    }
+                        VStack(spacing: 0) {
+                            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                                Button {
+                                    onSelect(row)
+                                } label: {
+                                    DailyWeightRowView(row: row, style: .history)
+                                }
+                                .buttonStyle(.plain)
+                                if index < rows.count - 1 {
+                                    Divider()
+                                        .overlay(EasePalette.hairline)
+                                        .padding(.leading, 16)
                                 }
                             }
                         }
-                        .padding(20)
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                     }
                 }
             }
-            .navigationTitle("weight.history.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("weight.history.title")
+                        .font(.headline)
+                        .foregroundStyle(EasePalette.primaryText)
+                }
                 ToolbarItem(placement: .cancellationAction) {
-                    EaseTextButton(title: "common.close", action: { dismiss() })
+                    Button("common.close") { dismiss() }
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)

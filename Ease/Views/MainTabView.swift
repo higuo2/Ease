@@ -53,9 +53,7 @@ struct MainTabView: View {
                     profile: profile,
                     records: Array(records),
                     logs: Array(weightLogs),
-                    showsDismissButton: false,
-                    onOpenSleep: { viewModel.isSleepPresented = true },
-                    onOpenCycle: { viewModel.isCyclePresented = true }
+                    showsDismissButton: false
                 )
                 .tabItem { Label("tab.settings", systemImage: "gearshape") }
                 .tag(AppTab.settings)

@@ -30,6 +30,54 @@
         }
       }
     },
+    "calendar.detail.am": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AM"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "早"
+          }
+        }
+      }
+    },
+    "calendar.detail.day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日间"
+          }
+        }
+      }
+    },
+    "calendar.detail.pm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PM"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "晚"
+          }
+        }
+      }
+    },
     "calendar.diet.empty": {
       "localizations": {
         "en": {
@@ -58,6 +106,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "记录"
+          }
+        }
+      }
+    },
+    "calendar.overview.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Overview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@概览"
           }
         }
       }
@@ -143,6 +207,7 @@
       }
     },
     "calendar.stat.monthDelta": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3907,66 +3972,130 @@
         }
       }
     },
-    "calendar.overview.title": {
+    "common.done": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ Overview"
+            "value": "Done"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@概览"
+            "value": "完成"
           }
         }
       }
     },
-    "calendar.detail.am": {
+    "settings.section.personal": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "AM"
+            "value": "Personal Information"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "早"
+            "value": "个人信息"
           }
         }
       }
     },
-    "calendar.detail.pm": {
+    "settings.section.reminders": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "PM"
+            "value": "Reminders"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "晚"
+            "value": "提醒"
           }
         }
       }
     },
-    "calendar.detail.day": {
+    "settings.section.modules": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Day"
+            "value": "Dashboard Modules"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "日间"
+            "value": "首页模块"
+          }
+        }
+      }
+    },
+    "settings.section.modules.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose which tiles appear on the Weight tab. Sleep, Period, and Energy open their detail sheets from those tiles."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择体重页显示的方块。睡眠、经期与消耗从对应方块进入详情。"
+          }
+        }
+      }
+    },
+    "settings.section.metrics": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extended Metrics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扩展指标"
+          }
+        }
+      }
+    },
+    "settings.section.metrics.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe a metric left to open its history."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向左滑动指标可查看历史。"
+          }
+        }
+      }
+    },
+    "settings.section.data": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据"
           }
         }
       }
