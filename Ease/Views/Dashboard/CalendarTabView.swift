@@ -93,7 +93,7 @@ struct CalendarTabView: View {
                 }
                 LazyVGrid(columns: gridColumns, spacing: 8) {
                     ForEach(0..<leadingEmpty, id: \.self) { _ in
-                        Color.clear.frame(minHeight: 52)
+                        Color.clear.frame(minHeight: 64)
                     }
                     ForEach(monthDays, id: \.self) { day in
                         dayCell(day)
@@ -107,12 +107,18 @@ struct CalendarTabView: View {
         let isFuture = CalendarDay.isFuture(day)
         let isSelected = CalendarDay.dayKey(from: day) == CalendarDay.dayKey(from: selectedDate)
         let weight = WeightMetrics.weightOnDay(records: records, logs: logs, on: day)
+        let previous = CalendarDay.addingDays(-1, to: day)
+        let prevWeight = WeightMetrics.weightOnDay(records: records, logs: logs, on: previous)
+        let delta: Double? = {
+            guard let weight, let prevWeight else { return nil }
+            return MeasurementBounds.roundedToTenth(weight - prevWeight)
+        }()
 
         return Button {
             guard !isFuture else { return }
             viewModel.selectedDate = CalendarDay.startOfDay(day)
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 Text("\(Calendar.current.component(.day, from: day))")
                     .font(.system(.body, design: .rounded, weight: isSelected ? .semibold : .regular))
                     .foregroundStyle(isSelected ? Color.white : (isFuture ? Color.secondary : EasePalette.primaryText))
@@ -131,12 +137,26 @@ struct CalendarTabView: View {
                     Text(" ")
                         .font(.caption2)
                 }
+                if let delta {
+                    Text(deltaPrefix(delta) + EaseFormatters.oneDecimal(abs(delta)))
+                        .font(.system(size: 9, weight: .medium).monospacedDigit())
+                        .foregroundStyle(EasePalette.deltaColor(delta))
+                } else {
+                    Text(" ")
+                        .font(.system(size: 9))
+                }
             }
-            .frame(maxWidth: .infinity, minHeight: 52)
+            .frame(maxWidth: .infinity, minHeight: 64)
             .opacity(isFuture ? 0.3 : 1)
         }
         .buttonStyle(.plain)
         .disabled(isFuture)
+    }
+
+    private func deltaPrefix(_ delta: Double) -> String {
+        if delta < 0 { return "▼" }
+        if delta > 0 { return "▲" }
+        return ""
     }
 
     private var monthOverviewCard: some View {
