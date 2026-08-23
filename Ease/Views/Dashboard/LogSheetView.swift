@@ -21,6 +21,7 @@ struct LogSheetView: View {
     @State private var noteText: String
     @State private var errorKey: String?
     @State private var errorPulse = 0
+    @State private var saveSuccessPulse = 0
     @State private var photoItem: PhotosPickerItem?
     @State private var isPhotoPickerPresented = false
     @State private var isOCRBusy = false
@@ -50,13 +51,21 @@ struct LogSheetView: View {
         }
     }
 
+    private var dietSelectionToken: String {
+        diet?.rawValue ?? "none"
+    }
+
+    private var tagSelectionToken: Int {
+        tags.map(\.rawValue).sorted().joined().hashValue
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 20) {
-                        EaseCard {
+                        EaseCard(radius: 16, padding: 18) {
                             logDateRow
                         }
                         switch mode {
@@ -69,10 +78,15 @@ struct LogSheetView: View {
                         }
                         if let errorKey {
                             Text(LocalizedStringKey(errorKey))
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(EasePalette.primaryText)
                         }
-                        EasePrimaryButton(title: "log.save", isEnabled: canSave, action: save)
+                        EasePrimaryButton(
+                            title: "log.save",
+                            isEnabled: canSave,
+                            usesAccent: true,
+                            action: save
+                        )
                         if showsDelete {
                             EaseTextButton(title: "log.delete", action: deleteCurrent)
                         }
@@ -84,7 +98,15 @@ struct LogSheetView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    EaseTextButton(title: "common.close", action: { dismiss() })
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(.tertiary)
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                    .accessibilityLabel(Text("common.close"))
                 }
             }
             .onAppear(perform: hydrateFromExisting)
@@ -100,73 +122,96 @@ struct LogSheetView: View {
             }
             .photosPicker(isPresented: $isPhotoPickerPresented, selection: $photoItem, matching: .images)
             .sensoryFeedback(.error, trigger: errorPulse)
+            .sensoryFeedback(.success, trigger: saveSuccessPulse)
+            .sensoryFeedback(.selection, trigger: dietSelectionToken)
+            .sensoryFeedback(.selection, trigger: tagSelectionToken)
         }
         .preferredColorScheme(.light)
     }
 
     private var weightCard: some View {
-        EaseCard {
-            VStack(spacing: 20) {
-                EaseField(
-                    title: "log.weight",
-                    placeholder: "onboarding.weight.placeholder",
-                    text: $weightText,
-                    suffix: "unit.kg",
-                    isInvalid: isNumericError
-                ) {
+        EaseCard(radius: 16, padding: 20) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("log.weight")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    TextField("onboarding.weight.placeholder", text: $weightText)
+                        .keyboardType(.decimalPad)
+                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(EasePalette.primaryText)
+                        .minimumScaleFactor(0.5)
+                    Text("unit.kg")
+                        .font(.title2)
+                        .foregroundStyle(.tertiary)
+                    Spacer(minLength: 8)
                     ocrButton
                 }
-                EaseField(
-                    title: "log.bodyFat",
-                    placeholder: "log.bodyFat.placeholder",
-                    text: $bodyFatText,
-                    suffix: "unit.percent",
-                    isInvalid: isNumericError
-                )
+
+                Divider().overlay(EasePalette.hairline)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("log.bodyFat")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        TextField("log.bodyFat.placeholder", text: $bodyFatText)
+                            .keyboardType(.decimalPad)
+                            .font(.body.monospacedDigit())
+                            .foregroundStyle(EasePalette.primaryText)
+                        Text("unit.percent")
+                            .font(.subheadline)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
             }
         }
     }
 
     private var dietCard: some View {
-        EaseCard {
+        EaseCard(radius: 16, padding: 18) {
             VStack(alignment: .leading, spacing: 12) {
                 Text("log.diet")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 HStack(spacing: 8) {
                     ForEach(DietStatus.allCases, id: \.self) { status in
                         dietChip(status)
                     }
                 }
+                .animation(.snappy, value: dietSelectionToken)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
     private var tagsCard: some View {
-        EaseCard {
+        EaseCard(radius: 16, padding: 18) {
             VStack(alignment: .leading, spacing: 12) {
                 Text("log.tags")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 HStack(spacing: 8) {
                     ForEach(VariableTag.allCases, id: \.self) { tag in
                         tagChip(tag)
                     }
                 }
+                .animation(.snappy, value: tagSelectionToken)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
     private var noteCard: some View {
-        EaseCard {
+        EaseCard(radius: 16, padding: 18) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("log.note")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 TextField("log.note.placeholder", text: $noteText, axis: .vertical)
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.body)
                     .foregroundStyle(EasePalette.primaryText)
                     .lineLimit(3...6)
             }
@@ -182,16 +227,16 @@ struct LogSheetView: View {
             } label: {
                 HStack {
                     Text("log.date")
-                        .font(.system(size: 16, weight: .regular))
+                        .font(.body)
                         .foregroundStyle(EasePalette.primaryText)
                     Spacer(minLength: 12)
                     Text(EaseFormatters.numericDate(selectedDate))
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.body.weight(.semibold))
                         .monospacedDigit()
                         .foregroundStyle(EasePalette.primaryText)
                     Image(systemName: isCalendarExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(EasePalette.secondaryText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
                 }
             }
             .buttonStyle(.plain)
@@ -210,15 +255,6 @@ struct LogSheetView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-    }
-
-    private var isNumericError: Bool {
-        errorKey == "onboarding.error.invalid"
-    }
-
-    private var logsOnSelectedDay: [WeightLog] {
-        let key = CalendarDay.dayKey(from: selectedDate)
-        return weightLogs.filter { CalendarDay.dayKey(from: $0.timestamp) == key }
     }
 
     private var editingLog: WeightLog? {
@@ -254,11 +290,11 @@ struct LogSheetView: View {
             ZStack {
                 Image(systemName: "photo")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(EasePalette.coral)
+                    .foregroundStyle(EasePalette.accent)
                     .opacity(isOCRBusy ? 0 : 1)
                 if isOCRBusy {
                     ProgressView()
-                        .tint(EasePalette.coral)
+                        .tint(EasePalette.accent)
                 }
             }
             .frame(width: 28, height: 28)
@@ -286,6 +322,7 @@ struct LogSheetView: View {
 
     private func dietChip(_ status: DietStatus) -> some View {
         let selected = diet == status
+        let tint = EasePalette.dietTint(status)
         return Button {
             diet = selected ? nil : status
         } label: {
@@ -293,12 +330,15 @@ struct LogSheetView: View {
                 Image(systemName: status.systemImage)
                 Text(LocalizedStringKey(status.titleKey))
             }
-            .font(.system(size: 13, weight: .bold))
-            .foregroundStyle(selected ? Color.white : EasePalette.primaryText)
-            .padding(.vertical, 8)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(selected ? tint : EasePalette.secondaryText)
+            .padding(.vertical, 10)
             .padding(.horizontal, 12)
-            .background(selected ? Color.black : EasePalette.track)
-            .clipShape(Capsule())
+            .frame(maxWidth: .infinity)
+            .background(
+                selected ? tint.opacity(0.18) : EasePalette.recessed,
+                in: Capsule()
+            )
         }
         .buttonStyle(.plain)
     }
@@ -312,12 +352,14 @@ struct LogSheetView: View {
                 Image(systemName: tag.systemImage)
                 Text(LocalizedStringKey(tag.titleKey))
             }
-            .font(.system(size: 13, weight: .bold))
-            .foregroundStyle(selected ? Color.white : EasePalette.primaryText)
-            .padding(.vertical, 8)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(selected ? EasePalette.accent : EasePalette.secondaryText)
+            .padding(.vertical, 10)
             .padding(.horizontal, 12)
-            .background(selected ? EasePalette.coral : EasePalette.track)
-            .clipShape(Capsule())
+            .background(
+                selected ? EasePalette.accent.opacity(0.16) : EasePalette.recessed,
+                in: Capsule()
+            )
         }
         .buttonStyle(.plain)
     }
@@ -367,6 +409,7 @@ struct LogSheetView: View {
                 }
                 try saveJournal(note: noteValue)
             }
+            saveSuccessPulse += 1
             refreshReminders()
             dismiss()
         } catch let error as EaseDataError {

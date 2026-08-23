@@ -4,7 +4,13 @@ struct EasePrimaryButton: View {
     let title: LocalizedStringKey
     var isEnabled: Bool = true
     var isBusy: Bool = false
+    var usesAccent: Bool = false
     let action: () -> Void
+
+    private var fill: Color {
+        guard isEnabled && !isBusy else { return Color.gray.opacity(0.35) }
+        return usesAccent ? EasePalette.accent : Color.black
+    }
 
     var body: some View {
         Button(action: action) {
@@ -20,8 +26,9 @@ struct EasePrimaryButton: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 54)
-            .background((isEnabled && !isBusy) ? Color.black : Color.gray.opacity(0.35))
+            .background(fill)
             .clipShape(Capsule())
+            .animation(.easeInOut(duration: 0.2), value: isEnabled)
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled || isBusy)
