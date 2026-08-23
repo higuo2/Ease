@@ -17,9 +17,10 @@ final class DailyRecord {
     var dietStatusRaw: String?
     var tags: [String] = []
     var note: String?
-    @Attribute(.externalStorage) var breakfastPhotoData: Data?
-    @Attribute(.externalStorage) var lunchPhotoData: Data?
-    @Attribute(.externalStorage) var dinnerPhotoData: Data?
+    /// Sandbox JPEG filename in Documents (not raw image bytes).
+    var breakfastPhotoFileName: String?
+    var lunchPhotoFileName: String?
+    var dinnerPhotoFileName: String?
     var updatedAt: Date = Date.now
 
     var dietStatus: DietStatus? {
@@ -45,29 +46,29 @@ final class DailyRecord {
         self.dietStatusRaw = nil
         self.tags = []
         self.note = nil
-        self.breakfastPhotoData = nil
-        self.lunchPhotoData = nil
-        self.dinnerPhotoData = nil
+        self.breakfastPhotoFileName = nil
+        self.lunchPhotoFileName = nil
+        self.dinnerPhotoFileName = nil
         self.updatedAt = .now
     }
 
-    func mealPhotoData(for slot: MealSlot) -> Data? {
+    func mealPhotoFileName(for slot: MealSlot) -> String? {
         switch slot {
-        case .breakfast: breakfastPhotoData
-        case .lunch: lunchPhotoData
-        case .dinner: dinnerPhotoData
+        case .breakfast: breakfastPhotoFileName
+        case .lunch: lunchPhotoFileName
+        case .dinner: dinnerPhotoFileName
         }
     }
 
-    func setMealPhotoData(_ data: Data?, for slot: MealSlot) {
+    func setMealPhotoFileName(_ fileName: String?, for slot: MealSlot) {
         switch slot {
-        case .breakfast: breakfastPhotoData = data
-        case .lunch: lunchPhotoData = data
-        case .dinner: dinnerPhotoData = data
+        case .breakfast: breakfastPhotoFileName = fileName
+        case .lunch: lunchPhotoFileName = fileName
+        case .dinner: dinnerPhotoFileName = fileName
         }
     }
 
     var hasMealPhoto: Bool {
-        breakfastPhotoData != nil || lunchPhotoData != nil || dinnerPhotoData != nil
+        breakfastPhotoFileName != nil || lunchPhotoFileName != nil || dinnerPhotoFileName != nil
     }
 }

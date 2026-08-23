@@ -23,7 +23,7 @@ struct DailyRecordRepository {
         return try context.fetch(descriptor)
     }
 
-    /// Journal fields (`dietStatus` / `tags` / `note` / meal photos) upsert into `DailyRecord`.
+    /// Journal fields (`dietStatus` / `tags` / `note` / meal photo filenames) upsert into `DailyRecord`.
     /// `patch.weight` / `patch.bodyFat` insert a `WeightLog` and never write the legacy fields.
     @discardableResult
     func upsert(on date: Date, patch: DailyRecordPatch) throws -> DailyRecord? {
@@ -35,6 +35,13 @@ struct DailyRecordRepository {
         let insertedLog = try insertWeightIfNeeded(on: date, patch: patch)
         let next = try journalState(on: date, patch: patch)
         let existing = try record(on: date)
+        let previousFileNames = existing.map {
+            (
+                breakfast: $0.breakfastPhotoFileName,
+                lunch: $0.lunchPhotoFileName,
+                dinner: $0.dinnerPhotoFileName
+            )
+        }
         let hasJournal = next.hasContent
         if !insertedLog && !hasJournal && existing == nil {
             throw EaseDataError.emptyRecord
@@ -47,19 +54,21 @@ struct DailyRecordRepository {
         record.dietStatus = next.diet
         record.variableTags = next.tags
         record.note = next.note
-        record.breakfastPhotoData = next.breakfastPhoto
-        record.lunchPhotoData = next.lunchPhoto
-        record.dinnerPhotoData = next.dinnerPhoto
+        record.breakfastPhotoFileName = next.breakfastPhoto
+        record.lunchPhotoFileName = next.lunchPhoto
+        record.dinnerPhotoFileName = next.dinnerPhoto
         record.updatedAt = .now
         if existing == nil {
             context.insert(record)
         }
         try context.save()
+        cleanupReplacedPhotos(previous: previousFileNames, patch: patch)
         return record
     }
 
     func delete(on date: Date) throws {
         if let record = try record(on: date) {
+            MealPhotoStore.deleteAll(in: record)
             context.delete(record)
             try context.save()
         }
@@ -67,6 +76,7 @@ struct DailyRecordRepository {
 
     func deleteAll() throws {
         for record in try context.fetch(FetchDescriptor<DailyRecord>()) {
+            MealPhotoStore.deleteAll(in: record)
             context.delete(record)
         }
         try context.save()
@@ -105,9 +115,9 @@ struct DailyRecordRepository {
         var diet: DietStatus?
         var tags: [VariableTag]
         var note: String?
-        var breakfastPhoto: Data?
-        var lunchPhoto: Data?
-        var dinnerPhoto: Data?
+        var breakfastPhoto: String?
+        var lunchPhoto: String?
+        var dinnerPhoto: String?
 
         var hasContent: Bool {
             diet != nil
@@ -124,9 +134,9 @@ struct DailyRecordRepository {
         var diet = existing?.dietStatus
         var tags = existing?.variableTags ?? []
         var note = existing?.note
-        var breakfastPhoto = existing?.breakfastPhotoData
-        var lunchPhoto = existing?.lunchPhotoData
-        var dinnerPhoto = existing?.dinnerPhotoData
+        var breakfastPhoto = existing?.breakfastPhotoFileName
+        var lunchPhoto = existing?.lunchPhotoFileName
+        var dinnerPhoto = existing?.dinnerPhotoFileName
 
         switch patch.dietStatus {
         case .unchanged:
@@ -198,6 +208,22 @@ struct DailyRecordRepository {
         )
     }
 
+    private func cleanupReplacedPhotos(
+        previous: (breakfast: String?, lunch: String?, dinner: String?)?,
+        patch: DailyRecordPatch
+    ) {
+        guard let previous else { return }
+        cleanupIfReplaced(old: previous.breakfast, update: patch.breakfastPhoto)
+        cleanupIfReplaced(old: previous.lunch, update: patch.lunchPhoto)
+        cleanupIfReplaced(old: previous.dinner, update: patch.dinnerPhoto)
+    }
+
+    private func cleanupIfReplaced(old: String?, update: FieldUpdate<String?>) {
+        if case .set(let newValue) = update, old != newValue {
+            MealPhotoStore.delete(fileName: old)
+        }
+    }
+
     @discardableResult
     private func deduplicate(dayKey: String) throws -> DailyRecord? {
         let descriptor = FetchDescriptor<DailyRecord>(
@@ -207,6 +233,7 @@ struct DailyRecordRepository {
         let matches = try context.fetch(descriptor)
         guard let keeper = matches.first else { return nil }
         for duplicate in matches.dropFirst() {
+            MealPhotoStore.deleteAll(in: duplicate)
             context.delete(duplicate)
         }
         if matches.count > 1 {
@@ -222,6 +249,7 @@ struct DailyRecordRepository {
         for group in grouped.values {
             let sorted = group.sorted { $0.updatedAt > $1.updatedAt }
             for duplicate in sorted.dropFirst() {
+                MealPhotoStore.deleteAll(in: duplicate)
                 context.delete(duplicate)
                 removed = true
             }

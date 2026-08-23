@@ -3,23 +3,23 @@ import XCTest
 
 @MainActor
 final class DailyRecordRepositoryTests: EaseStoreTestCase {
-    func test_upsert_仅餐食照片_创建DailyRecord() throws {
+    func test_upsert_仅餐食照片文件名_创建DailyRecord() throws {
         let day = calendar.testDate(2026, 8, 10)
         var patch = DailyRecordPatch()
-        patch.breakfastPhoto = .set(Data([0xFF, 0xD8, 0xFF]))
+        patch.breakfastPhoto = .set("abc-123.jpg")
 
         let record = try dailyRecords.upsert(on: day, patch: patch)
 
         XCTAssertNotNil(record)
-        XCTAssertEqual(record?.breakfastPhotoData, Data([0xFF, 0xD8, 0xFF]))
+        XCTAssertEqual(record?.breakfastPhotoFileName, "abc-123.jpg")
         XCTAssertNil(record?.dietStatus)
         XCTAssertTrue(try fetchAll(WeightLog.self).isEmpty)
     }
 
-    func test_upsert_字段级合并_改饮食保留餐食照片() throws {
+    func test_upsert_字段级合并_改饮食保留餐食文件名() throws {
         let day = calendar.testDate(2026, 8, 10)
         var initial = DailyRecordPatch()
-        initial.lunchPhoto = .set(Data([0x01, 0x02]))
+        initial.lunchPhoto = .set("lunch.jpg")
         try dailyRecords.upsert(on: day, patch: initial)
 
         var dietOnly = DailyRecordPatch()
@@ -27,7 +27,7 @@ final class DailyRecordRepositoryTests: EaseStoreTestCase {
         let updated = try dailyRecords.upsert(on: day, patch: dietOnly)
 
         XCTAssertEqual(updated?.dietStatus, .clean)
-        XCTAssertEqual(updated?.lunchPhotoData, Data([0x01, 0x02]))
+        XCTAssertEqual(updated?.lunchPhotoFileName, "lunch.jpg")
     }
 
 

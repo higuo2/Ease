@@ -75,6 +75,8 @@
 		A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D9 /* WeightHistorySheet.swift */; };
 		A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DA /* CalendarDayDetailSheet.swift */; };
 		A100000000000000000000EB /* MealSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DB /* MealSlot.swift */; };
+		A100000000000000000000EC /* MealPhotoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DC /* MealPhotoStore.swift */; };
+		A100000000000000000000ED /* CameraImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DD /* CameraImagePicker.swift */; };
 		T10000000000000000000013 /* EaseTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000003 /* EaseTestSupport.swift */; };
 		T10000000000000000000014 /* WeightMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000004 /* WeightMetricsTests.swift */; };
 		T10000000000000000000015 /* MeasurementBoundsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000005 /* MeasurementBoundsTests.swift */; };
@@ -177,6 +179,8 @@
 		A100000000000000000000D9 /* WeightHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightHistorySheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000DA /* CalendarDayDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarDayDetailSheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000DB /* MealSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealSlot.swift; sourceTree = "<group>"; };
+		A100000000000000000000DC /* MealPhotoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPhotoStore.swift; sourceTree = "<group>"; };
+		A100000000000000000000DD /* CameraImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraImagePicker.swift; sourceTree = "<group>"; };
 		BDFE55683035F06200AF5075 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BDFE55693035F61200AF5075 /* EaseDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EaseDebug.entitlements; sourceTree = "<group>"; };
 		T10000000000000000000001 /* EaseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EaseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -305,6 +309,7 @@
 				A10000000000000000000047 /* MeasurementBounds.swift */,
 				A10000000000000000000048 /* WeightMetrics.swift */,
 				A10000000000000000000049 /* DailyRecordRepository.swift */,
+				A100000000000000000000DC /* MealPhotoStore.swift */,
 				A1000000000000000000009C /* WeightLogRepository.swift */,
 				A1000000000000000000009D /* LegacyWeightMigrator.swift */,
 				A1000000000000000000004A /* UserProfileRepository.swift */,
@@ -349,6 +354,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000083 /* EaseCard.swift */,
+				A100000000000000000000DD /* CameraImagePicker.swift */,
 				A10000000000000000000086 /* EasePalette.swift */,
 				A10000000000000000000087 /* EaseFormatters.swift */,
 				A10000000000000000000088 /* EasePrimaryButton.swift */,
@@ -564,6 +570,8 @@
 				A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */,
 				A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */,
 				A100000000000000000000EB /* MealSlot.swift in Sources */,
+				A100000000000000000000EC /* MealPhotoStore.swift in Sources */,
+				A100000000000000000000ED /* CameraImagePicker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -719,7 +727,7 @@
 				INFOPLIST_FILE = Ease/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Ease;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSCameraUsageDescription = "需要使用相机拍摄体脂秤照片。";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Ease uses the camera for scale OCR and meal photos.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "需要读取您的睡眠与活动消耗数据以展示趋势。";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要读取相册中的体脂秤照片以自动识别数据。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -758,7 +766,7 @@
 				INFOPLIST_FILE = Ease/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Ease;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSCameraUsageDescription = "需要使用相机拍摄体脂秤照片。";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Ease uses the camera for scale OCR and meal photos.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "需要读取您的睡眠与活动消耗数据以展示趋势。";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要读取相册中的体脂秤照片以自动识别数据。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
