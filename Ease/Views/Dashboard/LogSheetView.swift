@@ -19,13 +19,24 @@ struct LogSheetView: View {
     @State private var diet: DietStatus?
     @State private var tags: Set<VariableTag>
     @State private var noteText: String
+    @State private var breakfastFileName: String?
+    @State private var lunchFileName: String?
+    @State private var dinnerFileName: String?
     @State private var errorKey: String?
     @State private var errorPulse = 0
     @State private var saveSuccessPulse = 0
-    @State private var photoItem: PhotosPickerItem?
-    @State private var isPhotoPickerPresented = false
+    @State private var ocrPhotoItem: PhotosPickerItem?
+    @State private var isOCRPickerPresented = false
     @State private var isOCRBusy = false
     @State private var isCalendarExpanded = false
+    @State private var pendingMeal: MealSlot?
+    @State private var isMealSourceDialogPresented = false
+    @State private var mealLibraryItem: PhotosPickerItem?
+    @State private var isMealLibraryPresented = false
+    @State private var isMealCameraPresented = false
+    @State private var capturedMealImage: UIImage?
+    @State private var isMealPhotoBusy = false
+    @State private var mealPhotoTask: Task<Void, Never>?
 
     init(date: Date, editingLogID: UUID? = nil, mode: LogSheetMode = .weight) {
         self.mode = mode
@@ -37,6 +48,9 @@ struct LogSheetView: View {
         _diet = State(initialValue: nil)
         _tags = State(initialValue: [])
         _noteText = State(initialValue: "")
+        _breakfastFileName = State(initialValue: nil)
+        _lunchFileName = State(initialValue: nil)
+        _dinnerFileName = State(initialValue: nil)
     }
 
     private var existing: DailyRecord? {
@@ -59,6 +73,19 @@ struct LogSheetView: View {
         tags.map(\.rawValue).sorted().joined().hashValue
     }
 
+    private var mealColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
+    }
+
+    private var hasMealPhoto: Bool {
+        breakfastFileName != nil || lunchFileName != nil || dinnerFileName != nil
+    }
+
+    private var pendingMealHasPhoto: Bool {
+        guard let pendingMeal else { return false }
+        return mealFileName(for: pendingMeal) != nil
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -73,6 +100,7 @@ struct LogSheetView: View {
                             weightCard
                         case .diet:
                             dietCard
+                            mealsCard
                             tagsCard
                             noteCard
                         }
@@ -116,11 +144,57 @@ struct LogSheetView: View {
                 }
                 hydrateFromExisting()
             }
-            .onChange(of: photoItem) { _, item in
+            .onChange(of: ocrPhotoItem) { _, item in
                 guard let item else { return }
                 Task { await applyOCR(from: item) }
             }
-            .photosPicker(isPresented: $isPhotoPickerPresented, selection: $photoItem, matching: .images)
+            .onChange(of: mealLibraryItem) { _, item in
+                guard let item, let pendingMeal else { return }
+                let slot = pendingMeal
+                mealPhotoTask?.cancel()
+                mealPhotoTask = Task {
+                    await applyMealLibraryPhoto(from: item, slot: slot)
+                }
+            }
+            .onChange(of: capturedMealImage) { _, image in
+                guard let image, let pendingMeal else { return }
+                let slot = pendingMeal
+                mealPhotoTask?.cancel()
+                mealPhotoTask = Task {
+                    await persistMealImage(image, for: slot)
+                }
+            }
+            .confirmationDialog(
+                "calendar.meal.source.title",
+                isPresented: $isMealSourceDialogPresented,
+                titleVisibility: .visible
+            ) {
+                if CameraImagePicker.isCameraAvailable {
+                    Button("calendar.meal.takePhoto") {
+                        isMealCameraPresented = true
+                    }
+                }
+                Button("calendar.meal.chooseLibrary") {
+                    isMealLibraryPresented = true
+                }
+                if pendingMealHasPhoto {
+                    Button("calendar.meal.remove", role: .destructive) {
+                        if let pendingMeal {
+                            clearMealPhoto(for: pendingMeal)
+                        }
+                        pendingMeal = nil
+                    }
+                }
+                Button("common.cancel", role: .cancel) {
+                    pendingMeal = nil
+                }
+            }
+            .photosPicker(isPresented: $isOCRPickerPresented, selection: $ocrPhotoItem, matching: .images)
+            .photosPicker(isPresented: $isMealLibraryPresented, selection: $mealLibraryItem, matching: .images)
+            .fullScreenCover(isPresented: $isMealCameraPresented) {
+                CameraImagePicker(image: $capturedMealImage)
+                    .ignoresSafeArea()
+            }
             .sensoryFeedback(.error, trigger: errorPulse)
             .sensoryFeedback(.success, trigger: saveSuccessPulse)
             .sensoryFeedback(.selection, trigger: dietSelectionToken)
@@ -182,6 +256,22 @@ struct LogSheetView: View {
                     }
                 }
                 .animation(.snappy, value: dietSelectionToken)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var mealsCard: some View {
+        EaseCard(radius: 16, padding: 18) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("calendar.meals")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                LazyVGrid(columns: mealColumns, spacing: 10) {
+                    ForEach(MealSlot.allCases) { slot in
+                        mealTile(slot)
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -276,16 +366,17 @@ struct LogSheetView: View {
         case .weight:
             return EaseFormatters.parseDecimal(weightText) != nil
         case .diet:
-            return diet != nil || !tags.isEmpty || !noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || existing != nil
+            return diet != nil
+                || !tags.isEmpty
+                || !noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || hasMealPhoto
+                || existing != nil
         }
     }
 
     private var ocrButton: some View {
         Button {
-            Task {
-                await PermissionsService.requestPhotoLibrary()
-                isPhotoPickerPresented = true
-            }
+            isOCRPickerPresented = true
         } label: {
             ZStack {
                 Image(systemName: "photo")
@@ -304,13 +395,44 @@ struct LogSheetView: View {
         .accessibilityLabel(Text("log.ocr"))
     }
 
+    private func mealTile(_ slot: MealSlot) -> some View {
+        let fileName = mealFileName(for: slot)
+        return Button {
+            pendingMeal = slot
+            isMealSourceDialogPresented = true
+        } label: {
+            VStack(spacing: 8) {
+                MealPhotoThumbnail(
+                    fileName: fileName,
+                    isBusy: isMealPhotoBusy && pendingMeal == slot
+                )
+                Text(LocalizedStringKey(slot.titleKey))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(EasePalette.secondaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(isMealPhotoBusy)
+        .contextMenu {
+            if fileName != nil {
+                Button(role: .destructive) {
+                    clearMealPhoto(for: slot)
+                } label: {
+                    Label("calendar.meal.remove", systemImage: "trash")
+                }
+            }
+        }
+    }
+
     private func applyOCR(from item: PhotosPickerItem) async {
         isOCRBusy = true
         defer {
             isOCRBusy = false
-            photoItem = nil
+            ocrPhotoItem = nil
         }
-        guard let picked = try? await item.loadTransferable(type: PickedScaleImage.self) else { return }
+        guard let picked = try? await item.loadTransferable(type: PickedUIImage.self) else { return }
         let result = await ScaleOCR.recognize(image: picked.image)
         if let weight = result.weightKg {
             weightText = EaseFormatters.oneDecimal(weight)
@@ -318,6 +440,79 @@ struct LogSheetView: View {
         if let bodyFat = result.bodyFatPercent {
             bodyFatText = EaseFormatters.oneDecimal(bodyFat)
         }
+    }
+
+    private func applyMealLibraryPhoto(from item: PhotosPickerItem, slot: MealSlot) async {
+        await MainActor.run { isMealPhotoBusy = true }
+        defer {
+            Task { @MainActor in
+                isMealPhotoBusy = false
+                mealLibraryItem = nil
+                pendingMeal = nil
+            }
+        }
+        guard let picked = try? await item.loadTransferable(type: PickedUIImage.self) else { return }
+        do {
+            let fileName = try await MealPhotoStore.saveJPEG(picked.image, compressionQuality: 0.8)
+            guard !Task.isCancelled else {
+                MealPhotoStore.deleteAsync(fileName: fileName)
+                return
+            }
+            await MainActor.run {
+                replaceMealFileName(fileName, for: slot)
+            }
+        } catch {
+            // Keep previous draft filename.
+        }
+    }
+
+    private func persistMealImage(_ image: UIImage, for slot: MealSlot) async {
+        await MainActor.run {
+            isMealPhotoBusy = true
+            capturedMealImage = nil
+        }
+        defer {
+            Task { @MainActor in
+                isMealPhotoBusy = false
+                pendingMeal = nil
+            }
+        }
+        do {
+            let fileName = try await MealPhotoStore.saveJPEG(image, compressionQuality: 0.8)
+            guard !Task.isCancelled else {
+                MealPhotoStore.deleteAsync(fileName: fileName)
+                return
+            }
+            await MainActor.run {
+                replaceMealFileName(fileName, for: slot)
+            }
+        } catch {
+            // Keep previous draft filename.
+        }
+    }
+
+    private func mealFileName(for slot: MealSlot) -> String? {
+        switch slot {
+        case .breakfast: breakfastFileName
+        case .lunch: lunchFileName
+        case .dinner: dinnerFileName
+        }
+    }
+
+    private func replaceMealFileName(_ fileName: String?, for slot: MealSlot) {
+        let previous = mealFileName(for: slot)
+        switch slot {
+        case .breakfast: breakfastFileName = fileName
+        case .lunch: lunchFileName = fileName
+        case .dinner: dinnerFileName = fileName
+        }
+        if previous != fileName {
+            MealPhotoStore.deleteAsync(fileName: previous)
+        }
+    }
+
+    private func clearMealPhoto(for slot: MealSlot) {
+        replaceMealFileName(nil, for: slot)
     }
 
     private func dietChip(_ status: DietStatus) -> some View {
@@ -380,6 +575,9 @@ struct LogSheetView: View {
             diet = record?.dietStatus
             tags = Set(record?.variableTags ?? [])
             noteText = record?.note ?? ""
+            breakfastFileName = record?.breakfastPhotoFileName
+            lunchFileName = record?.lunchPhotoFileName
+            dinnerFileName = record?.dinnerPhotoFileName
         }
         errorKey = nil
     }
@@ -403,7 +601,7 @@ struct LogSheetView: View {
             case .diet:
                 let note = noteText.trimmingCharacters(in: .whitespacesAndNewlines)
                 let noteValue = note.isEmpty ? nil : note
-                guard diet != nil || !tags.isEmpty || noteValue != nil || existing != nil else {
+                guard diet != nil || !tags.isEmpty || noteValue != nil || hasMealPhoto || existing != nil else {
                     presentError("log.error.empty")
                     return
                 }
@@ -449,6 +647,9 @@ struct LogSheetView: View {
         patch.dietStatus = .set(diet)
         patch.tags = .set(VariableTag.sanitized(Array(tags)))
         patch.note = .set(note)
+        patch.breakfastPhoto = .set(breakfastFileName)
+        patch.lunchPhoto = .set(lunchFileName)
+        patch.dinnerPhoto = .set(dinnerFileName)
         try DailyRecordRepository(context: modelContext).upsert(on: selectedDate, patch: patch)
     }
 
@@ -478,19 +679,6 @@ struct LogSheetView: View {
         let enabled = profiles.first?.notificationsEnabled == true
         Task {
             await NotificationScheduler.refresh(enabled: enabled, context: modelContext)
-        }
-    }
-}
-
-private struct PickedScaleImage: Transferable {
-    let image: UIImage
-
-    static var transferRepresentation: some TransferRepresentation {
-        DataRepresentation(importedContentType: .image) { data in
-            guard let image = UIImage(data: data) else {
-                throw CocoaError(.fileReadCorruptFile)
-            }
-            return PickedScaleImage(image: image)
         }
     }
 }

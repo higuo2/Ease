@@ -99,7 +99,7 @@ Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
 
 ### Shared Sheets
 - **Weight Log Sheet**：可展开图形日历 → 体重 + OCR → 体脂 → 黑 Capsule Save（不含饮食）。
-- **Diet Log Sheet**：可展开日历 → 饮食三选一 → 标签 → 备注 → Save（不含体重）。
+- **Diet Log Sheet**：可展开日历 → 饮食三选一 → 三餐照片（拍照/相册，Documents 文件名）→ 标签 → 备注 → 珊瑚 Capsule Save（不含体重）。
 - **Weight History Sheet**：全部体重日列表（与首页行同构）；点行编辑。
 - **Metrics Sheet**：日期 → 已启用围度 → Save → **历史列表**（无围度趋势图）。主入口 = 首页围度格。
 - **Sleep / Cycle / Energy Detail**：只读 HealthKit；sheet 内可用安静 tint；Sleep/Energy 图需有轴。
