@@ -340,11 +340,12 @@ struct DailyWeightRowView: View {
                             .foregroundStyle(.tertiary)
                     }
                 }
-                if let note = row.note, !note.isEmpty, style == .list {
+                if let note = row.note, !note.isEmpty {
                     Text(note)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
                 }
             }
             Spacer(minLength: 8)
