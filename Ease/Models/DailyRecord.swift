@@ -17,6 +17,11 @@ final class DailyRecord {
     var dietStatusRaw: String?
     var tags: [String] = []
     var note: String?
+    /// Legacy in-DB meal blobs (briefly shipped). Kept forever for CloudKit/SwiftData
+    /// compatibility — never delete these attributes. Runtime photos use filenames.
+    @Attribute(.externalStorage) var breakfastPhotoData: Data?
+    @Attribute(.externalStorage) var lunchPhotoData: Data?
+    @Attribute(.externalStorage) var dinnerPhotoData: Data?
     /// Sandbox JPEG filename in Documents (not raw image bytes).
     var breakfastPhotoFileName: String?
     var lunchPhotoFileName: String?
@@ -46,6 +51,9 @@ final class DailyRecord {
         self.dietStatusRaw = nil
         self.tags = []
         self.note = nil
+        self.breakfastPhotoData = nil
+        self.lunchPhotoData = nil
+        self.dinnerPhotoData = nil
         self.breakfastPhotoFileName = nil
         self.lunchPhotoFileName = nil
         self.dinnerPhotoFileName = nil
