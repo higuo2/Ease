@@ -34,6 +34,8 @@ struct SettingsSheet: View {
     @State private var isAddingMetric = false
     @State private var isWeightReminderExpanded = false
     @State private var isDietReminderExpanded = false
+    @State private var isModulesExpanded = false
+    @State private var isMetricsExpanded = false
 
     init(
         profile: UserProfile,
@@ -220,68 +222,76 @@ struct SettingsSheet: View {
 
     private var modulesSection: some View {
         Section {
-            ForEach(HomeModule.allCases) { module in
-                Toggle(isOn: moduleBinding(module)) {
-                    Label {
-                        Text(LocalizedStringKey(module.titleKey))
-                    } icon: {
-                        Image(systemName: module.symbolName)
+            DisclosureGroup(isExpanded: $isModulesExpanded) {
+                ForEach(HomeModule.allCases) { module in
+                    Toggle(isOn: moduleBinding(module)) {
+                        Label {
+                            Text(LocalizedStringKey(module.titleKey))
+                        } icon: {
+                            Image(systemName: module.symbolName)
+                        }
                     }
                 }
+            } label: {
+                Text("settings.section.modules")
             }
-        } header: {
-            Text("settings.section.modules")
         } footer: {
-            Text("settings.section.modules.footer")
+            if isModulesExpanded {
+                Text("settings.section.modules.footer")
+            }
         }
     }
 
     private var metricsSection: some View {
         Section {
-            ForEach(metricDefinitions.filter { MetricCatalog.isActiveMetricKey($0.key) }, id: \.key) { definition in
-                let spec = MetricCatalog.spec(for: definition)
-                Toggle(isOn: enabledBinding(definition)) {
-                    Label {
-                        Text(verbatim: spec.resolvedTitle)
-                    } icon: {
-                        Image(systemName: spec.symbolName)
+            DisclosureGroup(isExpanded: $isMetricsExpanded) {
+                ForEach(metricDefinitions.filter { MetricCatalog.isActiveMetricKey($0.key) }, id: \.key) { definition in
+                    let spec = MetricCatalog.spec(for: definition)
+                    Toggle(isOn: enabledBinding(definition)) {
+                        Label {
+                            Text(verbatim: spec.resolvedTitle)
+                        } icon: {
+                            Image(systemName: spec.symbolName)
+                        }
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button("metric.history.title") {
+                            historyTarget = MetricHistoryTarget(definition: definition)
+                        }
+                        .tint(EasePalette.primaryText)
                     }
                 }
-                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    Button("metric.history.title") {
-                        historyTarget = MetricHistoryTarget(definition: definition)
-                    }
-                    .tint(EasePalette.primaryText)
-                }
-            }
 
-            if customCount < MetricCatalog.maxCustom {
-                DisclosureGroup(isExpanded: $isAddingMetric) {
-                    TextField("settings.metrics.name", text: $customName)
-                    Picker("settings.metrics.unit", selection: $customUnit) {
-                        ForEach(MetricUnit.allCases, id: \.self) { unit in
-                            Text(LocalizedStringKey(unit.titleKey)).tag(unit)
+                if customCount < MetricCatalog.maxCustom {
+                    DisclosureGroup(isExpanded: $isAddingMetric) {
+                        TextField("settings.metrics.name", text: $customName)
+                        Picker("settings.metrics.unit", selection: $customUnit) {
+                            ForEach(MetricUnit.allCases, id: \.self) { unit in
+                                Text(LocalizedStringKey(unit.titleKey)).tag(unit)
+                            }
                         }
-                    }
-                    Picker("settings.metrics.symbol", selection: $customSymbol) {
-                        ForEach(MetricCatalog.allowedSymbols, id: \.self) { symbol in
-                            Image(systemName: symbol).tag(symbol)
+                        Picker("settings.metrics.symbol", selection: $customSymbol) {
+                            ForEach(MetricCatalog.allowedSymbols, id: \.self) { symbol in
+                                Image(systemName: symbol).tag(symbol)
+                            }
                         }
+                        Button("settings.metrics.add", action: addCustom)
+                            .disabled(customName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    } label: {
+                        Label("settings.metrics.add", systemImage: "plus")
                     }
-                    Button("settings.metrics.add", action: addCustom)
-                        .disabled(customName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                } label: {
-                    Label("settings.metrics.add", systemImage: "plus")
+                } else {
+                    Text("settings.metrics.maxCustom")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
-            } else {
-                Text("settings.metrics.maxCustom")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+            } label: {
+                Text("settings.section.metrics")
             }
-        } header: {
-            Text("settings.section.metrics")
         } footer: {
-            Text("settings.section.metrics.footer")
+            if isMetricsExpanded {
+                Text("settings.section.metrics.footer")
+            }
         }
     }
 
