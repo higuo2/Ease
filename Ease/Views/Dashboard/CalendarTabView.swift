@@ -125,7 +125,7 @@ struct CalendarTabView: View {
                     .frame(width: 30, height: 30)
                     .background {
                         if isSelected {
-                            Circle().fill(Color.black)
+                            Circle().fill(EasePalette.accent)
                         }
                     }
                 if let weight {
@@ -140,7 +140,7 @@ struct CalendarTabView: View {
                 if let delta {
                     Text(deltaPrefix(delta) + EaseFormatters.oneDecimal(abs(delta)))
                         .font(.system(size: 9, weight: .medium).monospacedDigit())
-                        .foregroundStyle(EasePalette.deltaColor(delta))
+                        .foregroundStyle(EasePalette.semanticDelta(delta))
                 } else {
                     Text(" ")
                         .font(.system(size: 9))
@@ -268,7 +268,8 @@ struct CalendarTabView: View {
                     detailMetric(
                         "calendar.detail.day",
                         swing.map { signedOne($0) },
-                        showUnit: false
+                        showUnit: false,
+                        valueColor: swing.map(EasePalette.semanticDelta)
                     )
                 }
 
@@ -276,13 +277,19 @@ struct CalendarTabView: View {
 
                 HStack(spacing: 12) {
                     if let diet = record?.dietStatus {
-                        Label {
-                            Text(LocalizedStringKey(diet.titleKey))
-                        } icon: {
-                            Image(systemName: diet.systemImage)
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(EasePalette.dietTint(diet))
+                                .frame(width: 8, height: 8)
+                            Label {
+                                Text(LocalizedStringKey(diet.titleKey))
+                            } icon: {
+                                Image(systemName: diet.systemImage)
+                                    .foregroundStyle(EasePalette.dietTint(diet))
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(EasePalette.primaryText)
                         }
-                        .font(.subheadline)
-                        .foregroundStyle(EasePalette.primaryText)
                     } else {
                         Text("calendar.diet.empty")
                             .font(.subheadline)
@@ -297,7 +304,7 @@ struct CalendarTabView: View {
                             .foregroundStyle(.white)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
-                            .background(Color.black, in: Capsule())
+                            .background(EasePalette.accent, in: Capsule())
                     }
                     .buttonStyle(.plain)
                 }
@@ -308,7 +315,8 @@ struct CalendarTabView: View {
     private func detailMetric(
         _ title: LocalizedStringKey,
         _ value: String?,
-        showUnit: Bool = true
+        showUnit: Bool = true,
+        valueColor: Color? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -317,7 +325,7 @@ struct CalendarTabView: View {
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(value ?? "—")
                     .font(.title3.monospacedDigit())
-                    .foregroundStyle(EasePalette.primaryText)
+                    .foregroundStyle(valueColor ?? EasePalette.primaryText)
                 if showUnit, value != nil {
                     Text("unit.kg")
                         .font(.caption)

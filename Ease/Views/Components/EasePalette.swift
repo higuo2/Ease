@@ -13,11 +13,13 @@ enum EasePalette {
     /// Coral loss / positive direction `#FF5252`
     static let coral = Color(red: 1.0, green: 82 / 255, blue: 82 / 255)
     static let coralDeep = Color(red: 229 / 255, green: 57 / 255, blue: 53 / 255)
-    /// Quiet mint for gain deltas
+    /// Quiet mint / soft teal — weight down (progress) on Trend/Calendar
     static let mint = Color(red: 0.36, green: 0.72, blue: 0.58)
-    /// Brand accent for progress / selection — coral, not purple
+    static let softTeal = Color(red: 0.28, green: 0.66, blue: 0.60)
+    /// Brand accent — coral, not purple
     static let accent = coral
     static let accentSoft = Color(red: 1.0, green: 0.72, blue: 0.70)
+    static let accentWarm = Color(red: 1.0, green: 0.55, blue: 0.42)
     static let primaryText = Color(red: 17 / 255, green: 17 / 255, blue: 17 / 255)
     static let secondaryText = Color(red: 142 / 255, green: 142 / 255, blue: 147 / 255)
     static let track = Color.black.opacity(0.06)
@@ -31,6 +33,14 @@ enum EasePalette {
     static let periodPink = Color(red: 248 / 255, green: 221 / 255, blue: 230 / 255)
     static let periodRose = Color(red: 0.78, green: 0.40, blue: 0.54)
     static let energyOrange = Color(red: 251 / 255, green: 228 / 255, blue: 208 / 255)
+    /// Factor icon pastels (Trend advanced estimate)
+    static let iconSleep = Color(red: 0.45, green: 0.55, blue: 0.88)
+    static let iconEnergy = Color(red: 0.95, green: 0.62, blue: 0.28)
+    static let iconPeriod = Color(red: 0.90, green: 0.48, blue: 0.58)
+    /// Diet status tints
+    static let dietClean = Color(red: 0.42, green: 0.70, blue: 0.52)
+    static let dietNormal = Color(red: 0.92, green: 0.68, blue: 0.28)
+    static let dietCheat = Color(red: 0.86, green: 0.42, blue: 0.40)
 
     /// Quiet Morandi fills for home square modules
     static let morandiSage = Color(red: 197 / 255, green: 206 / 255, blue: 195 / 255)
@@ -41,10 +51,34 @@ enum EasePalette {
     static let morandiPeriod = Color(red: 220 / 255, green: 198 / 255, blue: 204 / 255)
     static let morandiEnergy = Color(red: 224 / 255, green: 208 / 255, blue: 190 / 255)
 
+    static var chartLineGradient: LinearGradient {
+        LinearGradient(
+            colors: [coralDeep, accentSoft],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
+    /// Weight-tab brand: coral on loss.
     static func deltaColor(_ delta: Double) -> Color {
         if delta < 0 { return coral }
         if delta > 0 { return mint }
         return secondaryText
+    }
+
+    /// Trend / Calendar chips: teal when weight drops, warm coral when it rises.
+    static func semanticDelta(_ delta: Double) -> Color {
+        if delta < 0 { return softTeal }
+        if delta > 0 { return accentWarm }
+        return secondaryText
+    }
+
+    static func dietTint(_ status: DietStatus) -> Color {
+        switch status {
+        case .clean: dietClean
+        case .normal: dietNormal
+        case .cheat: dietCheat
+        }
     }
 }
 

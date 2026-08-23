@@ -148,7 +148,7 @@ struct TrendChartCard: View {
                         x: .value("chart.axis.date", point.date),
                         y: .value("chart.axis.weight", point.weight)
                     )
-                    .foregroundStyle(EasePalette.coralDeep)
+                    .foregroundStyle(EasePalette.chartLineGradient)
                     .interpolationMethod(.catmullRom)
                     .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
                 }
@@ -159,7 +159,7 @@ struct TrendChartCard: View {
                     x: .value("chart.axis.date", point.date),
                     y: .value("chart.axis.weight", point.weight)
                 )
-                .foregroundStyle(EasePalette.coralDeep)
+                .foregroundStyle(EasePalette.coral)
                 .symbolSize(48)
             }
 
@@ -180,7 +180,7 @@ struct TrendChartCard: View {
                     x: .value("chart.axis.date", preview.date),
                     y: .value("chart.axis.weight", weight)
                 )
-                .foregroundStyle(Color.black)
+                .foregroundStyle(EasePalette.coralDeep)
                 .symbolSize(70)
                 .annotation(position: .top, spacing: 8) {
                     tooltip(date: preview.date, weight: weight)

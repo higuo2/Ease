@@ -146,13 +146,15 @@ struct AdvancedPaceCard: View {
                             symbol: "moon.fill",
                             title: "trend.advanced.sleep",
                             detail: estimate.averageSleepHours.map(EaseFormatters.sleepDuration),
-                            factor: estimate.sleepFactor
+                            factor: estimate.sleepFactor,
+                            iconColor: EasePalette.iconSleep
                         )
                         factorItem(
                             symbol: "bolt.fill",
                             title: "trend.advanced.energy",
                             detail: estimate.averageEnergyKcal.map { EaseFormatters.kcal($0) },
-                            factor: estimate.energyFactor
+                            factor: estimate.energyFactor,
+                            iconColor: EasePalette.iconEnergy
                         )
                         factorItem(
                             symbol: "drop.fill",
@@ -165,14 +167,16 @@ struct AdvancedPaceCard: View {
                                 )
                                 : nil,
                             factor: estimate.periodFactor,
-                            inactiveWhenNilDetail: true
+                            inactiveWhenNilDetail: true,
+                            iconColor: EasePalette.iconPeriod
                         )
                         factorItem(
                             symbol: "chart.line.downtrend.xyaxis",
                             title: "trend.advanced.slope",
                             detail: EaseFormatters.signedKgPerDay(estimate.adjustedSlopeKg),
                             factor: nil,
-                            inactiveWhenNilDetail: false
+                            inactiveWhenNilDetail: false,
+                            iconColor: EasePalette.accent
                         )
                     }
 
@@ -196,7 +200,8 @@ struct AdvancedPaceCard: View {
         title: LocalizedStringKey,
         detail: String?,
         factor: Double?,
-        inactiveWhenNilDetail: Bool = true
+        inactiveWhenNilDetail: Bool = true,
+        iconColor: Color
     ) -> some View {
         let inactive = inactiveWhenNilDetail && detail == nil
         let detailText: String = {
@@ -210,7 +215,7 @@ struct AdvancedPaceCard: View {
         return HStack(alignment: .top, spacing: 10) {
             Image(systemName: symbol)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(inactive ? EasePalette.secondaryText.opacity(0.45) : EasePalette.secondaryText)
+                .foregroundStyle(inactive ? iconColor.opacity(0.35) : iconColor)
                 .frame(width: 18, alignment: .center)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -271,7 +276,7 @@ struct TrendStatsGrid: View {
                 "trend.stats.change",
                 value: stats.change,
                 signed: true,
-                valueColor: stats.change.map(EasePalette.deltaColor)
+                valueColor: stats.change.map(EasePalette.semanticDelta)
             )
             weightStat(
                 "trend.stats.toTarget",
