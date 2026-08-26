@@ -1803,6 +1803,22 @@
         }
       }
     },
+    "format.sevenDayMA": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7-day MA %.1f kg"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7日均 %.1f kg"
+          }
+        }
+      }
+    },
     "format.sleepDuration": {
       "localizations": {
         "en": {

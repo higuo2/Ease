@@ -25,6 +25,7 @@ struct LogSheetView: View {
     @State private var errorKey: String?
     @State private var errorPulse = 0
     @State private var saveSuccessPulse = 0
+    @State private var ocrSuccessPulse = 0
     @State private var ocrPhotoItem: PhotosPickerItem?
     @State private var isOCRPickerPresented = false
     @State private var isOCRBusy = false
@@ -197,6 +198,7 @@ struct LogSheetView: View {
             }
             .sensoryFeedback(.error, trigger: errorPulse)
             .sensoryFeedback(.success, trigger: saveSuccessPulse)
+            .sensoryFeedback(.success, trigger: ocrSuccessPulse)
             .sensoryFeedback(.selection, trigger: dietSelectionToken)
             .sensoryFeedback(.selection, trigger: tagSelectionToken)
         }
@@ -439,6 +441,9 @@ struct LogSheetView: View {
         }
         if let bodyFat = result.bodyFatPercent {
             bodyFatText = EaseFormatters.oneDecimal(bodyFat)
+        }
+        if result.weightKg != nil || result.bodyFatPercent != nil {
+            ocrSuccessPulse += 1
         }
     }
 

@@ -33,7 +33,8 @@ struct StageGoalCard: View {
                     "weight.remaining",
                     value: EaseFormatters.kg(remainingKg),
                     alignment: .center,
-                    valueColor: EasePalette.coral.opacity(0.85)
+                    valueColor: EasePalette.coral.opacity(0.85),
+                    numericValue: remainingKg
                 )
                 Spacer(minLength: 8)
                 stageLabel("weight.target", value: EaseFormatters.kg(targetWeight), alignment: .trailing)
@@ -57,16 +58,25 @@ struct StageGoalCard: View {
         _ title: LocalizedStringKey,
         value: String,
         alignment: HorizontalAlignment,
-        valueColor: Color = EasePalette.primaryText
+        valueColor: Color = EasePalette.primaryText,
+        numericValue: Double? = nil
     ) -> some View {
         VStack(alignment: alignment, spacing: 4) {
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-            Text(value)
-                .font(.subheadline.bold())
-                .monospacedDigit()
-                .foregroundStyle(valueColor)
+            if let numericValue {
+                Text(value)
+                    .font(.subheadline.bold())
+                    .monospacedDigit()
+                    .foregroundStyle(valueColor)
+                    .easeNumericText(numericValue)
+            } else {
+                Text(value)
+                    .font(.subheadline.bold())
+                    .monospacedDigit()
+                    .foregroundStyle(valueColor)
+            }
         }
         .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment, vertical: .center))
     }
@@ -119,6 +129,7 @@ struct HomeModuleGrid: View {
                         .font(EaseFont.number(28))
                         .monospacedDigit()
                         .foregroundStyle(EasePalette.primaryText)
+                        .easeNumericText(bmi)
                     if let bmiCategoryKey {
                         Text(LocalizedStringKey(bmiCategoryKey))
                             .font(.system(size: 13, weight: .regular))
@@ -497,6 +508,7 @@ struct WeightHeroView: View {
                     .font(EaseFont.hero(52))
                     .monospacedDigit()
                     .foregroundStyle(EasePalette.primaryText)
+                    .easeNumericText(weight)
             } else {
                 Text("dashboard.weightUnavailable")
                     .font(.system(size: 22, weight: .medium))

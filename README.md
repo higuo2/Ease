@@ -56,6 +56,7 @@ EaseTests/     单元测试
 Import/        样例 CSV
 PRD.md         产品规格
 AGENT.md       设计系统与实现约束
+UX.md          体感/流畅度：评估后采用与拒绝
 ```
 
 ## 明确不做

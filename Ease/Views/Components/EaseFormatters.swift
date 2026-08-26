@@ -9,6 +9,10 @@ enum EaseFormatters {
         String(format: String(localized: "format.kg"), locale: .current, value)
     }
 
+    static func sevenDayMA(_ value: Double) -> String {
+        String(format: String(localized: "format.sevenDayMA"), locale: .current, value)
+    }
+
     static func lostKg(_ value: Double) -> String {
         String(format: String(localized: "format.lostKg"), locale: .current, value)
     }

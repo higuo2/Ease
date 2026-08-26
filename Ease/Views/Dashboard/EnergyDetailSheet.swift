@@ -5,6 +5,7 @@ struct EnergyDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
     let history: EnergyHistory
     let focusKcal: Double?
+    var isPlaceholder = false
 
     private var chartDays: [EnergyDay] { history.loggedDays }
 
@@ -105,6 +106,7 @@ struct EnergyDetailSheet: View {
                     }
                     .padding(20)
                 }
+                .easeHealthPlaceholder(isPlaceholder)
             }
             .navigationTitle("health.energy")
             .navigationBarTitleDisplayMode(.inline)

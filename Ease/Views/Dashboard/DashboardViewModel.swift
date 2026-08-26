@@ -101,6 +101,8 @@ final class DashboardViewModel {
     var sleepHistory = SleepHistory.empty
     var cycleHistory = CycleHistory.empty
     var energyHistory = EnergyHistory.empty
+    var hasLoadedHealth = false
+    private var healthFetchedAt: Date?
 
     func openLog(for date: Date, mode: LogSheetMode = .weight) {
         editingDate = CalendarDay.startOfDay(date)
@@ -141,13 +143,39 @@ final class DashboardViewModel {
         weightHour: Int = NotificationSchedulePolicy.weightHour,
         weightMinute: Int = NotificationSchedulePolicy.weightMinute,
         dietHour: Int = NotificationSchedulePolicy.dietHour,
+        dietMinute: Int = NotificationSchedulePolicy.dietMinute,
+        forceHealth: Bool = false
+    ) async {
+        let now = Date.now
+        if !HealthKitCachePolicy.isFresh(fetchedAt: healthFetchedAt, now: now, force: forceHealth) {
+            let payload = await HealthKitReader.loadAll()
+            healthByDay = payload.byDay
+            sleepHistory = payload.sleep
+            cycleHistory = payload.cycle
+            energyHistory = payload.energy
+            healthFetchedAt = now
+            hasLoadedHealth = true
+        }
+        await refreshNotifications(
+            enabled: enabled,
+            records: records,
+            logs: logs,
+            weightHour: weightHour,
+            weightMinute: weightMinute,
+            dietHour: dietHour,
+            dietMinute: dietMinute
+        )
+    }
+
+    func refreshNotifications(
+        enabled: Bool,
+        records: [DailyRecord],
+        logs: [WeightLog],
+        weightHour: Int = NotificationSchedulePolicy.weightHour,
+        weightMinute: Int = NotificationSchedulePolicy.weightMinute,
+        dietHour: Int = NotificationSchedulePolicy.dietHour,
         dietMinute: Int = NotificationSchedulePolicy.dietMinute
     ) async {
-        let payload = await HealthKitReader.loadAll()
-        healthByDay = payload.byDay
-        sleepHistory = payload.sleep
-        cycleHistory = payload.cycle
-        energyHistory = payload.energy
         let todayKey = CalendarDay.dayKey(from: .now)
         await NotificationScheduler.refresh(
             enabled: enabled,

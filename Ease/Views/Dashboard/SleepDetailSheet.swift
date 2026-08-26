@@ -6,6 +6,7 @@ struct SleepDetailSheet: View {
     let history: SleepHistory
     let focusHours: Double?
     let targetHours: Double
+    var isPlaceholder = false
 
     private var ringProgress: Double? {
         guard let focusHours, targetHours > 0 else { return nil }
@@ -122,6 +123,7 @@ struct SleepDetailSheet: View {
                     }
                     .padding(20)
                 }
+                .easeHealthPlaceholder(isPlaceholder)
             }
             .navigationTitle("sleep.title")
             .navigationBarTitleDisplayMode(.inline)

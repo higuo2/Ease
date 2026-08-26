@@ -146,6 +146,7 @@ Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
 4. If a compiler error is pasted, fix it directly without verbose explanations.
 5. When PRD and this file conflict on product rules, PRD wins; this file wins on visual styling.
 6. Do not reintroduce "one weight per `DailyRecord`" or "main-card weight = 7-day MA". Those rules are retired as of v1.1.
-7. v1.2 is in scope: CSV import, `MetricLog`, basic + advanced pace ETA, reminder time pickers, home modules, Settings as Tab. Do not add water/waist reminder nags, dual-axis charts, third-party CSV dialects, Weight-tab FAB, or a History Tab.
+7. v1.2 is in scope: CSV import, `MetricLog`, basic + advanced pace ETA, reminder time pickers, home modules, Settings as Tab. Do not add water/waist reminder nags, dual-axis charts, third-party CSV dialects, Weight-tab FAB, a History Tab, WidgetKit, or home-card `ultraThinMaterial` / drop shadows.
 8. Never drop `DailyRecord.weight` / `bodyFat` from the schema. Never nil them after copying to `WeightLog`. Weight writes go only to `WeightLog`.
 9. Root navigation is Weight / Trend / Calendar / Settings. Do not collapse back into a single scrolling dashboard without tabs. Do not resurrect History as a fourth tab unless the PRD changes again.
+10. Quiet polish only, per `UX.md`: `.sensoryFeedback` on confirmed results (save / OCR / delete), `.contentTransition(.numericText())` on the hero/BMI/remaining/ETA numbers, `NSCache` for meal thumbnails, sheet detents on log/health sheets. Do not `Task.detached` HealthKit or SwiftData. Do not put body fat on the Trend chart. Skeleton placeholders only while the first HealthKit payload is empty.

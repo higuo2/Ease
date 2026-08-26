@@ -75,22 +75,31 @@ struct MainTabView: View {
                 editingLogID: viewModel.editingLogID,
                 mode: viewModel.logMode
             )
+            .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isSleepPresented) {
             SleepDetailSheet(
                 history: viewModel.sleepHistory,
                 focusHours: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.previousNightSleepHours,
-                targetHours: profile?.sleepTargetHours ?? 8.0
+                targetHours: profile?.sleepTargetHours ?? 8.0,
+                isPlaceholder: !viewModel.hasLoadedHealth
             )
+            .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isCyclePresented) {
-            CycleDetailSheet(history: viewModel.cycleHistory)
+            CycleDetailSheet(
+                history: viewModel.cycleHistory,
+                isPlaceholder: !viewModel.hasLoadedHealth
+            )
+            .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isEnergyPresented) {
             EnergyDetailSheet(
                 history: viewModel.energyHistory,
-                focusKcal: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.activeEnergyKcal
+                focusKcal: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.activeEnergyKcal,
+                isPlaceholder: !viewModel.hasLoadedHealth
             )
+            .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isBMIPresented) {
             BMIDetailSheet(
@@ -102,31 +111,46 @@ struct MainTabView: View {
                 sex: profile?.sex ?? .unspecified,
                 now: viewModel.selectedDate
             )
+            .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isMetricSheetPresented) {
             MetricSheet(date: viewModel.metricsDate, initialKey: viewModel.metricFocusKey)
+                .easeSheetPresentation()
         }
         .task(id: scenePhase) {
             // Only refresh when returning to foreground — avoid heavy work during background/teardown.
             guard scenePhase == .active else { return }
-            await reloadHealthAndNotifications()
+            await reloadHealthAndNotifications(forceHealth: false)
         }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
-            Task { await reloadHealthAndNotifications() }
+            Task { await reloadHealthAndNotifications(forceHealth: true) }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
-            Task { await reloadHealthAndNotifications() }
+            Task { await reloadHealthAndNotifications(forceHealth: true) }
         }
         .onChange(of: viewModel.isLogPresented) { _, presented in
             if !presented {
                 viewModel.editingLogID = nil
-                Task { await reloadHealthAndNotifications() }
+                Task { await refreshNotifications() }
             }
         }
     }
 
-    private func reloadHealthAndNotifications() async {
+    private func reloadHealthAndNotifications(forceHealth: Bool) async {
         await viewModel.reloadHealthAndNotifications(
+            enabled: profile?.notificationsEnabled == true,
+            records: Array(records),
+            logs: Array(weightLogs),
+            weightHour: profile?.weightReminderHour ?? NotificationSchedulePolicy.weightHour,
+            weightMinute: profile?.weightReminderMinute ?? NotificationSchedulePolicy.weightMinute,
+            dietHour: profile?.dietReminderHour ?? NotificationSchedulePolicy.dietHour,
+            dietMinute: profile?.dietReminderMinute ?? NotificationSchedulePolicy.dietMinute,
+            forceHealth: forceHealth
+        )
+    }
+
+    private func refreshNotifications() async {
+        await viewModel.refreshNotifications(
             enabled: profile?.notificationsEnabled == true,
             records: Array(records),
             logs: Array(weightLogs),

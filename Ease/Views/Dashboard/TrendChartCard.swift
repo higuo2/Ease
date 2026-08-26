@@ -4,6 +4,7 @@ import Charts
 private struct ChartDayPreview: Equatable {
     var date: Date
     var weight: Double?
+    var movingAverage: Double?
 }
 
 private struct ChartWeightPoint: Identifiable {
@@ -21,6 +22,7 @@ struct TrendChartCard: View {
     let onSelectLog: (WeightLog) -> Void
 
     @State private var preview: ChartDayPreview?
+    @State private var scrubDayKey = ""
 
     private var rangeEnd: Date {
         CalendarDay.startOfDay(.now)
@@ -183,7 +185,11 @@ struct TrendChartCard: View {
                 .foregroundStyle(EasePalette.coralDeep)
                 .symbolSize(70)
                 .annotation(position: .top, spacing: 8) {
-                    tooltip(date: preview.date, weight: weight)
+                    tooltip(
+                        date: preview.date,
+                        weight: weight,
+                        movingAverage: preview.movingAverage
+                    )
                 }
             }
         }
@@ -224,15 +230,24 @@ struct TrendChartCard: View {
                 dragLayer(proxy: proxy, geometry: geometry)
             }
         }
+        .sensoryFeedback(.selection, trigger: scrubDayKey)
     }
 
-    private func tooltip(date: Date, weight: Double) -> some View {
-        HStack(spacing: 8) {
-            Text(date, format: .dateTime.month(.defaultDigits).day())
-            Text(EaseFormatters.kg(weight))
-                .monospacedDigit()
+    private func tooltip(date: Date, weight: Double, movingAverage: Double?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 8) {
+                Text(date, format: .dateTime.month(.defaultDigits).day())
+                Text(EaseFormatters.kg(weight))
+                    .monospacedDigit()
+            }
+            .font(.system(size: 13, weight: .semibold))
+            if let movingAverage {
+                Text(EaseFormatters.sevenDayMA(movingAverage))
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundStyle(Color.white.opacity(0.75))
+                    .monospacedDigit()
+            }
         }
-        .font(.system(size: 13, weight: .semibold))
         .foregroundStyle(Color.white)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
@@ -246,16 +261,25 @@ struct TrendChartCard: View {
             .gesture(
                 DragGesture(minimumDistance: 8)
                     .onChanged { value in
-                        preview = makePreview(at: value.location, proxy: proxy, geometry: geometry)
-                    }
-                    .onEnded { _ in
-                        preview = nil
+                        let next = makePreview(at: value.location, proxy: proxy, geometry: geometry)
+                        preview = next
+                        if let next {
+                            let key = CalendarDay.dayKey(from: next.date)
+                            if key != scrubDayKey {
+                                scrubDayKey = key
+                            }
+                        }
                     }
             )
             .onTapGesture { location in
-                if let preview = makePreview(at: location, proxy: proxy, geometry: geometry),
-                   let log = nearestLog(to: preview.date) {
-                    onSelectLog(log)
+                if let next = makePreview(at: location, proxy: proxy, geometry: geometry) {
+                    preview = next
+                    if let log = nearestLog(to: next.date) {
+                        onSelectLog(log)
+                    }
+                } else {
+                    preview = nil
+                    scrubDayKey = ""
                 }
             }
     }
@@ -277,7 +301,11 @@ struct TrendChartCard: View {
         guard let date = dateAt(location, proxy: proxy, geometry: geometry) else { return nil }
         let day = CalendarDay.startOfDay(date)
         guard let weight = WeightMetrics.weightOnDay(records: records, logs: logs, on: day) else { return nil }
-        return ChartDayPreview(date: day, weight: weight)
+        return ChartDayPreview(
+            date: day,
+            weight: weight,
+            movingAverage: WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: day)
+        )
     }
 
     private func nearestLog(to date: Date) -> WeightLog? {

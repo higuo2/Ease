@@ -31,8 +31,14 @@ struct MealPhotoThumbnail: View {
         .aspectRatio(1, contentMode: .fit)
         .clipped()
         .task(id: fileName) {
-            image = nil
-            guard fileName != nil else { return }
+            guard let fileName else {
+                image = nil
+                return
+            }
+            if let hit = MealPhotoStore.peek(fileName) {
+                image = hit
+                return
+            }
             image = await MealPhotoStore.loadImage(fileName: fileName)
         }
     }

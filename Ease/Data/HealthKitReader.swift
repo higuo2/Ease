@@ -20,6 +20,15 @@ struct HealthDaySnapshot: Sendable, Equatable {
     }
 }
 
+enum HealthKitCachePolicy {
+    static let ttl: TimeInterval = 60
+
+    static func isFresh(fetchedAt: Date?, now: Date = .now, force: Bool = false) -> Bool {
+        guard !force, let fetchedAt else { return false }
+        return now.timeIntervalSince(fetchedAt) < ttl
+    }
+}
+
 struct HealthKitPayload: Sendable, Equatable {
     var byDay: [String: HealthDaySnapshot]
     var sleep: SleepHistory

@@ -140,6 +140,7 @@ struct AdvancedPaceCard: View {
                         Text(EaseFormatters.advancedPaceDays(estimate.daysRemaining))
                             .font(.subheadline)
                             .foregroundStyle(EasePalette.secondaryText)
+                            .easeNumericText(estimate.daysRemaining)
                     }
                     .padding(.top, 12)
 

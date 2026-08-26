@@ -4,6 +4,7 @@ import Charts
 struct CycleDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
     let history: CycleHistory
+    var isPlaceholder = false
 
     private var lastSpan: CycleSpan? { history.spans.last }
 
@@ -47,6 +48,7 @@ struct CycleDetailSheet: View {
                     }
                     .padding(20)
                 }
+                .easeHealthPlaceholder(isPlaceholder)
             }
             .navigationTitle("cycle.title")
             .navigationBarTitleDisplayMode(.inline)
@@ -62,7 +64,7 @@ struct CycleDetailSheet: View {
     }
 
     private var summaryCard: some View {
-        EaseCard {
+        EaseCard(fill: EasePalette.periodPink) {
             HStack(spacing: 20) {
                 if let progress = history.progress {
                     EaseArcRing(

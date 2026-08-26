@@ -52,8 +52,7 @@ struct CalendarTabView: View {
                         viewModel.openWeightEntry(for: item.date)
                     }
                 )
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
+                .easeSheetPresentation()
             }
         }
     }
