@@ -16,6 +16,8 @@
 		A10000000000000000000016 /* CalendarDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000046 /* CalendarDay.swift */; };
 		A10000000000000000000017 /* MeasurementBounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000047 /* MeasurementBounds.swift */; };
 		A10000000000000000000018 /* WeightMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000048 /* WeightMetrics.swift */; };
+		A100000000000000000000F1 /* BMIClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000F0 /* BMIClassification.swift */; };
+		A100000000000000000000F3 /* BMIDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000F2 /* BMIDetailSheet.swift */; };
 		A10000000000000000000019 /* DailyRecordRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000049 /* DailyRecordRepository.swift */; };
 		A1000000000000000000001A /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004A /* UserProfileRepository.swift */; };
 		A1000000000000000000001B /* EaseModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004B /* EaseModelContainer.swift */; };
@@ -120,6 +122,8 @@
 		A10000000000000000000046 /* CalendarDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarDay.swift; sourceTree = "<group>"; };
 		A10000000000000000000047 /* MeasurementBounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementBounds.swift; sourceTree = "<group>"; };
 		A10000000000000000000048 /* WeightMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightMetrics.swift; sourceTree = "<group>"; };
+		A100000000000000000000F0 /* BMIClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BMIClassification.swift; sourceTree = "<group>"; };
+		A100000000000000000000F2 /* BMIDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BMIDetailSheet.swift; sourceTree = "<group>"; };
 		A10000000000000000000049 /* DailyRecordRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRecordRepository.swift; sourceTree = "<group>"; };
 		A1000000000000000000004A /* UserProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileRepository.swift; sourceTree = "<group>"; };
 		A1000000000000000000004B /* EaseModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseModelContainer.swift; sourceTree = "<group>"; };
@@ -310,6 +314,7 @@
 				A10000000000000000000046 /* CalendarDay.swift */,
 				A10000000000000000000047 /* MeasurementBounds.swift */,
 				A10000000000000000000048 /* WeightMetrics.swift */,
+				A100000000000000000000F0 /* BMIClassification.swift */,
 				A10000000000000000000049 /* DailyRecordRepository.swift */,
 				A100000000000000000000DC /* MealPhotoStore.swift */,
 				A1000000000000000000009C /* WeightLogRepository.swift */,
@@ -401,6 +406,7 @@
 				A100000000000000000000B6 /* ImportPreviewSheet.swift */,
 				A100000000000000000000B7 /* MetricSheet.swift */,
 				A100000000000000000000D7 /* EnergyDetailSheet.swift */,
+				A100000000000000000000F2 /* BMIDetailSheet.swift */,
 				A100000000000000000000D9 /* WeightHistorySheet.swift */,
 			);
 			path = Dashboard;
@@ -518,6 +524,7 @@
 				A10000000000000000000016 /* CalendarDay.swift in Sources */,
 				A10000000000000000000017 /* MeasurementBounds.swift in Sources */,
 				A10000000000000000000018 /* WeightMetrics.swift in Sources */,
+				A100000000000000000000F1 /* BMIClassification.swift in Sources */,
 				A10000000000000000000019 /* DailyRecordRepository.swift in Sources */,
 				A1000000000000000000001A /* UserProfileRepository.swift in Sources */,
 				A1000000000000000000001B /* EaseModelContainer.swift in Sources */,
@@ -569,6 +576,7 @@
 				A100000000000000000000E5 /* HistoryTabView.swift in Sources */,
 				A100000000000000000000E6 /* HomeModule.swift in Sources */,
 				A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */,
+				A100000000000000000000F3 /* BMIDetailSheet.swift in Sources */,
 				A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */,
 				A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */,
 				A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */,

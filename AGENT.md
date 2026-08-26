@@ -24,11 +24,11 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
 ## 1. Aesthetic: Milk & Card Minimalist（奶油极简）
 Core feel: generous whitespace, soft hierarchy via fill color (not borders/shadows), low-saturation milk/gray card surfaces, high-contrast rounded display numbers, and quiet coral / mint accents for direction feedback.
 
-- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles; segmented trend ranges; black chart tooltip; month calendar with dual-line day cells; weight-history sheet; quiet sleep/period/energy detail tints inside their sheets only.
+- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles; segmented trend ranges; black chart tooltip; month calendar with dual-line day cells; weight-history sheet; BMI detail sheet (gray band label, no traffic-light chart); quiet sleep/period/energy detail tints inside their sheets only.
 - **ABSOLUTELY FORBIDDEN**:
     - NO calorie counting, NO macros (carbs/protein/fats), NO calorie goal ring. Diet shortcuts show check-in only — never kcal totals or “热量目标”. Active Energy may show HK kcal as a fact only.
     - NO streak flames, celebration animations, or goal-reached confetti (including “import succeeded” and “you will hit your goal”).
-    - NO WHO BMI color bands (green/yellow/red charts). NO BMI judgment labels or status chips (e.g. 偏高 / underweight / overweight). BMI is a **number only**.
+    - NO WHO BMI color bands (green/yellow/red charts). NO colored status chips. BMI may show a **gray** Chinese-adult band label (偏瘦 / 正常 / 超重 / 肥胖) and a read-only detail sheet that explains cutoffs. Not a medical diagnosis.
     - NO social share buttons, NO in-app language switcher.
     - NO Dark Mode.
     - NO purple-as-brand theme. NO heavy drop shadows as the main depth cue.
@@ -75,7 +75,7 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 ### Tab 1 — 体重 (Dashboard)
 1. **Hero**：居中巨幅当前体重（所选日最新 `WeightLog`，否则全局最新）。下方一行小字周增减（如 `▼1.8 kg 本周`），coral on loss / quiet green on gain.
 2. **阶段目标卡片**：recessed `#F2F3F5` / `#F5F5F7` rounded card — linear progress bar, start / target weight, optional **basic** pace ETA line (PRD §8.3.A). No purple ring.
-3. **可自定义莫兰迪方块**：默认 BMI / 围度 / 体重 / 饮食。可新增睡眠、经期、活动消耗。虚线「添加」打开模块编辑。
+3. **可自定义莫兰迪方块**：默认 BMI / 围度 / 体重 / 饮食。BMI 格显示数字 + 灰色档名；点开 BMI 详情 Sheet。可新增睡眠、经期、活动消耗。虚线「添加」打开模块编辑。
 4. **体重列表**：默认近 **30** 天；早（太阳）/ 晚（月亮）、相对昨日涨跌、备注。点行编辑。点 **All** → 体重历史 Sheet（全部记录）。**不要**在本页原地折叠展开全部历史。
 5. **无 FAB**；无右上角齿轮。
 
@@ -95,14 +95,14 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 
 ### Tab 4 — 设置 (Settings)
 Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
-身高 / 起止体重 / 睡眠目标 / 首页模块 / 通知与提醒时刻 / CSV 导出导入 / 扩展指标开关与 History / 睡眠·经期次级入口 / **两次确认**的清除全部数据。
+身高 / 生日 / 性别 / 起止体重 / 睡眠目标 / 首页模块 / 通知与提醒时刻 / CSV 导出导入 / 扩展指标开关与 History / 睡眠·经期次级入口 / **两次确认**的清除全部数据。
 
 ### Shared Sheets
 - **Weight Log Sheet**：可展开图形日历 → 体重 + OCR → 体脂 → 黑 Capsule Save（不含饮食）。
 - **Diet Log Sheet**：可展开日历 → 饮食三选一 → 三餐照片（拍照/相册，Documents 文件名）→ 标签 → 备注 → 珊瑚 Capsule Save（不含体重）。
 - **Weight History Sheet**：全部体重日列表（与首页行同构）；点行编辑。
 - **Metrics Sheet**：日期 → 已启用围度 → Save → **历史列表**（无围度趋势图）。主入口 = 首页围度格。
-- **Sleep / Cycle / Energy Detail**：只读 HealthKit；sheet 内可用安静 tint；Sleep/Energy 图需有轴。
+- **Sleep / Cycle / Energy / BMI Detail**：睡眠/经期/消耗只读 HealthKit；BMI 只读档案+体重。sheet 内可用安静 tint；Sleep/Energy 图需有轴。BMI **无**色档图。
 - **Onboarding**：三步不变；奶油底 + 黑 Capsule 主按钮。
 
 ## 5. UI Components & Styling

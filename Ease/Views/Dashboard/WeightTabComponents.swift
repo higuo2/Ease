@@ -75,7 +75,7 @@ struct StageGoalCard: View {
 struct HomeModuleGrid: View {
     let modules: [HomeModule]
     let bmi: Double?
-    let bodyFat: Double?
+    let bmiCategoryKey: String?
     let dietStatus: DietStatus?
     let sleepHours: Double?
     let isPeriodDay: Bool
@@ -87,6 +87,7 @@ struct HomeModuleGrid: View {
     let onOpenSleep: () -> Void
     let onOpenPeriod: () -> Void
     let onOpenEnergy: () -> Void
+    let onOpenBMI: () -> Void
     let onAddModule: () -> Void
 
     private let spacing: CGFloat = 14
@@ -112,16 +113,15 @@ struct HomeModuleGrid: View {
     private func moduleTile(_ module: HomeModule) -> some View {
         switch module {
         case .bmi:
-            square(module, action: nil) {
+            square(module, action: onOpenBMI) {
                 if let bmi {
                     Text(EaseFormatters.oneDecimal(bmi))
                         .font(EaseFont.number(28))
                         .monospacedDigit()
                         .foregroundStyle(EasePalette.primaryText)
-                    if let bodyFat {
-                        Text(EaseFormatters.bodyFat(bodyFat))
+                    if let bmiCategoryKey {
+                        Text(LocalizedStringKey(bmiCategoryKey))
                             .font(.system(size: 13, weight: .regular))
-                            .monospacedDigit()
                             .foregroundStyle(EasePalette.secondaryText)
                     }
                 } else {

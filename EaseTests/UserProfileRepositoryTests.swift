@@ -150,4 +150,29 @@ final class UserProfileRepositoryTests: EaseStoreTestCase {
         )
         XCTAssertEqual(HomeModule.encode([.sleep, .sleep, .diet]), "sleep,diet")
     }
+
+    func test_update_生日与性别可写入也可清空() throws {
+        _ = try profiles.completeOnboarding(heightCm: 170, currentWeight: 72, targetWeight: 62)
+        let birth = calendar.startOfDay(for: calendar.testDate(1998, 3, 12))
+        let updated = try profiles.update(
+            birthDate: .set(birth),
+            sex: .female
+        )
+        XCTAssertEqual(updated.birthDate, birth)
+        XCTAssertEqual(updated.sex, .female)
+
+        let cleared = try profiles.update(birthDate: .set(nil), sex: .unspecified)
+        XCTAssertNil(cleared.birthDate)
+        XCTAssertEqual(cleared.sex, .unspecified)
+    }
+
+    func test_update_未来生日_抛invalidProfile() throws {
+        _ = try profiles.completeOnboarding(heightCm: 170, currentWeight: 72, targetWeight: 62)
+        XCTAssertThrowsError(
+            try profiles.update(birthDate: .set(calendar.testDate(2099, 1, 1)))
+        ) { error in
+            XCTAssertEqual(error as? EaseDataError, .invalidProfile)
+        }
+        XCTAssertNil(try profiles.profile().birthDate)
+    }
 }

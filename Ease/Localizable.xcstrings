@@ -30,6 +30,438 @@
         }
       }
     },
+    "bmi.band.normal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正常"
+          }
+        }
+      }
+    },
+    "bmi.band.obese": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obesity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "肥胖"
+          }
+        }
+      }
+    },
+    "bmi.band.overweight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overweight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超重"
+          }
+        }
+      }
+    },
+    "bmi.band.underweight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Underweight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏瘦"
+          }
+        }
+      }
+    },
+    "bmi.category.notApplicable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not classified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未评价"
+          }
+        }
+      }
+    },
+    "bmi.disclaimer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These bands are population cutoffs, not a diagnosis. Muscle mass and water retention can move BMI away from body fat."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "区间来自人群切点，不是诊断。肌肉量和水分滞留都会让 BMI 偏离体脂。"
+          }
+        }
+      }
+    },
+    "bmi.formula.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BMI = weight (kg) ÷ height (m)². Age and sex are not used in this number."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BMI = 体重 (kg) ÷ 身高 (m)²。年龄和性别不进入这个数字。"
+          }
+        }
+      }
+    },
+    "bmi.input.ageUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填写"
+          }
+        }
+      }
+    },
+    "bmi.input.heightMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add height in Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去设置补身高"
+          }
+        }
+      }
+    },
+    "bmi.range.china.normal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "18.5 – 23.9"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "18.5 – 23.9"
+          }
+        }
+      }
+    },
+    "bmi.range.china.obese": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "≥ 28.0"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "≥ 28.0"
+          }
+        }
+      }
+    },
+    "bmi.range.china.overweight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24.0 – 27.9"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24.0 – 27.9"
+          }
+        }
+      }
+    },
+    "bmi.range.china.underweight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "< 18.5"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "< 18.5"
+          }
+        }
+      }
+    },
+    "bmi.range.who.normal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "18.5 – 24.9"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "18.5 – 24.9"
+          }
+        }
+      }
+    },
+    "bmi.range.who.obese": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "≥ 30.0"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "≥ 30.0"
+          }
+        }
+      }
+    },
+    "bmi.range.who.overweight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "25.0 – 29.9"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "25.0 – 29.9"
+          }
+        }
+      }
+    },
+    "bmi.range.who.underweight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "< 18.5"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "< 18.5"
+          }
+        }
+      }
+    },
+    "bmi.sheet.footnote.ageUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birthday is not set, so this uses the adult cutoffs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填生日，按 18 岁以上成人标准分档。"
+          }
+        }
+      }
+    },
+    "bmi.sheet.footnote.minor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adult cutoffs are not used under 18. This app does not apply age-and-sex percentiles."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未满 18 岁不套成人切点。本 App 不做儿童年龄性别百分位评价。"
+          }
+        }
+      }
+    },
+    "bmi.sheet.formula": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formula"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公式"
+          }
+        }
+      }
+    },
+    "bmi.sheet.healthyRange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weight for a normal BMI"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对应正常 BMI 的体重"
+          }
+        }
+      }
+    },
+    "bmi.sheet.healthyRange.footnote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From the Chinese adult normal band (18.5–23.9), not your goal weight."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按中国成人正常区间 18.5–23.9 反推，不是阶段目标体重。"
+          }
+        }
+      }
+    },
+    "bmi.sheet.inputs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inputs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次用到的数据"
+          }
+        }
+      }
+    },
+    "bmi.sheet.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BMI"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BMI"
+          }
+        }
+      }
+    },
+    "bmi.standard.china": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chinese adult cutoffs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中国成人标准"
+          }
+        }
+      }
+    },
+    "bmi.standard.china.inUse": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chinese adult standard (in use)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中国成人标准（当前采用）"
+          }
+        }
+      }
+    },
+    "bmi.standard.who": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WHO adult cutoffs (reference)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WHO 成人标准（对照）"
+          }
+        }
+      }
+    },
     "calendar.detail.am": {
       "localizations": {
         "en": {
@@ -1019,6 +1451,22 @@
         }
       }
     },
+    "format.ageYears": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld years old"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 岁"
+          }
+        }
+      }
+    },
     "format.bmi": {
       "localizations": {
         "en": {
@@ -1047,6 +1495,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%.1f%%"
+          }
+        }
+      }
+    },
+    "format.healthyWeightRange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.1f–%.1f kg"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.1f–%.1f kg"
           }
         }
       }
@@ -2811,6 +3275,54 @@
         }
       }
     },
+    "settings.birthDate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birthday"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生日"
+          }
+        }
+      }
+    },
+    "settings.birthDate.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add birthday"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加生日"
+          }
+        }
+      }
+    },
+    "settings.birthDate.clear": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear birthday"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除生日"
+          }
+        }
+      }
+    },
     "settings.height": {
       "localizations": {
         "en": {
@@ -3274,6 +3786,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "提醒"
+          }
+        }
+      }
+    },
+    "settings.sex": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sex"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "性别"
+          }
+        }
+      }
+    },
+    "settings.sex.female": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Female"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "女"
+          }
+        }
+      }
+    },
+    "settings.sex.male": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Male"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "男"
+          }
+        }
+      }
+    },
+    "settings.sex.unspecified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填"
           }
         }
       }

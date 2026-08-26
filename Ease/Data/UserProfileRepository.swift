@@ -31,7 +31,9 @@ struct UserProfileRepository {
         weightReminderHour: Int? = nil,
         weightReminderMinute: Int? = nil,
         dietReminderHour: Int? = nil,
-        dietReminderMinute: Int? = nil
+        dietReminderMinute: Int? = nil,
+        birthDate: FieldUpdate<Date?> = .unchanged,
+        sex: BiologicalSex? = nil
     ) throws -> UserProfile {
         let profile = try profile()
         let nextHeight = try heightCm.map(MeasurementBounds.validatedHeight) ?? profile.heightCm
@@ -63,6 +65,16 @@ struct UserProfileRepository {
         }
         if let dietReminderMinute {
             profile.dietReminderMinute = MeasurementBounds.clampedMinute(dietReminderMinute)
+        }
+        if case .set(let value) = birthDate {
+            if let value {
+                profile.birthDate = try MeasurementBounds.validatedBirthDate(value, calendar: calendar)
+            } else {
+                profile.birthDate = nil
+            }
+        }
+        if let sex {
+            profile.sex = sex
         }
         profile.updatedAt = .now
         try context.save()

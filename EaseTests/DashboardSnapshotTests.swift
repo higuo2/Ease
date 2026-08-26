@@ -33,6 +33,7 @@ final class DashboardSnapshotTests: EaseStoreTestCase {
         XCTAssertEqual(snapshot.lostKg, 6.0)
         XCTAssertEqual(snapshot.remainingKg, 4.0)
         XCTAssertEqual(snapshot.bmi, WeightMetrics.bmi(weightKg: 74.0, heightCm: 170))
+        XCTAssertEqual(snapshot.bmiVerdict, .band(.overweight, assumedAdult: true))
         XCTAssertNotEqual(snapshot.displayWeight, 78)
     }
 
@@ -61,6 +62,7 @@ final class DashboardSnapshotTests: EaseStoreTestCase {
         XCTAssertEqual(empty.lostKg, 0)
         XCTAssertEqual(empty.remainingKg, 0)
         XCTAssertNil(empty.bmi)
+        XCTAssertEqual(empty.bmiVerdict, .none)
 
         let unfinished = UserProfile()
         context.insert(unfinished)
@@ -76,6 +78,25 @@ final class DashboardSnapshotTests: EaseStoreTestCase {
         XCTAssertEqual(snapshot.displayWeight, 72)
         XCTAssertEqual(snapshot.progress, 0)
         XCTAssertNil(snapshot.bmi)
+        XCTAssertEqual(snapshot.bmiVerdict, .none)
+    }
+
+    func test_make_未满18_bmi有数字但不评价() throws {
+        let profile = try insertProfile(heightCm: 170, start: 80, target: 70)
+        profile.birthDate = hostCalendar.testDate(2008, 8, 27)
+        try context.save()
+        let log = WeightLog(timestamp: hostCalendar.testDate(2026, 8, 26, hour: 8), weight: 62)
+        try insertLogs([log])
+
+        let snapshot = DashboardSnapshot.make(
+            profile: profile,
+            records: [],
+            logs: [log],
+            now: hostCalendar.testDate(2026, 8, 26, hour: 8),
+            calendar: hostCalendar
+        )
+        XCTAssertEqual(snapshot.bmi, WeightMetrics.bmi(weightKg: 62, heightCm: 170))
+        XCTAssertEqual(snapshot.bmiVerdict, .notApplicable)
     }
 
     func test_make_today取所选日DailyRecord() throws {

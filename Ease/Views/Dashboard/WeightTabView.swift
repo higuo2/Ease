@@ -79,7 +79,7 @@ struct WeightTabView: View {
                         HomeModuleGrid(
                             modules: homeModules,
                             bmi: snapshot.bmi,
-                            bodyFat: snapshot.bodyFat,
+                            bmiCategoryKey: snapshot.bmiVerdict.titleKey,
                             dietStatus: selectedRecord?.dietStatus,
                             sleepHours: selectedHealth?.previousNightSleepHours,
                             isPeriodDay: selectedHealth?.isMenstrual == true
@@ -98,6 +98,7 @@ struct WeightTabView: View {
                             onOpenSleep: { viewModel.isSleepPresented = true },
                             onOpenPeriod: { viewModel.isCyclePresented = true },
                             onOpenEnergy: { viewModel.isEnergyPresented = true },
+                            onOpenBMI: { viewModel.isBMIPresented = true },
                             onAddModule: { isModuleEditorPresented = true }
                         )
                         DailyWeightList(

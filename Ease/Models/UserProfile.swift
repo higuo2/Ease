@@ -1,11 +1,29 @@
 import Foundation
 import SwiftData
 
+enum BiologicalSex: String, CaseIterable, Identifiable, Sendable {
+    case unspecified
+    case female
+    case male
+
+    var id: String { rawValue }
+
+    var titleKey: String {
+        switch self {
+        case .unspecified: "settings.sex.unspecified"
+        case .female: "settings.sex.female"
+        case .male: "settings.sex.male"
+        }
+    }
+}
+
 @Model
 final class UserProfile {
     var heightCm: Double = 0
     var startWeight: Double = 0
     var targetWeight: Double = 0
+    var birthDate: Date? = nil
+    var sexRaw: String = "unspecified"
     var notificationsEnabled: Bool = false
     var hasCompletedOnboarding: Bool = false
     var hasMigratedWeightLogs: Bool = false
@@ -23,6 +41,8 @@ final class UserProfile {
         self.heightCm = 0
         self.startWeight = 0
         self.targetWeight = 0
+        self.birthDate = nil
+        self.sexRaw = BiologicalSex.unspecified.rawValue
         self.notificationsEnabled = false
         self.hasCompletedOnboarding = false
         self.hasMigratedWeightLogs = false
@@ -38,5 +58,10 @@ final class UserProfile {
     var homeModules: [HomeModule] {
         get { HomeModule.decode(homeModulesRaw) }
         set { homeModulesRaw = HomeModule.encode(newValue) }
+    }
+
+    var sex: BiologicalSex {
+        get { BiologicalSex(rawValue: sexRaw) ?? .unspecified }
+        set { sexRaw = newValue.rawValue }
     }
 }

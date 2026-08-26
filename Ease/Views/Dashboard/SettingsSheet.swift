@@ -17,6 +17,8 @@ struct SettingsSheet: View {
     @State private var startText: String
     @State private var targetText: String
     @State private var sleepTargetText: String
+    @State private var birthDate: Date?
+    @State private var sex: BiologicalSex
     @State private var notificationsEnabled: Bool
     @State private var weightReminderDate: Date
     @State private var dietReminderDate: Date
@@ -55,6 +57,8 @@ struct SettingsSheet: View {
         _startText = State(initialValue: EaseFormatters.oneDecimal(profile.startWeight))
         _targetText = State(initialValue: EaseFormatters.oneDecimal(profile.targetWeight))
         _sleepTargetText = State(initialValue: EaseFormatters.oneDecimal(profile.sleepTargetHours))
+        _birthDate = State(initialValue: profile.birthDate)
+        _sex = State(initialValue: profile.sex)
         _notificationsEnabled = State(initialValue: profile.notificationsEnabled)
         _weightReminderDate = State(initialValue: Self.clockDate(
             hour: profile.weightReminderHour,
@@ -162,10 +166,44 @@ struct SettingsSheet: View {
             settingsField("settings.height", text: $heightText, suffix: "unit.cm", placeholder: "onboarding.height.placeholder")
             settingsField("settings.startWeight", text: $startText, suffix: "unit.kg", placeholder: "onboarding.weight.placeholder")
             settingsField("settings.targetWeight", text: $targetText, suffix: "unit.kg", placeholder: "onboarding.weight.placeholder")
+            if birthDate != nil {
+                DatePicker(
+                    "settings.birthDate",
+                    selection: birthDateBinding,
+                    in: birthDateRange,
+                    displayedComponents: .date
+                )
+                Button("settings.birthDate.clear", role: .destructive) {
+                    birthDate = nil
+                }
+            } else {
+                Button("settings.birthDate.add") {
+                    birthDate = Self.defaultBirthDate()
+                }
+            }
+            Picker("settings.sex", selection: $sex) {
+                ForEach(BiologicalSex.allCases) { option in
+                    Text(LocalizedStringKey(option.titleKey)).tag(option)
+                }
+            }
             settingsField("settings.sleepTarget", text: $sleepTargetText, suffix: "unit.hours", placeholder: "settings.sleepTarget.placeholder")
         } header: {
             Text("settings.section.personal")
         }
+    }
+
+    private var birthDateBinding: Binding<Date> {
+        Binding(
+            get: { birthDate ?? Self.defaultBirthDate() },
+            set: { birthDate = $0 }
+        )
+    }
+
+    private var birthDateRange: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        let oldest = calendar.date(byAdding: .year, value: -MeasurementBounds.maxAgeYears, to: today) ?? today
+        return oldest...today
     }
 
     private var remindersSection: some View {
@@ -387,7 +425,9 @@ struct SettingsSheet: View {
                     weightReminderHour: weightParts.hour,
                     weightReminderMinute: weightParts.minute,
                     dietReminderHour: dietParts.hour,
-                    dietReminderMinute: dietParts.minute
+                    dietReminderMinute: dietParts.minute,
+                    birthDate: .set(birthDate),
+                    sex: sex
                 )
                 await NotificationScheduler.refresh(enabled: enabled, context: modelContext)
                 await MainActor.run {
@@ -503,6 +543,12 @@ struct SettingsSheet: View {
         if showsDismissButton {
             dismiss()
         }
+    }
+
+    private static func defaultBirthDate() -> Date {
+        let calendar = Calendar.current
+        return calendar.date(byAdding: .year, value: -25, to: calendar.startOfDay(for: .now))
+            ?? Date()
     }
 
     private static func clockDate(hour: Int, minute: Int) -> Date {

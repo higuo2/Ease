@@ -16,6 +16,14 @@ struct MainTabView: View {
     private var enabledMetrics: [MetricDefinition] {
         metricDefinitions.filter { $0.isEnabled && MetricCatalog.isActiveMetricKey($0.key) }
     }
+    private var snapshotBMI: DashboardSnapshot {
+        DashboardSnapshot.make(
+            profile: profile,
+            records: Array(records),
+            logs: Array(weightLogs),
+            now: viewModel.selectedDate
+        )
+    }
 
     var body: some View {
         @Bindable var viewModel = viewModel
@@ -82,6 +90,17 @@ struct MainTabView: View {
             EnergyDetailSheet(
                 history: viewModel.energyHistory,
                 focusKcal: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.activeEnergyKcal
+            )
+        }
+        .sheet(isPresented: $viewModel.isBMIPresented) {
+            BMIDetailSheet(
+                bmi: snapshotBMI.bmi,
+                weightKg: snapshotBMI.displayWeight,
+                heightCm: profile?.heightCm ?? 0,
+                bodyFat: snapshotBMI.bodyFat,
+                birthDate: profile?.birthDate,
+                sex: profile?.sex ?? .unspecified,
+                now: viewModel.selectedDate
             )
         }
         .sheet(isPresented: $viewModel.isMetricSheetPresented) {

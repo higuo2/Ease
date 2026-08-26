@@ -212,4 +212,54 @@ final class WeightMetricsTests: EaseStoreTestCase {
         XCTAssertEqual(last[0].weight, 70.4)
         XCTAssertEqual(last[1].weight, 70.1)
     }
+
+    func test_bmiClassifier_中国成人切点含边界() {
+        XCTAssertEqual(BMIClassifier.chinaBand(bmi: 18.4), .underweight)
+        XCTAssertEqual(BMIClassifier.chinaBand(bmi: 18.5), .normal)
+        XCTAssertEqual(BMIClassifier.chinaBand(bmi: 23.9), .normal)
+        XCTAssertEqual(BMIClassifier.chinaBand(bmi: 24.0), .overweight)
+        XCTAssertEqual(BMIClassifier.chinaBand(bmi: 27.9), .overweight)
+        XCTAssertEqual(BMIClassifier.chinaBand(bmi: 28.0), .obese)
+    }
+
+    func test_bmiClassifier_WHO对照切点() {
+        XCTAssertEqual(BMIClassifier.whoBand(bmi: 18.4), .underweight)
+        XCTAssertEqual(BMIClassifier.whoBand(bmi: 24.0), .normal)
+        XCTAssertEqual(BMIClassifier.whoBand(bmi: 24.9), .normal)
+        XCTAssertEqual(BMIClassifier.whoBand(bmi: 25.0), .overweight)
+        XCTAssertEqual(BMIClassifier.whoBand(bmi: 29.9), .overweight)
+        XCTAssertEqual(BMIClassifier.whoBand(bmi: 30.0), .obese)
+    }
+
+    func test_bmiClassifier_未满18不评价_满18按成人() {
+        let now = calendar.testDate(2026, 8, 26)
+        let seventeen = calendar.testDate(2008, 8, 27)
+        let eighteen = calendar.testDate(2008, 8, 26)
+        XCTAssertEqual(
+            BMIClassifier.classify(bmi: 22.0, birthDate: seventeen, now: now, calendar: calendar),
+            .notApplicable
+        )
+        XCTAssertEqual(
+            BMIClassifier.classify(bmi: 22.0, birthDate: eighteen, now: now, calendar: calendar),
+            .band(.normal, assumedAdult: false)
+        )
+    }
+
+    func test_bmiClassifier_无生日按成人并标记assumedAdult() {
+        XCTAssertEqual(
+            BMIClassifier.classify(bmi: 25.6, birthDate: nil, now: calendar.testDate(2026, 8, 26), calendar: calendar),
+            .band(.overweight, assumedAdult: true)
+        )
+        XCTAssertEqual(
+            BMIClassifier.classify(bmi: nil, birthDate: nil, calendar: calendar),
+            .none
+        )
+    }
+
+    func test_bmiClassifier_中国正常体重区间() {
+        let range = BMIClassifier.chinaHealthyWeightKg(heightCm: 170)
+        XCTAssertEqual(range?.low, 53.5)
+        XCTAssertEqual(range?.high, 69.1)
+        XCTAssertNil(BMIClassifier.chinaHealthyWeightKg(heightCm: 0))
+    }
 }

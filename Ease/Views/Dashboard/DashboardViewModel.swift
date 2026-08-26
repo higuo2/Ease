@@ -90,6 +90,7 @@ final class DashboardViewModel {
     var isSleepPresented = false
     var isCyclePresented = false
     var isEnergyPresented = false
+    var isBMIPresented = false
     var isMetricSheetPresented = false
     var metricsDate = Date.now
     var metricFocusKey: String?
@@ -165,6 +166,7 @@ struct DashboardSnapshot {
     let displayWeight: Double?
     let bodyFat: Double?
     let bmi: Double?
+    let bmiVerdict: BMIClassifier.Verdict
     let progress: Double
     let lostKg: Double
     let remainingKg: Double
@@ -176,13 +178,14 @@ struct DashboardSnapshot {
         profile: UserProfile?,
         records: [DailyRecord],
         logs: [WeightLog] = [],
-        now: Date = .now
+        now: Date = .now,
+        calendar: Calendar = .current
     ) -> DashboardSnapshot {
         let start = profile?.startWeight ?? 0
         let target = profile?.targetWeight ?? 0
         let height = profile?.heightCm ?? 0
-        let display = WeightMetrics.displayWeight(records: records, logs: logs, on: now)
-        let todayKey = CalendarDay.dayKey(from: now)
+        let display = WeightMetrics.displayWeight(records: records, logs: logs, on: now, calendar: calendar)
+        let todayKey = CalendarDay.dayKey(from: now, calendar: calendar)
         let today = records.first { $0.dayKey == todayKey }
         let progress: Double
         let lost: Double
@@ -202,10 +205,17 @@ struct DashboardSnapshot {
         } else {
             bmi = nil
         }
+        let bmiVerdict = BMIClassifier.classify(
+            bmi: bmi,
+            birthDate: profile?.birthDate,
+            now: now,
+            calendar: calendar
+        )
         return DashboardSnapshot(
             displayWeight: display,
-            bodyFat: WeightMetrics.latestBodyFat(records: records, logs: logs, on: now),
+            bodyFat: WeightMetrics.latestBodyFat(records: records, logs: logs, on: now, calendar: calendar),
             bmi: bmi,
+            bmiVerdict: bmiVerdict,
             progress: progress,
             lostKg: lost,
             remainingKg: remaining,

@@ -64,6 +64,35 @@ final class MeasurementBoundsTests: XCTestCase {
         }
     }
 
+    func test_validatedBirthDate_归一化到当天且拒绝未来与超龄() throws {
+        let calendar = EaseTestCalendar.make()
+        let now = calendar.testDate(2026, 8, 26, hour: 21)
+        let stored = try MeasurementBounds.validatedBirthDate(
+            calendar.testDate(2000, 1, 15, hour: 21, minute: 45),
+            now: now,
+            calendar: calendar
+        )
+        XCTAssertEqual(stored, calendar.startOfDay(for: calendar.testDate(2000, 1, 15)))
+
+        let oldestAllowed = try MeasurementBounds.validatedBirthDate(
+            calendar.testDate(1906, 8, 26),
+            now: now,
+            calendar: calendar
+        )
+        XCTAssertEqual(oldestAllowed, calendar.startOfDay(for: calendar.testDate(1906, 8, 26)))
+
+        XCTAssertThrowsError(
+            try MeasurementBounds.validatedBirthDate(calendar.testDate(2026, 8, 27), now: now, calendar: calendar)
+        ) { error in
+            XCTAssertEqual(error as? EaseDataError, .invalidProfile)
+        }
+        XCTAssertThrowsError(
+            try MeasurementBounds.validatedBirthDate(calendar.testDate(1905, 8, 26), now: now, calendar: calendar)
+        ) { error in
+            XCTAssertEqual(error as? EaseDataError, .invalidProfile)
+        }
+    }
+
     func test_roundedToStep_与时刻钳制() {
         XCTAssertEqual(MeasurementBounds.roundedToStep(1230, step: 50), 1250)
         XCTAssertEqual(MeasurementBounds.roundedToStep(68.04, step: 0.1), 68.0)
