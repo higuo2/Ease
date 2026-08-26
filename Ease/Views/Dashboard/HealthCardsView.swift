@@ -3,8 +3,10 @@ import SwiftUI
 struct HealthCardsView: View {
     let record: DailyRecord?
     let health: HealthDaySnapshot?
-    let onOpenSleep: () -> Void
-    let onOpenCycle: () -> Void
+    var onOpenSleep: () -> Void
+    var onOpenCycle: () -> Void
+    var onEditJournal: (() -> Void)? = nil
+    var onDeleteJournal: (() -> Void)? = nil
 
     private var sleepHours: Double? { health?.previousNightSleepHours }
     private var energyKcal: Double? { health?.activeEnergyKcal }
@@ -18,13 +20,17 @@ struct HealthCardsView: View {
     var body: some View {
         VStack(spacing: 12) {
             if sleepHours != nil || isPeriodDay || energyKcal != nil {
-                HStack(spacing: 12) {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 108), spacing: 12)],
+                    spacing: 12
+                ) {
                     if let sleepHours {
                         semanticCard(
                             fill: EasePalette.sleepMint,
                             symbol: "moon.fill",
                             titleKey: "health.sleep",
                             value: EaseFormatters.sleepDuration(sleepHours),
+                            hintKey: "a11y.health.sleep.hint",
                             action: onOpenSleep
                         )
                     }
@@ -34,6 +40,7 @@ struct HealthCardsView: View {
                             symbol: "drop.fill",
                             titleKey: "health.period",
                             value: nil,
+                            hintKey: "a11y.health.period.hint",
                             action: onOpenCycle
                         )
                     }
@@ -43,6 +50,7 @@ struct HealthCardsView: View {
                             symbol: "bolt.fill",
                             titleKey: "health.energy",
                             value: EaseFormatters.kcal(energyKcal),
+                            hintKey: nil,
                             action: nil
                         )
                     }
@@ -53,8 +61,12 @@ struct HealthCardsView: View {
     }
 
     private var dietStrip: some View {
-        EaseCard {
-            HStack(spacing: 16) {
+        let card = EaseCard(
+            accessibilityLabel: dietAccessibilityLabel,
+            accessibilityHint: onEditJournal == nil ? nil : "a11y.record.hint",
+            combinesChildren: true
+        ) {
+            HStack(alignment: .top, spacing: 16) {
                 if let diet = record?.dietStatus {
                     labeledIcon(systemName: diet.systemImage, labelKey: diet.titleKey)
                 } else {
@@ -66,6 +78,25 @@ struct HealthCardsView: View {
                 Spacer(minLength: 0)
             }
         }
+
+        return Group {
+            if let onEditJournal {
+                card.easeRecordContextMenu(
+                    onEdit: onEditJournal,
+                    onDelete: record == nil ? nil : onDeleteJournal
+                )
+            } else {
+                card
+            }
+        }
+    }
+
+    private var dietAccessibilityLabel: LocalizedStringKey {
+        if let diet = record?.dietStatus {
+            LocalizedStringKey(diet.titleKey)
+        } else {
+            "today.dietPending"
+        }
     }
 
     @ViewBuilder
@@ -74,33 +105,37 @@ struct HealthCardsView: View {
         symbol: String,
         titleKey: LocalizedStringKey,
         value: String?,
+        hintKey: LocalizedStringKey?,
         action: (() -> Void)?
     ) -> some View {
-        let card = EaseCard(fill: fill) {
+        let card = EaseCard(
+            fill: fill,
+            accessibilityLabel: titleKey,
+            accessibilityHint: hintKey,
+            combinesChildren: true
+        ) {
             VStack(alignment: .leading, spacing: 8) {
                 Image(systemName: symbol)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(EasePalette.primaryText)
+                    .accessibilityHidden(true)
                 Text(titleKey)
-                    .font(.system(size: 12, weight: .regular))
+                    .font(.caption)
                     .foregroundStyle(EasePalette.secondaryText)
-                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 if let value {
                     Text(value)
-                        .font(EaseFont.number(16))
-                        .monospacedDigit()
+                        .font(.body.weight(.semibold).monospacedDigit())
                         .foregroundStyle(EasePalette.primaryText)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
 
         if let action {
             card
-                .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .onTapGesture(perform: action)
                 .accessibilityAddTraits(.isButton)
         } else {
@@ -111,12 +146,17 @@ struct HealthCardsView: View {
     private func labeledIcon(systemName: String, labelKey: String) -> some View {
         VStack(spacing: 6) {
             Image(systemName: systemName)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.body.weight(.semibold))
                 .foregroundStyle(EasePalette.primaryText)
+                .accessibilityHidden(true)
             Text(LocalizedStringKey(labelKey))
-                .font(.system(size: 11, weight: .regular))
+                .font(.caption)
                 .foregroundStyle(EasePalette.secondaryText)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(minWidth: 44)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(LocalizedStringKey(labelKey)))
     }
 }

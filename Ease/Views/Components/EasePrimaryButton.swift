@@ -5,6 +5,7 @@ struct EasePrimaryButton: View {
     var isEnabled: Bool = true
     var isBusy: Bool = false
     var usesAccent: Bool = false
+    var accessibilityHint: LocalizedStringKey? = nil
     let action: () -> Void
 
     private var fill: Color {
@@ -16,7 +17,10 @@ struct EasePrimaryButton: View {
         Button(action: action) {
             ZStack {
                 Text(title)
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.body.weight(.bold))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
                     .foregroundStyle(Color.white)
                     .opacity(isBusy ? 0 : 1)
                 if isBusy {
@@ -24,14 +28,31 @@ struct EasePrimaryButton: View {
                         .tint(.white)
                 }
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, minHeight: 54)
             .background(fill)
             .clipShape(Capsule())
             .animation(.easeInOut(duration: 0.2), value: isEnabled)
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled || isBusy)
+        .accessibilityLabel(Text(title))
+        .modifier(OptionalAccessibilityHint(hint: accessibilityHint))
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
+private struct OptionalAccessibilityHint: ViewModifier {
+    let hint: LocalizedStringKey?
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if let hint {
+            content.accessibilityHint(Text(hint))
+        } else {
+            content
+        }
     }
 }
 
@@ -42,10 +63,14 @@ struct EaseTextButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 16, weight: .regular))
+                .font(.body)
                 .foregroundStyle(EasePalette.secondaryText)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(title))
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -97,23 +122,26 @@ struct EaseField<Accessory: View>: View {
         VStack(alignment: .leading, spacing: 8) {
             if let titleVerbatim {
                 Text(verbatim: titleVerbatim)
-                    .font(.system(size: 14, weight: .regular))
+                    .font(.subheadline)
                     .foregroundStyle(EasePalette.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text(title)
-                    .font(.system(size: 14, weight: .regular))
+                    .font(.subheadline)
                     .foregroundStyle(EasePalette.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            HStack {
+            HStack(alignment: .firstTextBaseline) {
                 TextField(placeholder, text: $text)
                     .keyboardType(.decimalPad)
-                    .font(EaseFont.number(22))
-                    .monospacedDigit()
+                    .font(.title2.monospacedDigit())
                     .foregroundStyle(EasePalette.primaryText)
+                    .minimumScaleFactor(0.7)
                 if let suffix {
                     Text(suffix)
-                        .font(.system(size: 16, weight: .regular))
+                        .font(.subheadline)
                         .foregroundStyle(EasePalette.secondaryText)
+                        .fixedSize()
                 }
                 accessory
             }

@@ -106,6 +106,9 @@ struct WeightTabView: View {
                             onSelect: { row in
                                 openWeightRow(row)
                             },
+                            onDelete: { row in
+                                deleteWeightRow(row)
+                            },
                             onShowAll: { isWeightHistoryPresented = true }
                         )
                     }
@@ -118,13 +121,19 @@ struct WeightTabView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
             .sheet(isPresented: $isWeightHistoryPresented) {
-                WeightHistorySheet(rows: weightRows) { row in
-                    isWeightHistoryPresented = false
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(350))
-                        openWeightRow(row)
+                WeightHistorySheet(
+                    rows: weightRows,
+                    onSelect: { row in
+                        isWeightHistoryPresented = false
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(350))
+                            openWeightRow(row)
+                        }
+                    },
+                    onDelete: { row in
+                        deleteWeightRow(row)
                     }
-                }
+                )
             }
             .sheet(isPresented: $isModuleEditorPresented) {
                 if let profile {
@@ -168,5 +177,10 @@ struct WeightTabView: View {
         } else {
             viewModel.openWeightEntry(for: row.day)
         }
+    }
+
+    private func deleteWeightRow(_ row: DailyWeightRow) {
+        guard let id = row.latestLogID, let log = logs.first(where: { $0.id == id }) else { return }
+        try? WeightLogRepository(context: modelContext).delete(log)
     }
 }

@@ -259,6 +259,7 @@ struct DailyWeightList: View {
     let rows: [DailyWeightRow]
     var recentDays: Int = 30
     let onSelect: (DailyWeightRow) -> Void
+    var onDelete: ((DailyWeightRow) -> Void)? = nil
     let onShowAll: () -> Void
 
     private var visibleRows: [DailyWeightRow] {
@@ -272,16 +273,18 @@ struct DailyWeightList: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
+            HStack(alignment: .firstTextBaseline) {
                 Text("weight.list.title")
                     .font(.headline)
                     .foregroundStyle(EasePalette.primaryText)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer()
                 if hasMoreHistory || !rows.isEmpty {
                     Button(action: onShowAll) {
                         Text("weight.list.all")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .buttonStyle(.plain)
                 }
@@ -291,6 +294,7 @@ struct DailyWeightList: View {
                 Text("weight.list.empty")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 16)
             } else {
@@ -302,6 +306,10 @@ struct DailyWeightList: View {
                             DailyWeightRowView(row: row, style: .list)
                         }
                         .buttonStyle(.plain)
+                        .easeRecordContextMenu(
+                            onEdit: { onSelect(row) },
+                            onDelete: onDelete == nil ? nil : { onDelete?(row) }
+                        )
                         if index < visibleRows.count - 1 {
                             Divider()
                                 .overlay(EasePalette.hairline)
@@ -323,37 +331,71 @@ enum DailyWeightRowStyle {
 struct DailyWeightRowView: View {
     let row: DailyWeightRow
     var style: DailyWeightRowStyle = .list
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var isAccessibilityType: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(row.day, format: .dateTime.month(.wide).day())
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                HStack(spacing: 10) {
-                    labeledWeight("sun.max.fill", row.morning)
-                    if row.evening != nil {
-                        labeledWeight("moon.fill", row.evening)
-                    } else if style == .history {
-                        Image(systemName: "moon.fill")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
+        Group {
+            if isAccessibilityType {
+                VStack(alignment: .leading, spacing: 8) {
+                    rowCopy
+                    deltaBadge
                 }
-                if let note = row.note, !note.isEmpty {
-                    Text(note)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
+            } else {
+                HStack(alignment: .center, spacing: 12) {
+                    rowCopy
+                    Spacer(minLength: 8)
+                    deltaBadge
                 }
             }
-            Spacer(minLength: 8)
-            deltaBadge
         }
         .padding(.horizontal, 16)
         .padding(.vertical, style == .history ? 12 : 10)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
+        .accessibilityHint(Text("a11y.record.hint"))
+        .accessibilityAddTraits(.isButton)
+    }
+
+    private var rowCopy: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(row.day, format: .dateTime.month(.wide).day())
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 10) {
+                labeledWeight("sun.max.fill", row.morning)
+                if row.evening != nil {
+                    labeledWeight("moon.fill", row.evening)
+                } else if style == .history {
+                    Image(systemName: "moon.fill")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            if let note = row.note, !note.isEmpty {
+                Text(note)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+            }
+        }
+    }
+
+    private var accessibilitySummary: Text {
+        var text = Text(row.day, format: .dateTime.month(.wide).day())
+        if let morning = row.morning {
+            text = text + Text(verbatim: ", ") + Text("history.morning") + Text(verbatim: " ") + Text(EaseFormatters.kg(morning))
+        }
+        if let evening = row.evening {
+            text = text + Text(verbatim: ", ") + Text("history.evening") + Text(verbatim: " ") + Text(EaseFormatters.kg(evening))
+        }
+        return text
     }
 
     @ViewBuilder

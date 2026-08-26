@@ -20,41 +20,54 @@ struct TrendTabView: View {
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        TrendChartCard(
-                            records: records,
-                            logs: logs,
-                            range: viewModel.chartRange,
-                            targetWeight: snapshot.targetWeight > 0 ? snapshot.targetWeight : nil,
-                            onSelectRange: { viewModel.chartRange = $0 },
-                            onSelectLog: { viewModel.openWeightLog($0) }
-                        )
-                        TrendStatsGrid(
-                            records: records,
-                            logs: logs,
-                            range: viewModel.chartRange,
-                            targetWeight: snapshot.targetWeight
-                        )
-                        AdvancedPaceCard(
-                            profile: profile,
-                            records: records,
-                            logs: logs,
-                            healthByDay: viewModel.healthByDay,
-                            sleepHistory: viewModel.sleepHistory,
-                            energyHistory: viewModel.energyHistory,
-                            cycleHistory: viewModel.cycleHistory,
-                            snapshot: snapshot
-                        )
+                if hasWeighIns {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            TrendChartCard(
+                                records: records,
+                                logs: logs,
+                                range: viewModel.chartRange,
+                                targetWeight: snapshot.targetWeight > 0 ? snapshot.targetWeight : nil,
+                                onSelectRange: { viewModel.chartRange = $0 },
+                                onSelectLog: { viewModel.openWeightLog($0) }
+                            )
+                            TrendStatsGrid(
+                                records: records,
+                                logs: logs,
+                                range: viewModel.chartRange,
+                                targetWeight: snapshot.targetWeight
+                            )
+                            AdvancedPaceCard(
+                                profile: profile,
+                                records: records,
+                                logs: logs,
+                                healthByDay: viewModel.healthByDay,
+                                sleepHistory: viewModel.sleepHistory,
+                                energyHistory: viewModel.energyHistory,
+                                cycleHistory: viewModel.cycleHistory,
+                                snapshot: snapshot
+                            )
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 16)
+                } else {
+                    EaseEmptyState(
+                        symbol: "chart.xyaxis.line",
+                        title: "empty.trend.title",
+                        message: "empty.trend.message",
+                        action: { viewModel.openWeightEntry(for: .now) }
+                    )
                 }
             }
             .navigationTitle("tab.trend")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
         }
+    }
+
+    private var hasWeighIns: Bool {
+        !WeightMetrics.samples(from: records, logs: logs).isEmpty
     }
 }
 
@@ -330,6 +343,7 @@ struct TrendStatsGrid: View {
             Text(title)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text(number ?? "—")
                     .font(.system(.title3, design: .rounded, weight: .semibold))
@@ -347,7 +361,7 @@ struct TrendStatsGrid: View {
                 Text(subtitle)
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
-                    .lineLimit(1)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

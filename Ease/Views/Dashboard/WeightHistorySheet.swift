@@ -4,15 +4,18 @@ struct WeightHistorySheet: View {
     @Environment(\.dismiss) private var dismiss
     let rows: [DailyWeightRow]
     let onSelect: (DailyWeightRow) -> Void
+    var onDelete: ((DailyWeightRow) -> Void)? = nil
 
     var body: some View {
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 if rows.isEmpty {
-                    Text("weight.list.empty")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    EaseEmptyState(
+                        symbol: "scalemass",
+                        title: "empty.history.title",
+                        message: "empty.history.message"
+                    )
                 } else {
                     ScrollView {
                         VStack(spacing: 0) {
@@ -23,6 +26,10 @@ struct WeightHistorySheet: View {
                                     DailyWeightRowView(row: row, style: .history)
                                 }
                                 .buttonStyle(.plain)
+                                .easeRecordContextMenu(
+                                    onEdit: { onSelect(row) },
+                                    onDelete: onDelete == nil ? nil : { onDelete?(row) }
+                                )
                                 if index < rows.count - 1 {
                                     Divider()
                                         .overlay(EasePalette.hairline)

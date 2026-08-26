@@ -28,6 +28,7 @@
 		A10000000000000000000021 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000081 /* OnboardingView.swift */; };
 		A10000000000000000000022 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000082 /* DashboardView.swift */; };
 		A10000000000000000000023 /* EaseCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000083 /* EaseCard.swift */; };
+		A100000000000000000000F5 /* EaseEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000F4 /* EaseEmptyState.swift */; };
 		A10000000000000000000024 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000084 /* Localizable.xcstrings */; };
 		A10000000000000000000025 /* EasePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000086 /* EasePalette.swift */; };
 		A10000000000000000000026 /* EaseFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000087 /* EaseFormatters.swift */; };
@@ -135,6 +136,7 @@
 		A10000000000000000000081 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A10000000000000000000082 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		A10000000000000000000083 /* EaseCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseCard.swift; sourceTree = "<group>"; };
+		A100000000000000000000F4 /* EaseEmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseEmptyState.swift; sourceTree = "<group>"; };
 		A10000000000000000000084 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		A10000000000000000000086 /* EasePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EasePalette.swift; sourceTree = "<group>"; };
 		A10000000000000000000087 /* EaseFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseFormatters.swift; sourceTree = "<group>"; };
@@ -361,6 +363,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000083 /* EaseCard.swift */,
+				A100000000000000000000F4 /* EaseEmptyState.swift */,
 				A100000000000000000000DD /* CameraImagePicker.swift */,
 				A100000000000000000000DE /* MealPhotoThumbnail.swift */,
 				A10000000000000000000086 /* EasePalette.swift */,
@@ -533,6 +536,7 @@
 				A10000000000000000000021 /* OnboardingView.swift in Sources */,
 				A10000000000000000000022 /* DashboardView.swift in Sources */,
 				A10000000000000000000023 /* EaseCard.swift in Sources */,
+				A100000000000000000000F5 /* EaseEmptyState.swift in Sources */,
 				A10000000000000000000025 /* EasePalette.swift in Sources */,
 				A10000000000000000000026 /* EaseFormatters.swift in Sources */,
 				A10000000000000000000027 /* EasePrimaryButton.swift in Sources */,
