@@ -132,6 +132,10 @@ struct WeightTabView: View {
                     },
                     onDelete: { row in
                         deleteWeightRow(row)
+                    },
+                    onEmptyAction: {
+                        isWeightHistoryPresented = false
+                        viewModel.openWeightEntry(for: .now)
                     }
                 )
             }

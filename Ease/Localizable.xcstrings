@@ -62,6 +62,22 @@
         }
       }
     },
+    "a11y.stageGoal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stage goal, %lld percent complete, %@ remaining."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阶段目标，进度 %lld%%，剩余 %@。"
+          }
+        }
+      }
+    },
     "app.name": {
       "localizations": {
         "en": {
@@ -603,6 +619,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "删除照片"
+          }
+        }
+      }
+    },
+    "calendar.meal.preview": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meal photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "餐食照片"
+          }
+        }
+      }
+    },
+    "calendar.meal.replace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换照片"
           }
         }
       }
@@ -1579,6 +1627,22 @@
         }
       }
     },
+    "format.advancedPace.thisWeek": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later this week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周内"
+          }
+        }
+      }
+    },
     "format.advancedPaceDays": {
       "localizations": {
         "en": {
@@ -1607,6 +1671,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "大约 %lld 天 · 约 %@"
+          }
+        }
+      }
+    },
+    "format.advancedPaceHorizon": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Around %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预计 %@"
           }
         }
       }
@@ -1771,6 +1851,22 @@
         }
       }
     },
+    "format.paceETA.thisWeek": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At this pace, later this week."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按近况大约本周内。"
+          }
+        }
+      }
+    },
     "format.paceFactor": {
       "localizations": {
         "en": {
@@ -1783,6 +1879,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "×%.2f"
+          }
+        }
+      }
+    },
+    "format.paceMonth.early": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "early %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@上旬"
+          }
+        }
+      }
+    },
+    "format.paceMonth.late": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "late %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@下旬"
+          }
+        }
+      }
+    },
+    "format.paceMonth.mid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mid %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@中旬"
           }
         }
       }
@@ -2042,6 +2186,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "夜间"
+          }
+        }
+      }
+    },
+    "import.skip.duplicate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重复"
+          }
+        }
+      }
+    },
+    "import.skip.futureDate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Future date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未来日期"
+          }
+        }
+      }
+    },
+    "import.skip.line": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Row %lld: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 行：%@"
+          }
+        }
+      }
+    },
+    "import.skip.outOfRange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out of range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超出范围"
+          }
+        }
+      }
+    },
+    "import.skip.unknownMetric": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown metric"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知指标"
+          }
+        }
+      }
+    },
+    "import.skip.unparsable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not parse"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法解析"
           }
         }
       }
@@ -3656,6 +3896,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "导入预览"
+          }
+        }
+      }
+    },
+    "settings.import.skippedSamples": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skipped rows"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过的行"
           }
         }
       }

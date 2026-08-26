@@ -25,6 +25,8 @@ struct StageGoalCard: View {
                 }
             }
             .frame(height: 8)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(stageProgressLabel)
 
             HStack(alignment: .top) {
                 stageLabel("weight.start", value: EaseFormatters.kg(startWeight), alignment: .leading)
@@ -51,6 +53,16 @@ struct StageGoalCard: View {
         .background(
             Color(uiColor: .secondarySystemGroupedBackground),
             in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+    }
+
+    private var stageProgressLabel: String {
+        let percent = Int((min(max(progress, 0), 1) * 100).rounded())
+        return String(
+            format: String(localized: "a11y.stageGoal"),
+            locale: .current,
+            percent,
+            EaseFormatters.kg(remainingKg)
         )
     }
 
@@ -131,9 +143,7 @@ struct HomeModuleGrid: View {
                         .foregroundStyle(EasePalette.primaryText)
                         .easeNumericText(bmi)
                     if let bmiCategoryKey {
-                        Text(LocalizedStringKey(bmiCategoryKey))
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundStyle(EasePalette.secondaryText)
+                        tileCaption(LocalizedStringKey(bmiCategoryKey))
                     }
                 } else {
                     Text("—")
@@ -146,18 +156,14 @@ struct HomeModuleGrid: View {
                 Image(systemName: module.symbolName)
                     .font(.system(size: 26, weight: .regular))
                     .foregroundStyle(EasePalette.primaryText)
-                Text("module.tapToLog")
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
+                tileCaption("module.tapToLog")
             }
         case .weight:
             square(module, action: onOpenWeight) {
                 Image(systemName: module.symbolName)
                     .font(.system(size: 26, weight: .regular))
                     .foregroundStyle(EasePalette.primaryText)
-                Text("module.tapToLog")
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
+                tileCaption("module.tapToLog")
             }
         case .diet:
             square(module, action: onOpenDiet) {
@@ -165,13 +171,9 @@ struct HomeModuleGrid: View {
                     .font(.system(size: 26, weight: .regular))
                     .foregroundStyle(EasePalette.primaryText)
                 if let dietStatus {
-                    Text(LocalizedStringKey(dietStatus.titleKey))
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+                    tileCaption(LocalizedStringKey(dietStatus.titleKey))
                 } else {
-                    Text("module.tapToLog")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+                    tileCaption("module.tapToLog")
                 }
             }
         case .sleep:
@@ -185,9 +187,7 @@ struct HomeModuleGrid: View {
                     Image(systemName: module.symbolName)
                         .font(.system(size: 26, weight: .regular))
                         .foregroundStyle(EasePalette.primaryText)
-                    Text("module.noData")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+                    tileCaption("module.noData")
                 }
             }
         case .period:
@@ -195,9 +195,7 @@ struct HomeModuleGrid: View {
                 Image(systemName: module.symbolName)
                     .font(.system(size: 26, weight: .regular))
                     .foregroundStyle(EasePalette.primaryText)
-                Text(isPeriodDay ? "module.period.today" : "module.noData")
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
+                tileCaption(isPeriodDay ? "module.period.today" : "module.noData")
             }
         case .energy:
             square(module, action: onOpenEnergy) {
@@ -212,9 +210,7 @@ struct HomeModuleGrid: View {
                     Image(systemName: module.symbolName)
                         .font(.system(size: 26, weight: .regular))
                         .foregroundStyle(EasePalette.primaryText)
-                    Text("module.noData")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+                    tileCaption("module.noData")
                 }
             }
         }
@@ -227,8 +223,12 @@ struct HomeModuleGrid: View {
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(EasePalette.secondaryText)
                 Text("module.add")
-                    .font(.system(size: 13, weight: .regular))
+                    .font(.caption)
                     .foregroundStyle(EasePalette.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .aspectRatio(1, contentMode: .fit)
@@ -250,8 +250,11 @@ struct HomeModuleGrid: View {
         } label: {
             VStack(alignment: .leading, spacing: 10) {
                 Text(LocalizedStringKey(module.titleKey))
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(EasePalette.primaryText)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
                 content()
                 Spacer(minLength: 0)
@@ -263,6 +266,16 @@ struct HomeModuleGrid: View {
         }
         .buttonStyle(.plain)
         .disabled(action == nil)
+    }
+
+    private func tileCaption(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .font(.caption)
+            .foregroundStyle(EasePalette.secondaryText)
+            .multilineTextAlignment(.leading)
+            .lineLimit(2)
+            .minimumScaleFactor(0.8)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

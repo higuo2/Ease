@@ -38,6 +38,7 @@ struct LogSheetView: View {
     @State private var capturedMealImage: UIImage?
     @State private var isMealPhotoBusy = false
     @State private var mealPhotoTask: Task<Void, Never>?
+    @State private var mealPreview: MealPhotoPreviewItem?
 
     init(date: Date, editingLogID: UUID? = nil, mode: LogSheetMode = .weight) {
         self.mode = mode
@@ -195,6 +196,9 @@ struct LogSheetView: View {
             .fullScreenCover(isPresented: $isMealCameraPresented) {
                 CameraImagePicker(image: $capturedMealImage)
                     .ignoresSafeArea()
+            }
+            .fullScreenCover(item: $mealPreview) { item in
+                MealPhotoPreviewCover(fileName: item.fileName)
             }
             .sensoryFeedback(.error, trigger: errorPulse)
             .sensoryFeedback(.success, trigger: saveSuccessPulse)
@@ -400,8 +404,12 @@ struct LogSheetView: View {
     private func mealTile(_ slot: MealSlot) -> some View {
         let fileName = mealFileName(for: slot)
         return Button {
-            pendingMeal = slot
-            isMealSourceDialogPresented = true
+            if let fileName {
+                mealPreview = MealPhotoPreviewItem(fileName: fileName)
+            } else {
+                pendingMeal = slot
+                isMealSourceDialogPresented = true
+            }
         } label: {
             VStack(spacing: 8) {
                 MealPhotoThumbnail(
@@ -419,6 +427,12 @@ struct LogSheetView: View {
         .disabled(isMealPhotoBusy)
         .contextMenu {
             if fileName != nil {
+                Button {
+                    pendingMeal = slot
+                    isMealSourceDialogPresented = true
+                } label: {
+                    Label("calendar.meal.replace", systemImage: "photo")
+                }
                 Button(role: .destructive) {
                     clearMealPhoto(for: slot)
                 } label: {

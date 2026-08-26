@@ -1,5 +1,30 @@
 import Foundation
 
+enum PaceHorizon: Equatable {
+    enum Part: Equatable {
+        case early
+        case mid
+        case late
+    }
+
+    case thisWeek
+    case monthPart(year: Int, month: Int, part: Part)
+
+    static func make(eta: Date, now: Date = .now, calendar: Calendar = .current) -> PaceHorizon {
+        let from = CalendarDay.startOfDay(now, calendar: calendar)
+        let to = CalendarDay.startOfDay(eta, calendar: calendar)
+        let days = calendar.dateComponents([.day], from: from, to: to).day ?? 0
+        if days <= 7 { return .thisWeek }
+        let day = calendar.component(.day, from: to)
+        let part: Part = day <= 10 ? .early : (day <= 20 ? .mid : .late)
+        return .monthPart(
+            year: calendar.component(.year, from: to),
+            month: calendar.component(.month, from: to),
+            part: part
+        )
+    }
+}
+
 enum PaceEstimator {
     static let windowDays = 28
     static let minPoints = 14

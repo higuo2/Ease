@@ -64,7 +64,7 @@ struct CycleDetailSheet: View {
     }
 
     private var summaryCard: some View {
-        EaseCard(fill: EasePalette.periodPink) {
+        EaseCard(fill: EasePalette.periodPink, combinesChildren: true) {
             HStack(spacing: 20) {
                 if let progress = history.progress {
                     EaseArcRing(

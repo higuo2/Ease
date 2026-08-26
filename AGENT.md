@@ -24,7 +24,7 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
 ## 1. Aesthetic: Milk & Card Minimalist（奶油极简）
 Core feel: generous whitespace, soft hierarchy via fill color (not borders/shadows), low-saturation milk/gray card surfaces, high-contrast rounded display numbers, and quiet coral / mint accents for direction feedback.
 
-- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles; segmented trend ranges; black chart tooltip; month calendar with dual-line day cells; weight-history sheet; BMI detail sheet (gray band label, no traffic-light chart); quiet sleep/period/energy detail tints inside their sheets only.
+- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles; segmented trend ranges; black chart tooltip (date + last-per-day weight + optional 7-day MA); month calendar with dual-line day cells; weight-history sheet; BMI detail sheet (gray band label, no traffic-light chart); quiet sleep/period/energy detail tints inside their sheets only; meal photo full-screen preview (system cover, no Hero morph).
 - **ABSOLUTELY FORBIDDEN**:
     - NO calorie counting, NO macros (carbs/protein/fats), NO calorie goal ring. Diet shortcuts show check-in only — never kcal totals or “热量目标”. Active Energy may show HK kcal as a fact only.
     - NO streak flames, celebration animations, or goal-reached confetti (including “import succeeded” and “you will hit your goal”).
@@ -34,6 +34,7 @@ Core feel: generous whitespace, soft hierarchy via fill color (not borders/shado
     - NO purple-as-brand theme. NO heavy drop shadows as the main depth cue.
     - NO third-party CSV dialects. NO water tracking / water reminder nags.
     - NO Weight-tab trailing gear. NO floating `+` FAB on Weight tab (logging via Weight / Diet tiles or list rows).
+    - NO WidgetKit / lock-screen widgets / “sync HealthKit” buttons. NO countdown-style pace (“N days left”) as the primary ETA copy.
 
 ## 2. Color Palette
 - **Theme**: Light Mode ONLY.
@@ -55,8 +56,8 @@ Core feel: generous whitespace, soft hierarchy via fill color (not borders/shado
 - **Hero Numbers** (home weight, key stats): SF Pro Display, **44pt–56pt**, Regular or Medium, rounded + `.monospacedDigit()`.
   Example: `.font(.system(size: 48, weight: .medium, design: .rounded)).monospacedDigit()`
 - **Section Titles**: 17–20pt, Semibold / Medium, black.
-- **Supporting / delta lines**: 13–15pt Regular, secondary gray; coral/mint only on the signed delta itself.
-- **Table / history cells**: 15pt Regular, monospaced digits for numeric columns.
+- **Supporting / delta lines**: 13–15pt Regular **or** `.subheadline` / `.footnote` / `.caption` so Dynamic Type can grow; secondary gray; coral/mint only on the signed delta itself. Home tile captions: at most 2 lines, no single-line `…` clip at accessibility sizes.
+- **Table / history cells**: 15pt Regular or `.body`, monospaced digits for numeric columns.
 - **Icons**: STRICTLY single-color `SF Symbols` (`Image(systemName:)`).
   - DO NOT use emojis (NO 🩸, ✈️, 🚽 — use SF Symbols; delta arrows via SF Symbol or consistent localized glyphs).
   - Diet: Clean (`leaf.fill`), Normal (`fork.knife`), Cheat (`takeoutbag.and.cup.and.straw`).
@@ -83,7 +84,7 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 1. **顶部**：segmented 胶囊 `7天 | 30天 | 90天 | 全部`。
 2. **折线**：按日最后一次体重连成主线；X/Y 轴有刻度；目标虚线带文案；拖动黑色 Tooltip。**不显示经期/标签标记。**
 3. **数据卡片网格 (3×2)**：最高（含日期）、最低（含日期）、平均、体重变化、距离目标、记录天数。
-4. **高级估算卡**（PRD §8.3.B）：体重斜率 + 轻度睡眠/消耗/经期修正；与阶段卡基础 pace 分开展示。
+4. **高级估算卡**（PRD §8.3.B）：体重斜率 + 轻度睡眠/消耗/经期修正；主行是旬区间，不把剩余天数做成倒计时。与阶段卡基础 pace 分开展示。
 
 图表交互：预览不改数据；点已有日可编辑体重。删体重不得删当日饮食/标签/备注。
 
@@ -91,7 +92,7 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 1. **月历网格**：7 列。每格 — 日号、当日体重、涨跌（`▼0.2` / `▲0.2`）。点日期打开日明细 Sheet（非内嵌卡片）。
 2. **周均 / 月均**体重卡（选中日所在周 / 当前浏览月）。
 3. **月度 Overview**：净变化、清淡天数、最长连续清淡、打卡 / 减重 / 增重天数。
-4. **日明细 Sheet**（`.medium` / `.large`）：早晚体重、三餐照片格（拍照或相册 → JPEG 写入 Documents 沙盒，`DailyRecord` 只存文件名）、饮食三选一芯片与备注（立即写入 `DailyRecord`）。**禁止**卡路里合计或宏量营养素。
+4. **日明细 Sheet**（`.medium` / `.large`）：早晚体重、三餐照片格（拍照或相册 → JPEG 写入 Documents 沙盒，`DailyRecord` 只存文件名）。**有图单击全屏预览原图**（`fullScreenCover`，不要 `matchedGeometryEffect`）；空格单击或长按走拍照/相册/删除。饮食三选一芯片与备注（立即写入 `DailyRecord`）。**禁止**卡路里合计或宏量营养素。
 
 ### Tab 4 — 设置 (Settings)
 Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
@@ -99,7 +100,7 @@ Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
 
 ### Shared Sheets
 - **Weight Log Sheet**：可展开图形日历 → 体重 + OCR → 体脂 → 黑 Capsule Save（不含饮食）。
-- **Diet Log Sheet**：可展开日历 → 饮食三选一 → 三餐照片（拍照/相册，Documents 文件名）→ 标签 → 备注 → 珊瑚 Capsule Save（不含体重）。
+- **Diet Log Sheet**：可展开日历 → 饮食三选一 → 三餐照片（拍照/相册，Documents 文件名；有图单击全屏预览）→ 标签 → 备注 → 珊瑚 Capsule Save（不含体重）。
 - **Weight History Sheet**：全部体重日列表（与首页行同构）；点行编辑。
 - **Metrics Sheet**：日期 → 已启用围度 → Save → **历史列表**（无围度趋势图）。主入口 = 首页围度格。
 - **Sleep / Cycle / Energy / BMI Detail**：睡眠/经期/消耗只读 HealthKit；BMI 只读档案+体重。sheet 内可用安静 tint；Sleep/Energy 图需有轴。BMI **无**色档图。
@@ -112,6 +113,7 @@ Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
 - **Corner Radius**: cards `16pt–20pt`; capsules / primary buttons `24pt` (full capsule OK).
 - **No hard borders**; no heavy shadows on content cards.
 - **Padding**: `16–20pt` inside cards; section spacing generous (`24pt+` between major blocks).
+- **Accessibility**: `EaseCard` grows vertically with Dynamic Type. Rings (`EaseArcRing`) are decorative — put the spoken facts on the enclosing card (`accessibilityLabel`); hide the ring from VoiceOver. `StageGoalCard` must expose progress + remaining kg.
 
 ### Buttons
 - **Primary** (`Save`, `Continue`): Capsule, solid black, white bold text, height 50–56pt, corner ~24pt.
@@ -123,13 +125,13 @@ Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
 - Formula (from PRD): `(startWeight - displayWeight) / (startWeight - targetWeight)`, clamped `0...1`.
   `displayWeight` = selected day's latest `WeightLog`, else global latest. **Not** the 7-day MA.
 - At 100%: show target factually, no celebration.
-- Optional gray **basic** pace line under the stage card per PRD §8.3.A.
-- Trend **advanced** estimate is a separate card (§8.3.B).
+- Optional gray **basic** pace line under the stage card per PRD §8.3.A — 旬区间，不要具体日号。
+- Trend **advanced** estimate is a separate card (§8.3.B) — same 旬 bucket as the primary line.
 
 ### Charts
 - Smooth weight lines: `interpolationMethod(.catmullRom)`.
 - Target: dashed rule.
-- Selection callout: black rounded tooltip, white text.
+- Selection callout: black rounded tooltip, white text (date, last-per-day weight, optional 7-day MA). No body fat.
 - Non-zero Y domain so a single point still renders.
 - Quiet but **visible** axes on Trend / Sleep / Energy charts.
 - Diet / variable markers: SF Symbols only; not on the Trend weight chart.
@@ -149,4 +151,4 @@ Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
 7. v1.2 is in scope: CSV import, `MetricLog`, basic + advanced pace ETA, reminder time pickers, home modules, Settings as Tab. Do not add water/waist reminder nags, dual-axis charts, third-party CSV dialects, Weight-tab FAB, a History Tab, WidgetKit, or home-card `ultraThinMaterial` / drop shadows.
 8. Never drop `DailyRecord.weight` / `bodyFat` from the schema. Never nil them after copying to `WeightLog`. Weight writes go only to `WeightLog`.
 9. Root navigation is Weight / Trend / Calendar / Settings. Do not collapse back into a single scrolling dashboard without tabs. Do not resurrect History as a fourth tab unless the PRD changes again.
-10. Quiet polish only, per `UX.md`: `.sensoryFeedback` on confirmed results (save / OCR / delete), `.contentTransition(.numericText())` on the hero/BMI/remaining/ETA numbers, `NSCache` for meal thumbnails, sheet detents on log/health sheets. Do not `Task.detached` HealthKit or SwiftData. Do not put body fat on the Trend chart. Skeleton placeholders only while the first HealthKit payload is empty.
+10. Quiet polish only, per `UX.md`: `.sensoryFeedback` on confirmed results (save / OCR / delete / calendar month change), `.contentTransition(.numericText())` on the hero/BMI/remaining numbers (not pace-day countdown), `NSCache` for meal thumbnails, original-photo preview via `fullScreenCover`, sheet detents on log/health sheets. Do not `Task.detached` HealthKit or SwiftData. Do not put body fat on the Trend chart. Skeleton placeholders only while the first HealthKit payload is empty. Empty states may include a log-weight CTA; never a fake HealthKit sync button.

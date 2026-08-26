@@ -7,6 +7,7 @@ struct CalendarTabView: View {
 
     @State private var visibleMonth = CalendarDay.startOfMonth(.now)
     @State private var daySheet: DaySheetItem?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var selectedDate: Date { viewModel.selectedDate }
     private var monthDays: [Date] { CalendarDay.daysInMonth(containing: visibleMonth) }
@@ -54,6 +55,7 @@ struct CalendarTabView: View {
                 )
                 .easeSheetPresentation()
             }
+            .sensoryFeedback(.selection, trigger: CalendarDay.dayKey(from: visibleMonth))
         }
     }
 
@@ -104,7 +106,7 @@ struct CalendarTabView: View {
                 }
                 LazyVGrid(columns: gridColumns, spacing: 8) {
                     ForEach(0..<leadingEmpty, id: \.self) { _ in
-                        Color.clear.frame(minHeight: 64)
+                        Color.clear.frame(minHeight: isAccessibilityType ? 88 : 64)
                     }
                     ForEach(monthDays, id: \.self) { day in
                         dayCell(day)
@@ -112,6 +114,10 @@ struct CalendarTabView: View {
                 }
             }
         }
+    }
+
+    private var isAccessibilityType: Bool {
+        dynamicTypeSize.isAccessibilitySize
     }
 
     private func dayCell(_ day: Date) -> some View {
@@ -144,17 +150,24 @@ struct CalendarTabView: View {
                     }
                 if let weight {
                     Text(EaseFormatters.oneDecimal(weight))
-                        .font(.caption2)
+                        .font(isAccessibilityType ? .caption : .caption2)
                         .monospacedDigit()
                         .foregroundStyle(isSelected ? EasePalette.primaryText : .secondary)
+                        .lineLimit(isAccessibilityType ? 2 : 1)
+                        .minimumScaleFactor(0.7)
+                        .multilineTextAlignment(.center)
                 } else {
                     Text(" ")
                         .font(.caption2)
                 }
                 if let delta {
                     Text(deltaPrefix(delta) + EaseFormatters.oneDecimal(abs(delta)))
-                        .font(.system(size: 9, weight: .medium).monospacedDigit())
+                        .font(isAccessibilityType ? .caption.weight(.medium) : .system(size: 9, weight: .medium))
+                        .monospacedDigit()
                         .foregroundStyle(EasePalette.semanticDelta(delta))
+                        .lineLimit(isAccessibilityType ? 2 : 1)
+                        .minimumScaleFactor(0.7)
+                        .multilineTextAlignment(.center)
                 } else if let diet {
                     Circle()
                         .fill(EasePalette.dietTint(diet))
@@ -165,7 +178,7 @@ struct CalendarTabView: View {
                         .font(.system(size: 9))
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 64)
+            .frame(maxWidth: .infinity, minHeight: isAccessibilityType ? 88 : 64)
             .opacity(isFuture ? 0.3 : 1)
         }
         .buttonStyle(.plain)

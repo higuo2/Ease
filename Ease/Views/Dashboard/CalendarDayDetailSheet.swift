@@ -24,6 +24,7 @@ struct CalendarDayDetailSheet: View {
     @State private var dietNote = ""
     @State private var noteSaveTask: Task<Void, Never>?
     @State private var photoPersistTask: Task<Void, Never>?
+    @State private var mealPreview: MealPhotoPreviewItem?
     @FocusState private var isNoteFocused: Bool
 
     private var record: DailyRecord? {
@@ -145,6 +146,9 @@ struct CalendarDayDetailSheet: View {
                 CameraImagePicker(image: $capturedImage)
                     .ignoresSafeArea()
             }
+            .fullScreenCover(item: $mealPreview) { item in
+                MealPhotoPreviewCover(fileName: item.fileName)
+            }
             .sensoryFeedback(.selection, trigger: dietSelectionToken)
         }
         .preferredColorScheme(.light)
@@ -226,8 +230,12 @@ struct CalendarDayDetailSheet: View {
         let fileName = record?.mealPhotoFileName(for: slot)
 
         return Button {
-            pendingMeal = slot
-            isSourceDialogPresented = true
+            if let fileName {
+                mealPreview = MealPhotoPreviewItem(fileName: fileName)
+            } else {
+                pendingMeal = slot
+                isSourceDialogPresented = true
+            }
         } label: {
             VStack(spacing: 8) {
                 MealPhotoThumbnail(
@@ -245,6 +253,12 @@ struct CalendarDayDetailSheet: View {
         .disabled(isPhotoBusy)
         .contextMenu {
             if fileName != nil {
+                Button {
+                    pendingMeal = slot
+                    isSourceDialogPresented = true
+                } label: {
+                    Label("calendar.meal.replace", systemImage: "photo")
+                }
                 Button(role: .destructive) {
                     clearMealPhoto(for: slot)
                 } label: {

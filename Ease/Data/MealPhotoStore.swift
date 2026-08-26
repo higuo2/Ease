@@ -57,6 +57,16 @@ enum MealPhotoStore {
         return loaded
     }
 
+    /// Full-resolution JPEG from Documents. Not stored in the thumbnail cache.
+    static func loadOriginal(fileName: String?) async -> UIImage? {
+        guard let fileName, !fileName.isEmpty else { return nil }
+        return await Task.detached(priority: .userInitiated) { () -> UIImage? in
+            guard let url = fileURL(for: fileName) else { return nil }
+            guard let data = try? Data(contentsOf: url) else { return nil }
+            return UIImage(data: data)
+        }.value
+    }
+
     /// Fire-and-forget sandbox cleanup — never block the main actor.
     static func deleteAsync(fileName: String?) {
         guard let fileName, !fileName.isEmpty else { return }

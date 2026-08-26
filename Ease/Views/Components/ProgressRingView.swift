@@ -26,6 +26,7 @@ struct EaseArcRing: View {
             }
         }
         .frame(width: diameter, height: diameter)
+        .accessibilityHidden(true)
     }
 }
 

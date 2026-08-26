@@ -20,7 +20,7 @@ struct SleepDetailSheet: View {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 20) {
-                        EaseCard {
+                        EaseCard(combinesChildren: true) {
                             HStack(spacing: 20) {
                                 if let ringProgress {
                                     EaseArcRing(

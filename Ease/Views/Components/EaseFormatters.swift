@@ -71,37 +71,54 @@ enum EaseFormatters {
         )
     }
 
-    static func paceETA(_ date: Date) -> String {
-        let stamp = date.formatted(
-            Date.FormatStyle()
-                .year(.defaultDigits)
-                .month(.abbreviated)
-                .day()
-        )
-        return String(format: String(localized: "format.paceETA"), locale: .current, stamp)
+    static func paceETA(_ date: Date, now: Date = .now, calendar: Calendar = .current) -> String {
+        switch PaceHorizon.make(eta: date, now: now, calendar: calendar) {
+        case .thisWeek:
+            return String(localized: "format.paceETA.thisWeek")
+        case .monthPart:
+            return String(
+                format: String(localized: "format.paceETA"),
+                locale: .current,
+                monthPartPhrase(eta: date, now: now, calendar: calendar)
+            )
+        }
     }
 
-    static func advancedPaceETA(days: Int, date: Date) -> String {
-        let stamp = date.formatted(
-            Date.FormatStyle()
-                .year(.defaultDigits)
-                .month(.abbreviated)
-                .day()
-        )
-        return String(format: String(localized: "format.advancedPaceETA"), locale: .current, days, stamp)
+    static func advancedPaceHorizon(_ date: Date, now: Date = .now, calendar: Calendar = .current) -> String {
+        switch PaceHorizon.make(eta: date, now: now, calendar: calendar) {
+        case .thisWeek:
+            return String(localized: "format.advancedPace.thisWeek")
+        case .monthPart:
+            return String(
+                format: String(localized: "format.advancedPaceHorizon"),
+                locale: .current,
+                monthPartPhrase(eta: date, now: now, calendar: calendar)
+            )
+        }
     }
 
-    static func advancedPaceDate(_ date: Date) -> String {
-        date.formatted(
-            Date.FormatStyle()
-                .year(.defaultDigits)
-                .month(.abbreviated)
-                .day()
+    private static func monthPartPhrase(eta: Date, now: Date, calendar: Calendar) -> String {
+        let horizon = PaceHorizon.make(eta: eta, now: now, calendar: calendar)
+        guard case let .monthPart(year, month, part) = horizon else { return "" }
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = 1
+        let monthDate = calendar.date(from: components) ?? eta
+        let sameYear = calendar.component(.year, from: now) == year
+        let monthName = monthDate.formatted(
+            sameYear
+                ? Date.FormatStyle().month(.wide)
+                : Date.FormatStyle().year(.defaultDigits).month(.wide)
         )
-    }
-
-    static func advancedPaceDays(_ days: Int) -> String {
-        String(format: String(localized: "format.advancedPaceDays"), locale: .current, days)
+        switch part {
+        case .early:
+            return String(format: String(localized: "format.paceMonth.early"), locale: .current, monthName)
+        case .mid:
+            return String(format: String(localized: "format.paceMonth.mid"), locale: .current, monthName)
+        case .late:
+            return String(format: String(localized: "format.paceMonth.late"), locale: .current, monthName)
+        }
     }
 
     static func paceFactor(_ value: Double) -> String {

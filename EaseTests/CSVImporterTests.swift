@@ -76,6 +76,8 @@ final class CSVImporterTests: EaseStoreTestCase {
         )
         XCTAssertEqual(preview.duplicateCount, 1)
         XCTAssertEqual(preview.weighInCount, 1)
+        XCTAssertEqual(preview.skippedSamples.map(\.lineNumber), [2])
+        XCTAssertEqual(preview.skippedSamples.first?.reason, .duplicate)
     }
 
     func test_未来日期和越界体重_计入invalid() throws {
@@ -96,6 +98,11 @@ final class CSVImporterTests: EaseStoreTestCase {
         )
         XCTAssertEqual(preview.invalidCount, 3)
         XCTAssertEqual(preview.weighInCount, 0)
+        XCTAssertEqual(preview.skippedSamples.map(\.lineNumber), [2, 3, 4])
+        XCTAssertEqual(
+            preview.skippedSamples.map(\.reason),
+            [.futureDate, .outOfRange, .unparsable]
+        )
     }
 
     func test_超过5000行_截断不拒绝() throws {
@@ -170,6 +177,8 @@ final class CSVImporterTests: EaseStoreTestCase {
         XCTAssertEqual(preview.kind, .metrics)
         XCTAssertEqual(preview.metricLogCount, 2)
         XCTAssertEqual(preview.invalidCount, 1)
+        XCTAssertEqual(preview.skippedSamples.first?.reason, .unknownMetric)
+        XCTAssertEqual(preview.skippedSamples.first?.lineNumber, 3)
         let result = try CSVImporter.apply(preview, context: context, calendar: calendar)
         XCTAssertEqual(result.metricLogsWritten, 2)
     }
@@ -348,6 +357,18 @@ final class CSVImporterTests: EaseStoreTestCase {
         )
         XCTAssertEqual(preview.metricLogCount, 1)
         XCTAssertEqual(preview.invalidCount, 1)
+    }
+
+    func test_skippedSamples_超过上限只保留20条() throws {
+        var lines = [CSVImporter.journalHeader]
+        for _ in 0..<21 {
+            lines.append("not-a-date,08:00,70.0,,,,")
+        }
+        let preview = try previewJournal(lines.joined(separator: "\n"))
+        XCTAssertEqual(preview.invalidCount, 21)
+        XCTAssertEqual(preview.skippedSamples.count, CSVImporter.Preview.maxSkippedSamples)
+        XCTAssertEqual(preview.skippedSamples.first?.lineNumber, 2)
+        XCTAssertEqual(preview.skippedSamples.last?.lineNumber, 21)
     }
 
     private func previewJournal(_ csv: String) throws -> CSVImporter.Preview {

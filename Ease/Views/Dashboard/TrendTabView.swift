@@ -133,16 +133,11 @@ struct AdvancedPaceCard: View {
                     .foregroundStyle(EasePalette.primaryText)
 
                 if let estimate {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(EaseFormatters.advancedPaceDate(estimate.eta))
-                            .font(.system(.title, design: .rounded, weight: .bold))
-                            .foregroundStyle(EasePalette.primaryText)
-                        Text(EaseFormatters.advancedPaceDays(estimate.daysRemaining))
-                            .font(.subheadline)
-                            .foregroundStyle(EasePalette.secondaryText)
-                            .easeNumericText(estimate.daysRemaining)
-                    }
-                    .padding(.top, 12)
+                    Text(EaseFormatters.advancedPaceHorizon(estimate.eta))
+                        .font(.system(.title, design: .rounded, weight: .bold))
+                        .foregroundStyle(EasePalette.primaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 12)
 
                     Divider()
                         .overlay(EasePalette.hairline)

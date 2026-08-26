@@ -5,6 +5,7 @@ struct WeightHistorySheet: View {
     let rows: [DailyWeightRow]
     let onSelect: (DailyWeightRow) -> Void
     var onDelete: ((DailyWeightRow) -> Void)? = nil
+    var onEmptyAction: (() -> Void)? = nil
 
     var body: some View {
         NavigationStack {
@@ -14,7 +15,8 @@ struct WeightHistorySheet: View {
                     EaseEmptyState(
                         symbol: "scalemass",
                         title: "empty.history.title",
-                        message: "empty.history.message"
+                        message: "empty.history.message",
+                        action: onEmptyAction
                     )
                 } else {
                     ScrollView {

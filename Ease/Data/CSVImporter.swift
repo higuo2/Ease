@@ -49,6 +49,29 @@ enum CSVImporter {
         var pendingWeighIns: [PendingWeighIn] = []
         var pendingJournals: [PendingJournal] = []
         var pendingMetrics: [PendingMetric] = []
+        var skippedSamples: [SkippedSample] = []
+
+        static let maxSkippedSamples = 20
+    }
+
+    enum SkipKind: Equatable {
+        case invalid
+        case duplicate
+    }
+
+    enum SkipReason: String, Equatable {
+        case futureDate
+        case unparsable
+        case outOfRange
+        case unknownMetric
+        case duplicate
+    }
+
+    struct SkippedSample: Equatable, Identifiable {
+        var lineNumber: Int
+        var kind: SkipKind
+        var reason: SkipReason
+        var id: String { "\(lineNumber)-\(reason.rawValue)" }
     }
 
     struct ApplyResult: Equatable {
@@ -89,9 +112,13 @@ enum CSVImporter {
         }
 
         let headerIndex = rawLines.firstIndex(of: headerLine) ?? 0
-        let dataLines = Array(rawLines[(headerIndex + 1)...]).filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        let truncatedByRows = dataLines.count > maxDataRows
-        let limited = Array(dataLines.prefix(maxDataRows))
+        let numberedData: [(lineNumber: Int, text: String)] = rawLines.enumerated().compactMap { index, line in
+            guard index > headerIndex else { return nil }
+            guard !line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+            return (index + 1, line)
+        }
+        let truncatedByRows = numberedData.count > maxDataRows
+        let limited = Array(numberedData.prefix(maxDataRows))
 
         var preview = Preview(kind: kind, isTruncated: truncatedBySize || truncatedByRows)
         switch kind {
@@ -198,10 +225,24 @@ enum CSVImporter {
         return fields
     }
 
+    private static func recordSkip(
+        _ preview: inout Preview,
+        line: Int,
+        kind: SkipKind,
+        reason: SkipReason
+    ) {
+        switch kind {
+        case .invalid: preview.invalidCount += 1
+        case .duplicate: preview.duplicateCount += 1
+        }
+        guard preview.skippedSamples.count < Preview.maxSkippedSamples else { return }
+        preview.skippedSamples.append(SkippedSample(lineNumber: line, kind: kind, reason: reason))
+    }
+
     // MARK: - Journal
 
     private static func parseJournal(
-        lines: [String],
+        lines: [(lineNumber: Int, text: String)],
         isLegacy: Bool,
         existingLogs: [WeightLog],
         existingRecords: [DailyRecord],
@@ -212,20 +253,21 @@ enum CSVImporter {
         var seenWeighIns = weighInKeys(existingLogs, calendar: calendar)
         var journalsByDay: [String: PendingJournal] = [:]
 
-        for line in lines {
-            let fields = parseFields(line)
+        for item in lines {
+            let lineNumber = item.lineNumber
+            let fields = parseFields(item.text)
             let expected = isLegacy ? 6 : 7
             guard fields.count >= expected else {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
                 continue
             }
             let dateText = fields[0].trimmingCharacters(in: .whitespaces)
             guard let day = CalendarDay.date(fromDayKey: dateText, calendar: calendar) else {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
                 continue
             }
             if CalendarDay.isFuture(day, now: now, calendar: calendar) {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .futureDate)
                 continue
             }
 
@@ -258,22 +300,28 @@ enum CSVImporter {
             let hasNoteCell = !noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
             if !hasWeightCell && !hasFatCell && !hasDietCell && !hasTagsCell && !hasNoteCell {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
                 continue
             }
 
             var pendingWeight: PendingWeighIn?
             if hasWeightCell {
-                guard let rawWeight = EaseFormatters.parseUnrounded(weightText),
-                      let weight = try? MeasurementBounds.validatedWeight(rawWeight) else {
-                    preview.invalidCount += 1
+                guard let rawWeight = EaseFormatters.parseUnrounded(weightText) else {
+                    recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
+                    continue
+                }
+                guard let weight = try? MeasurementBounds.validatedWeight(rawWeight) else {
+                    recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .outOfRange)
                     continue
                 }
                 var bodyFat: Double?
                 if hasFatCell {
-                    guard let rawFat = EaseFormatters.parseUnrounded(fatText),
-                          let fat = try? MeasurementBounds.validatedBodyFat(rawFat) else {
-                        preview.invalidCount += 1
+                    guard let rawFat = EaseFormatters.parseUnrounded(fatText) else {
+                        recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
+                        continue
+                    }
+                    guard let fat = try? MeasurementBounds.validatedBodyFat(rawFat) else {
+                        recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .outOfRange)
                         continue
                     }
                     bodyFat = fat
@@ -285,21 +333,21 @@ enum CSVImporter {
                     guard let parsed = parseHourMinute(timeText),
                           let stamp = optionalTimestamp(day: day, hour: parsed.hour, minute: parsed.minute, calendar: calendar)
                     else {
-                        preview.invalidCount += 1
+                        recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
                         continue
                     }
                     timestamp = stamp
                 }
                 pendingWeight = PendingWeighIn(timestamp: timestamp, weight: weight, bodyFat: bodyFat)
             } else if hasFatCell {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
                 continue
             }
 
             var diet: DietStatus?
             if hasDietCell {
                 guard let parsed = DietStatus(rawValue: dietText.trimmingCharacters(in: .whitespaces)) else {
-                    preview.invalidCount += 1
+                    recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
                     continue
                 }
                 diet = parsed
@@ -328,7 +376,7 @@ enum CSVImporter {
             if let pendingWeight {
                 let key = weighInKey(pendingWeight.timestamp, weight: pendingWeight.weight, calendar: calendar)
                 if seenWeighIns.contains(key) {
-                    preview.duplicateCount += 1
+                    recordSkip(&preview, line: lineNumber, kind: .duplicate, reason: .duplicate)
                 } else {
                     seenWeighIns.insert(key)
                     preview.pendingWeighIns.append(pendingWeight)
@@ -394,7 +442,7 @@ enum CSVImporter {
     // MARK: - Metrics
 
     private static func parseMetrics(
-        lines: [String],
+        lines: [(lineNumber: Int, text: String)],
         existingMetricLogs: [MetricLog],
         metricSpecs: [String: MetricSpec],
         now: Date,
@@ -402,10 +450,11 @@ enum CSVImporter {
         into preview: inout Preview
     ) {
         var seen = metricKeys(existingMetricLogs, specs: metricSpecs, calendar: calendar)
-        for line in lines {
-            let fields = parseFields(line)
+        for item in lines {
+            let lineNumber = item.lineNumber
+            let fields = parseFields(item.text)
             guard fields.count >= 4 else {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
                 continue
             }
             let dateText = fields[0].trimmingCharacters(in: .whitespaces)
@@ -414,29 +463,35 @@ enum CSVImporter {
             let valueText = fields[3].trimmingCharacters(in: .whitespaces)
 
             guard let day = CalendarDay.date(fromDayKey: dateText, calendar: calendar) else {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
                 continue
             }
             if CalendarDay.isFuture(day, now: now, calendar: calendar) {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .futureDate)
                 continue
             }
             guard let spec = metricSpecs[key] ?? MetricCatalog.builtin(for: key) else {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unknownMetric)
                 continue
             }
             guard let parsedTime = parseHourMinute(timeText.isEmpty ? "08:00" : timeText),
-                  let timestamp = optionalTimestamp(day: day, hour: parsedTime.hour, minute: parsedTime.minute, calendar: calendar),
-                  let raw = EaseFormatters.parseUnrounded(valueText),
-                  let value = try? MetricCatalog.validated(raw, spec: spec)
+                  let timestamp = optionalTimestamp(day: day, hour: parsedTime.hour, minute: parsedTime.minute, calendar: calendar)
             else {
-                preview.invalidCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
+                continue
+            }
+            guard let raw = EaseFormatters.parseUnrounded(valueText) else {
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .unparsable)
+                continue
+            }
+            guard let value = try? MetricCatalog.validated(raw, spec: spec) else {
+                recordSkip(&preview, line: lineNumber, kind: .invalid, reason: .outOfRange)
                 continue
             }
 
             let dedupe = metricKey(timestamp, metricKey: key, value: value, spec: spec, calendar: calendar)
             if seen.contains(dedupe) {
-                preview.duplicateCount += 1
+                recordSkip(&preview, line: lineNumber, kind: .duplicate, reason: .duplicate)
                 continue
             }
             seen.insert(dedupe)
