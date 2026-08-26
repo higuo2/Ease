@@ -24,6 +24,7 @@ final class CSVImporterTests: EaseStoreTestCase {
         XCTAssertEqual(preview.weighInCount, 2)
         XCTAssertEqual(preview.dietDayCount, 2)
         XCTAssertEqual(preview.invalidCount, 0)
+        XCTAssertTrue(preview.skippedSamples.isEmpty)
 
         let result = try CSVImporter.apply(preview, context: context, calendar: calendar)
         XCTAssertEqual(result.weighInsWritten, 2)
@@ -205,6 +206,9 @@ final class CSVImporterTests: EaseStoreTestCase {
         )
         XCTAssertEqual(preview.duplicateCount, 1)
         XCTAssertEqual(preview.metricLogCount, 0)
+        XCTAssertEqual(preview.skippedSamples.map(\.lineNumber), [2])
+        XCTAssertEqual(preview.skippedSamples.first?.kind, .duplicate)
+        XCTAssertEqual(preview.skippedSamples.first?.reason, .duplicate)
     }
 
     func test_note含逗号_解析后写入() throws {
@@ -286,6 +290,22 @@ final class CSVImporterTests: EaseStoreTestCase {
         let preview = try previewJournal(csv)
         XCTAssertEqual(preview.invalidCount, 2)
         XCTAssertEqual(preview.weighInCount, 0)
+        XCTAssertEqual(preview.skippedSamples.map(\.lineNumber), [2, 3])
+        XCTAssertEqual(preview.skippedSamples.map(\.kind), [.invalid, .invalid])
+        XCTAssertEqual(preview.skippedSamples.map(\.reason), [.outOfRange, .unparsable])
+    }
+
+    func test_空行或仅有体脂无体重_unparsable() throws {
+        let csv = """
+        \(CSVImporter.journalHeader)
+        2026-08-10,,,,,,
+        2026-08-10,08:00,,18.0,,,
+        """
+        let preview = try previewJournal(csv)
+        XCTAssertEqual(preview.invalidCount, 2)
+        XCTAssertEqual(preview.weighInCount, 0)
+        XCTAssertEqual(preview.skippedSamples.map(\.reason), [.unparsable, .unparsable])
+        XCTAssertEqual(preview.skippedSamples.map(\.lineNumber), [2, 3])
     }
 
     func test_超过2MB_截断并保留已解析行() throws {
@@ -336,6 +356,30 @@ final class CSVImporterTests: EaseStoreTestCase {
         )
         XCTAssertEqual(preview.metricLogCount, 1)
         XCTAssertEqual(preview.invalidCount, 1)
+        XCTAssertEqual(preview.skippedSamples.first?.reason, .outOfRange)
+        XCTAssertEqual(preview.skippedSamples.first?.kind, .invalid)
+        XCTAssertEqual(preview.skippedSamples.first?.lineNumber, 3)
+    }
+
+    func test_指标未来日期_futureDate() throws {
+        let csv = """
+        \(CSVImporter.metricsHeader)
+        2026-08-30,08:00,waist,68.0
+        """
+        let preview = try CSVImporter.preview(
+            from: Data(csv.utf8),
+            existingLogs: [],
+            existingRecords: [],
+            existingMetricLogs: [],
+            metricSpecs: [:],
+            now: calendar.testDate(2026, 8, 20),
+            calendar: calendar
+        )
+        XCTAssertEqual(preview.metricLogCount, 0)
+        XCTAssertEqual(preview.invalidCount, 1)
+        XCTAssertEqual(preview.skippedSamples.first?.reason, .futureDate)
+        XCTAssertEqual(preview.skippedSamples.first?.kind, .invalid)
+        XCTAssertEqual(preview.skippedSamples.first?.lineNumber, 2)
     }
 
     func test_自定义已定义key可导入_未定义key无效() throws {
@@ -357,6 +401,8 @@ final class CSVImporterTests: EaseStoreTestCase {
         )
         XCTAssertEqual(preview.metricLogCount, 1)
         XCTAssertEqual(preview.invalidCount, 1)
+        XCTAssertEqual(preview.skippedSamples.first?.reason, .unknownMetric)
+        XCTAssertEqual(preview.skippedSamples.first?.lineNumber, 3)
     }
 
     func test_skippedSamples_超过上限只保留20条() throws {

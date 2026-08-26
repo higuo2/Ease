@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 @testable import Ease
 
@@ -98,6 +99,18 @@ final class UserProfileRepositoryTests: EaseStoreTestCase {
         XCTAssertEqual(restored.startWeight, 0)
     }
 
+    func test_resetAll_驱逐餐食缩略图缓存() async throws {
+        MealPhotoStore.removeAllCached()
+        let fileName = try await MealPhotoStore.saveJPEG(Self.sampleImage())
+        XCTAssertNotNil(MealPhotoStore.peek(fileName))
+
+        try profiles.resetAll()
+
+        XCTAssertNil(MealPhotoStore.peek(fileName))
+        MealPhotoStore.deleteAsync(fileName: fileName)
+        MealPhotoStore.removeAllCached()
+    }
+
     func test_update_提醒时刻写入并钳制() throws {
         _ = try profiles.completeOnboarding(heightCm: 170, currentWeight: 72, targetWeight: 62)
         let updated = try profiles.update(
@@ -174,5 +187,12 @@ final class UserProfileRepositoryTests: EaseStoreTestCase {
             XCTAssertEqual(error as? EaseDataError, .invalidProfile)
         }
         XCTAssertNil(try profiles.profile().birthDate)
+    }
+
+    private static func sampleImage(size: CGSize = CGSize(width: 8, height: 8)) -> UIImage {
+        UIGraphicsImageRenderer(size: size).image { context in
+            UIColor.red.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+        }
     }
 }

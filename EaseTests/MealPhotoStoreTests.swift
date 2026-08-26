@@ -46,6 +46,26 @@ final class MealPhotoStoreTests: XCTestCase {
         MealPhotoStore.deleteAsync(fileName: fileName)
     }
 
+    func test_loadOriginal_缺失或不安全文件名_返回nil() async {
+        MealPhotoStore.removeAllCached()
+        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: nil))
+        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: ""))
+        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: "missing.jpg"))
+        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: "../escape.jpg"))
+        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: "photo.png"))
+        XCTAssertNil(await MealPhotoStore.loadImage(fileName: "../escape.jpg"))
+        XCTAssertNil(await MealPhotoStore.loadImage(fileName: "missing.jpg"))
+    }
+
+    func test_removeAllCached_驱逐已保存缩略图() async throws {
+        MealPhotoStore.removeAllCached()
+        let fileName = try await MealPhotoStore.saveJPEG(sampleImage())
+        XCTAssertNotNil(MealPhotoStore.peek(fileName))
+        MealPhotoStore.removeAllCached()
+        XCTAssertNil(MealPhotoStore.peek(fileName))
+        MealPhotoStore.deleteAsync(fileName: fileName)
+    }
+
     private func sampleImage(size: CGSize = CGSize(width: 8, height: 8)) -> UIImage {
         UIGraphicsImageRenderer(size: size).image { context in
             UIColor.red.setFill()
