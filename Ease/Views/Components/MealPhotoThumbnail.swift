@@ -6,6 +6,11 @@ struct MealPhotoThumbnail: View {
     let fileName: String?
     var isBusy: Bool = false
     var showsCutout: Bool = false
+    var cornerRadius: CGFloat = 16
+
+    private var roundedRect: RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+    }
 
     @State private var original: UIImage?
     @State private var cutout: UIImage?
@@ -17,8 +22,7 @@ struct MealPhotoThumbnail: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(EasePalette.recessed)
+            roundedRect.fill(EasePalette.recessed)
             if showsCutout, let cutout {
                 Image(uiImage: cutout)
                     .resizable()
@@ -29,7 +33,7 @@ struct MealPhotoThumbnail: View {
                 Image(uiImage: original)
                     .resizable()
                     .scaledToFill()
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .clipShape(roundedRect)
                     .opacity(showsCutout && isCutoutBusy ? 0.45 : 1)
             } else if fileName == nil {
                 Image(systemName: "camera")
@@ -43,7 +47,7 @@ struct MealPhotoThumbnail: View {
         }
         .frame(maxWidth: .infinity)
         .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(roundedRect)
         .task(id: taskID) {
             await load()
         }

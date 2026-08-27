@@ -36,6 +36,15 @@ struct CalendarTabView: View {
                         monthHeader
                         calendarCard
                         monthOverviewCard
+                        DailyMomentsCard(
+                            date: selectedDate,
+                            record: records.first {
+                                $0.dayKey == CalendarDay.dayKey(from: selectedDate)
+                            },
+                            onAddMeal: {
+                                viewModel.openDietEntry(for: selectedDate)
+                            }
+                        )
                     }
                     .easeTabScrollContent()
                 }
@@ -134,8 +143,11 @@ struct CalendarTabView: View {
         return Button {
             guard !isFuture else { return }
             let start = CalendarDay.startOfDay(day)
-            viewModel.selectedDate = start
-            daySheet = DaySheetItem(date: start)
+            if isSelected {
+                daySheet = DaySheetItem(date: start)
+            } else {
+                viewModel.selectedDate = start
+            }
         } label: {
             VStack(spacing: 2) {
                 Text("\(Calendar.current.component(.day, from: day))")
