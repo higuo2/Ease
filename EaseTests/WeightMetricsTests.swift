@@ -262,4 +262,68 @@ final class WeightMetricsTests: EaseStoreTestCase {
         XCTAssertEqual(range?.high, 69.1)
         XCTAssertNil(BMIClassifier.chinaHealthyWeightKg(heightCm: 0))
     }
+
+    func test_bmiClassifier_WHO正常体重区间() {
+        let range = BMIClassifier.healthyWeightKg(heightCm: 170, standard: .who)
+        XCTAssertEqual(range?.low, 53.5)
+        XCTAssertEqual(range?.high, 72.0)
+        XCTAssertNil(BMIClassifier.healthyWeightKg(heightCm: 0, standard: .who))
+    }
+
+    func test_bmiClassifier_24点0_中国超重_WHO正常() {
+        XCTAssertEqual(BMIClassifier.band(bmi: 24.0, standard: .china), .overweight)
+        XCTAssertEqual(BMIClassifier.band(bmi: 24.0, standard: .who), .normal)
+        XCTAssertEqual(
+            BMIClassifier.classify(bmi: 24.0, birthDate: nil, now: calendar.testDate(2026, 8, 26)),
+            .band(.overweight, assumedAdult: true)
+        )
+        XCTAssertEqual(
+            BMIClassifier.classify(
+                bmi: 24.0,
+                birthDate: nil,
+                now: calendar.testDate(2026, 8, 26),
+                standard: .who
+            ),
+            .band(.normal, assumedAdult: true)
+        )
+    }
+
+    func test_bmiClassifier_未满18_WHO也不评价() {
+        let now = calendar.testDate(2026, 8, 26)
+        let seventeen = calendar.testDate(2008, 8, 27)
+        XCTAssertEqual(
+            BMIClassifier.classify(
+                bmi: 22.0,
+                birthDate: seventeen,
+                now: now,
+                calendar: calendar,
+                standard: .who
+            ),
+            .notApplicable
+        )
+        XCTAssertFalse(BMIClassifier.classify(
+            bmi: 22.0,
+            birthDate: seventeen,
+            now: now,
+            calendar: calendar,
+            standard: .who
+        ).showsNeedle)
+    }
+
+    func test_bmiBarFraction_夹在显示域内() {
+        XCTAssertEqual(BMIClassifier.barFraction(bmi: 15), 0)
+        XCTAssertEqual(BMIClassifier.barFraction(bmi: 40), 1)
+        XCTAssertEqual(BMIClassifier.barFraction(bmi: 10), 0)
+        XCTAssertEqual(BMIClassifier.barFraction(bmi: 50), 1)
+        XCTAssertEqual(BMIClassifier.barFraction(bmi: 21.3), (21.3 - 15) / 25, accuracy: 0.0001)
+    }
+
+    func test_bmiBandFractions_中国与WHO宽度和为1() {
+        let china = BMIClassifier.bandFractions(standard: .china)
+        let who = BMIClassifier.bandFractions(standard: .who)
+        XCTAssertEqual(china.values.reduce(0, +), 1, accuracy: 0.0001)
+        XCTAssertEqual(who.values.reduce(0, +), 1, accuracy: 0.0001)
+        XCTAssertGreaterThan(who[.normal] ?? 0, china[.normal] ?? 0)
+        XCTAssertEqual(china[.underweight], who[.underweight])
+    }
 }

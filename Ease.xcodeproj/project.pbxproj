@@ -18,6 +18,7 @@
 		A10000000000000000000018 /* WeightMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000048 /* WeightMetrics.swift */; };
 		A100000000000000000000F1 /* BMIClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000F0 /* BMIClassification.swift */; };
 		A100000000000000000000F3 /* BMIDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000F2 /* BMIDetailSheet.swift */; };
+		A100000000000000000000F9 /* BMIRangeBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000F8 /* BMIRangeBar.swift */; };
 		A10000000000000000000019 /* DailyRecordRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000049 /* DailyRecordRepository.swift */; };
 		A1000000000000000000001A /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004A /* UserProfileRepository.swift */; };
 		A1000000000000000000001B /* EaseModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004B /* EaseModelContainer.swift */; };
@@ -129,6 +130,7 @@
 		A10000000000000000000048 /* WeightMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightMetrics.swift; sourceTree = "<group>"; };
 		A100000000000000000000F0 /* BMIClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BMIClassification.swift; sourceTree = "<group>"; };
 		A100000000000000000000F2 /* BMIDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BMIDetailSheet.swift; sourceTree = "<group>"; };
+		A100000000000000000000F8 /* BMIRangeBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BMIRangeBar.swift; sourceTree = "<group>"; };
 		A10000000000000000000049 /* DailyRecordRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRecordRepository.swift; sourceTree = "<group>"; };
 		A1000000000000000000004A /* UserProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileRepository.swift; sourceTree = "<group>"; };
 		A1000000000000000000004B /* EaseModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseModelContainer.swift; sourceTree = "<group>"; };
@@ -422,6 +424,7 @@
 				A100000000000000000000B7 /* MetricSheet.swift */,
 				A100000000000000000000D7 /* EnergyDetailSheet.swift */,
 				A100000000000000000000F2 /* BMIDetailSheet.swift */,
+				A100000000000000000000F8 /* BMIRangeBar.swift */,
 				A100000000000000000000D9 /* WeightHistorySheet.swift */,
 			);
 			path = Dashboard;
@@ -594,6 +597,7 @@
 				A100000000000000000000E6 /* HomeModule.swift in Sources */,
 				A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */,
 				A100000000000000000000F3 /* BMIDetailSheet.swift in Sources */,
+				A100000000000000000000F9 /* BMIRangeBar.swift in Sources */,
 				A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */,
 				A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */,
 				A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */,

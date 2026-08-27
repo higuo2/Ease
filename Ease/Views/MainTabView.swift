@@ -106,7 +106,6 @@ struct MainTabView: View {
                 bmi: snapshotBMI.bmi,
                 weightKg: snapshotBMI.displayWeight,
                 heightCm: profile?.heightCm ?? 0,
-                bodyFat: snapshotBMI.bodyFat,
                 birthDate: profile?.birthDate,
                 sex: profile?.sex ?? .unspecified,
                 now: viewModel.selectedDate

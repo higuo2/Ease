@@ -129,6 +129,10 @@ enum EaseFormatters {
         String(format: String(localized: "format.ageYears"), locale: .current, years)
     }
 
+    static func ageYearsCompact(_ years: Int) -> String {
+        String(format: String(localized: "format.ageYears.compact"), locale: .current, years)
+    }
+
     static func healthyWeightRange(low: Double, high: Double) -> String {
         String(format: String(localized: "format.healthyWeightRange"), locale: .current, low, high)
     }

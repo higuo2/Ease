@@ -24,11 +24,11 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
 ## 1. Aesthetic: Milk & Card Minimalist（奶油极简）
 Core feel: generous whitespace, soft hierarchy via fill color (not borders/shadows), low-saturation milk/gray card surfaces, high-contrast rounded display numbers, and quiet coral / mint accents for direction feedback.
 
-- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles; segmented trend ranges; black chart tooltip (date + last-per-day weight + optional 7-day MA); month calendar with dual-line day cells; weight-history sheet; BMI detail sheet (gray band label, no traffic-light chart); quiet sleep/period/energy detail tints inside their sheets only; meal photo full-screen preview (system cover, no Hero morph).
+- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles; segmented trend ranges; black chart tooltip (date + last-per-day weight + optional 7-day MA); month calendar with dual-line day cells; weight-history sheet; BMI detail sheet (gray band capsule, quiet Morandi range bar, CN/WHO picker); quiet sleep/period/energy detail tints inside their sheets only; meal photo full-screen preview (system cover, no Hero morph).
 - **ABSOLUTELY FORBIDDEN**:
     - NO calorie counting, NO macros (carbs/protein/fats), NO calorie goal ring. Diet shortcuts show check-in only — never kcal totals or “热量目标”. Active Energy may show HK kcal as a fact only.
     - NO streak flames, celebration animations, or goal-reached confetti (including “import succeeded” and “you will hit your goal”).
-    - NO WHO BMI color bands (green/yellow/red charts). NO colored status chips. BMI may show a **gray** Chinese-adult band label (偏瘦 / 正常 / 超重 / 肥胖) and a read-only detail sheet that explains cutoffs. Not a medical diagnosis.
+    - NO WHO BMI traffic-light charts (green/yellow/red). NO colored diagnostic chips. Home BMI tile stays a **gray** Chinese-adult band label (偏瘦 / 正常 / 超重 / 肥胖). The detail sheet may use a quiet Morandi range bar; the status capsule stays gray. Not a medical diagnosis.
     - NO social share buttons, NO in-app language switcher.
     - NO Dark Mode.
     - NO purple-as-brand theme. NO heavy drop shadows as the main depth cue.
@@ -103,7 +103,7 @@ Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
 - **Diet Log Sheet**：可展开日历 → 饮食三选一 → 三餐照片（拍照/相册，Documents 文件名；有图单击全屏预览）→ 标签 → 备注 → 珊瑚 Capsule Save（不含体重）。
 - **Weight History Sheet**：全部体重日列表（与首页行同构）；点行编辑。
 - **Metrics Sheet**：日期 → 已启用围度 → Save → **历史列表**（无围度趋势图）。主入口 = 首页围度格。
-- **Sleep / Cycle / Energy / BMI Detail**：睡眠/经期/消耗只读 HealthKit；BMI 只读档案+体重。sheet 内可用安静 tint；Sleep/Energy 图需有轴。BMI **无**色档图。
+- **Sleep / Cycle / Energy / BMI Detail**：睡眠/经期/消耗只读 HealthKit；BMI 只读档案+体重。sheet 内可用安静 tint；Sleep/Energy 图需有轴。BMI 可用莫兰迪分段条，档名灰色胶囊，禁止绿黄红交通灯。
 - **Onboarding**：三步不变；奶油底 + 黑 Capsule 主按钮。
 
 ## 5. UI Components & Styling

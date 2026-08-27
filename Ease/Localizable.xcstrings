@@ -419,13 +419,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Weight for a normal BMI"
+            "value": "Ideal range"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "对应正常 BMI 的体重"
+            "value": "理想区间"
           }
         }
       }
@@ -446,6 +446,22 @@
         }
       }
     },
+    "bmi.sheet.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About these numbers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于这些数字"
+          }
+        }
+      }
+    },
     "bmi.sheet.inputs": {
       "localizations": {
         "en": {
@@ -458,6 +474,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "本次用到的数据"
+          }
+        }
+      }
+    },
+    "bmi.sheet.standard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BMI standard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BMI 标准"
           }
         }
       }
@@ -510,6 +542,22 @@
         }
       }
     },
+    "bmi.standard.china.short": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CN"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中国"
+          }
+        }
+      }
+    },
     "bmi.standard.who": {
       "localizations": {
         "en": {
@@ -522,6 +570,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "WHO 成人标准（对照）"
+          }
+        }
+      }
+    },
+    "bmi.standard.who.short": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WHO"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WHO"
           }
         }
       }
@@ -1697,6 +1761,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld years old"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 岁"
+          }
+        }
+      }
+    },
+    "format.ageYears.compact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld y"
           }
         },
         "zh-Hans": {
