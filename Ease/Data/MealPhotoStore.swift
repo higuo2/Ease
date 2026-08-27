@@ -88,11 +88,7 @@ enum MealPhotoStore {
     }
 
     static func deleteAllAsync(in record: DailyRecord) {
-        deleteAsync(fileNames: [
-            record.breakfastPhotoFileName,
-            record.lunchPhotoFileName,
-            record.dinnerPhotoFileName
-        ])
+        deleteAsync(fileNames: record.allMealFileNames)
     }
 
     static func removeAllCached() {

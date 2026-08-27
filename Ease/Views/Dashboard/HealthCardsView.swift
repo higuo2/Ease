@@ -72,8 +72,8 @@ struct HealthCardsView: View {
                 } else {
                     labeledIcon(systemName: "circle.dashed", labelKey: "today.dietPending")
                 }
-                ForEach(journalTags, id: \.self) { tag in
-                    labeledIcon(systemName: tag.systemImage, labelKey: tag.titleKey)
+                ForEach(journalTags) { tag in
+                    labeledIcon(tag)
                 }
                 Spacer(minLength: 0)
             }
@@ -141,6 +141,22 @@ struct HealthCardsView: View {
         } else {
             card
         }
+    }
+
+    private func labeledIcon(_ tag: VariableTag) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: tag.systemImage)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(EasePalette.primaryText)
+                .accessibilityHidden(true)
+            tag.titleText
+                .font(.caption)
+                .foregroundStyle(EasePalette.secondaryText)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(minWidth: 44)
+        .accessibilityElement(children: .combine)
     }
 
     private func labeledIcon(systemName: String, labelKey: String) -> some View {

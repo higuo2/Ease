@@ -26,6 +26,9 @@ final class DailyRecord {
     var breakfastPhotoFileName: String?
     var lunchPhotoFileName: String?
     var dinnerPhotoFileName: String?
+    /// Extra meal slots (afternoon tea, late night, custom). Breakfast/lunch/dinner
+    /// never live here. Decode failure yields an empty array and does not fail the record.
+    var extraMealsJSON: String? = nil
     var updatedAt: Date = Date.now
 
     var dietStatus: DietStatus? {
@@ -40,6 +43,11 @@ final class DailyRecord {
         set {
             tags = Array(VariableTag.sanitized(newValue).map(\.rawValue))
         }
+    }
+
+    var extraMeals: [ExtraMealPhoto] {
+        get { ExtraMealPhoto.decode(extraMealsJSON) }
+        set { extraMealsJSON = ExtraMealPhoto.encode(newValue) }
     }
 
     init(date: Date, calendar: Calendar = .current) {
@@ -57,6 +65,7 @@ final class DailyRecord {
         self.breakfastPhotoFileName = nil
         self.lunchPhotoFileName = nil
         self.dinnerPhotoFileName = nil
+        self.extraMealsJSON = nil
         self.updatedAt = .now
     }
 
@@ -65,18 +74,38 @@ final class DailyRecord {
         case .breakfast: breakfastPhotoFileName
         case .lunch: lunchPhotoFileName
         case .dinner: dinnerPhotoFileName
+        default: extraMeals.first(where: { $0.id == slot.id })?.fileName
         }
     }
 
     func setMealPhotoFileName(_ fileName: String?, for slot: MealSlot) {
         switch slot {
-        case .breakfast: breakfastPhotoFileName = fileName
-        case .lunch: lunchPhotoFileName = fileName
-        case .dinner: dinnerPhotoFileName = fileName
+        case .breakfast:
+            breakfastPhotoFileName = fileName
+        case .lunch:
+            lunchPhotoFileName = fileName
+        case .dinner:
+            dinnerPhotoFileName = fileName
+        default:
+            var extras = extraMeals
+            extras.upsert(slot: slot, fileName: fileName)
+            extraMeals = extras
         }
     }
 
     var hasMealPhoto: Bool {
-        breakfastPhotoFileName != nil || lunchPhotoFileName != nil || dinnerPhotoFileName != nil
+        breakfastPhotoFileName != nil
+            || lunchPhotoFileName != nil
+            || dinnerPhotoFileName != nil
+            || extraMeals.contains { $0.fileName != nil }
+    }
+
+    var allMealFileNames: [String?] {
+        [breakfastPhotoFileName, lunchPhotoFileName, dinnerPhotoFileName]
+            + extraMeals.map(\.fileName)
+    }
+
+    var visibleMealSlots: [MealSlot] {
+        MealSlot.presets + extraMeals.filter(\.isCustom).map(MealSlot.fromExtra)
     }
 }

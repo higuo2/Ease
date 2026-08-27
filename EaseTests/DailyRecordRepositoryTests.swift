@@ -166,4 +166,29 @@ final class DailyRecordRepositoryTests: EaseStoreTestCase {
         XCTAssertNil(try dailyRecords.record(on: day))
         XCTAssertEqual(try weightLogs.logs(on: day).count, 1)
     }
+
+    func test_upsert_extraMealsJSON_不含三餐字段() throws {
+        let day = calendar.testDate(2026, 8, 10)
+        var patch = DailyRecordPatch()
+        patch.extraMeals = .set([
+            ExtraMealPhoto(id: "afternoonTea", title: nil, fileName: "tea.jpg"),
+            ExtraMealPhoto(id: "breakfast", title: nil, fileName: "skip.jpg")
+        ])
+        let record = try dailyRecords.upsert(on: day, patch: patch)
+
+        XCTAssertEqual(record?.extraMeals.map(\.id), ["afternoonTea"])
+        XCTAssertEqual(record?.extraMeals.first?.fileName, "tea.jpg")
+        XCTAssertNil(record?.breakfastPhotoFileName)
+        XCTAssertTrue(record?.hasMealPhoto == true)
+    }
+
+    func test_extraMealsJSON_非法字符串解码为空且不崩() throws {
+        let day = calendar.testDate(2026, 8, 10)
+        let record = DailyRecord(date: day, calendar: calendar)
+        record.extraMealsJSON = "{not-json"
+        context.insert(record)
+        try context.save()
+        XCTAssertEqual(record.extraMeals, [])
+        XCTAssertFalse(record.hasMealPhoto)
+    }
 }

@@ -10,14 +10,35 @@ final class VariableTagTests: EaseStoreTestCase {
         )
         XCTAssertEqual(VariableTag.sanitized([]), [])
         XCTAssertEqual(VariableTag.sanitized([.travel]), [.travel])
+        XCTAssertEqual(
+            VariableTag.sanitized([
+                VariableTag(rawValue: "custom.tea")!,
+                .swollen,
+                .bowel,
+                .period
+            ]),
+            [.period, .bowel, .swollen, VariableTag(rawValue: "custom.tea")!]
+        )
+    }
+
+    func test_init_只接受白名单或custom点前缀() {
+        XCTAssertNil(VariableTag(rawValue: "custom"))
+        XCTAssertNil(VariableTag(rawValue: "kcal"))
+        XCTAssertNil(VariableTag(rawValue: "custom./path"))
+        XCTAssertEqual(VariableTag(rawValue: "custom.tea")?.rawValue, "custom.tea")
+        XCTAssertEqual(VariableTag.custom(from: "tea")?.rawValue, "custom.tea")
+        XCTAssertNil(VariableTag.custom(from: "  "))
     }
 
     func test_DailyRecord_variableTags_丢弃未知字符串() throws {
         let record = DailyRecord(date: calendar.testDate(2026, 8, 20), calendar: calendar)
-        record.tags = ["period", "custom", "travel", "nope"]
+        record.tags = ["period", "custom", "travel", "nope", "custom.tea", "kcal"]
         context.insert(record)
         try context.save()
-        XCTAssertEqual(record.variableTags, [.period, .travel])
+        XCTAssertEqual(
+            record.variableTags,
+            [.period, .travel, VariableTag(rawValue: "custom.tea")!]
+        )
     }
 
     func test_HealthDisplay_tags_HK经期与手动period去重只保留一个() throws {

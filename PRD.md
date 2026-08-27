@@ -13,7 +13,7 @@
     * 经期预测仅为本地启发式展示，禁止写成医疗结论或「Apple 官方预测」。
 * **本期范围 (v1.1)**：一天多次体重 (`WeightLog`)、4-Tab 根导航、睡眠/经期详情 Sheet。
 * **本期范围 (v1.2)**：Ease CSV 再导入、扩展指标（围度）、达标日估算（含趋势页高级估算）、自定义提醒时刻、可配置首页模块。规格见 §8。
-* **仍不做**：桌面 Widget（含锁屏/主屏一键体重或从 Widget 拍照）、体重+体脂双轴图、**饮食变量标签**自定义、Dark Mode、第三方格式导入（MyFitnessPal 等）、为扩展指标单独做催打卡通知、卡路里合计、饮水追踪、「一键同步 HealthKit」。
+* **仍不做**：桌面 Widget（含锁屏/主屏一键体重或从 Widget 拍照）、体重+体脂双轴图、Dark Mode、第三方格式导入（MyFitnessPal 等）、为扩展指标单独做催打卡通知、卡路里合计、饮水追踪、「一键同步 HealthKit」。自定义标签只在饮食 Sheet / 日历日明细里添加，不在设置做标签管理页。
 
 ## 2. 信息架构与页面流转 (Information Architecture)
 采用 **4-Tab 根导航**。全 App 界面：体重 Tab、趋势 Tab、日历 Tab、**设置 Tab**；叠加体重/饮食录入 Sheet、围度 Sheet、体重历史 Sheet、BMI / 睡眠 / 经期 / 活动消耗详情 Sheet；另加首次启动的 Onboarding。
@@ -40,10 +40,10 @@
 1. 7 列月历；每格：日号 + 当日体重 + 涨跌幅（`▼0.2` / `▲0.2`）。
 2. **周均 / 月均**体重卡：周均 = 当前选中日所在自然周内有记录日的平均；月均 = 当前浏览月内有记录日的平均。
 3. 月度统计横栏（5 列）：打卡天数、减重天数、增重天数、日均变化、本月变化。
-4. 选中日后底部明细：早晚体重、日间波动（同日晚−早）、饮食打卡。**禁止**卡路里合计或宏量营养素。跨日的夜间代谢（前晚−今早）不在此硬塞。
+4. 选中日后底部明细：早晚体重、日间波动（同日晚−早）、餐次横滑、饮食/标签芯片与备注。**禁止**卡路里合计或宏量营养素。跨日的夜间代谢（前晚−今早）不在此硬塞。月份「清淡天数」只计 `clean`，不计 `fasting`。
 
 ### 2.4 设置 Tab（Settings）
-第四 Tab（非 Sheet）。无 Done/Close；档案与开关即时保存。可改：身高、生日、生理性别、初始体重、目标体重、**睡眠目标时长**（默认 8.0 h，精度 0.5 h，范围 4–12 h）、首页模块开关、通知总开关与提醒时刻、导出 / 导入 CSV、扩展指标启用与自定义、清除全部数据。改初始/目标后阶段进度立刻重算。不提供语言切换、单位切换、饮食变量标签自定义。
+第四 Tab（非 Sheet）。无 Done/Close；档案与开关即时保存。可改：身高、生日、生理性别、初始体重、目标体重、**睡眠目标时长**（默认 8.0 h，精度 0.5 h，范围 4–12 h）、首页模块开关、通知总开关与提醒时刻、导出 / 导入 CSV、扩展指标启用与自定义、清除全部数据。改初始/目标后阶段进度立刻重算。不提供语言切换、单位切换、设置里的标签管理页。
 
 * 次级入口：设置内可打开睡眠 / 经期详情（与首页方块同一套 Sheet）。
 * **清除全部数据**：须**两次确认**（先确认对话框「继续」，再 alert 最终清除）；清除后回到 Onboarding。
@@ -53,7 +53,7 @@
 
 **体重 Sheet**：可展开图形日历改日期（默认所选日 / 今天；不可未来）→ 体重 + 行内相册识图 → 体脂（可选）→ Save。新增 = **insert `WeightLog`**。编辑已有条可改或 Delete 该条。今天用当前时刻；补过去的日子用当天 08:00。
 
-**饮食 Sheet**：可展开日历改日期 → 饮食三选一 → 标签 → 备注 → Save。写入当天 `DailyRecord`（字段级 upsert）。可 Delete 当日日记（不动体重）。
+**饮食 Sheet**：可展开日历改日期 → 饮食四选一（Clean / Normal / Cheat / Fasting）→ 餐次横滑（早餐、午餐、下午茶、晚餐、夜宵 + 自定义）→ 标签（预设 + `custom.*`）→ 备注 → 底部固定 Save。写入当天 `DailyRecord`（字段级 upsert）。可 Delete 当日日记（不动体重）。**禁止**卡路里、高蛋白、低碳水。
 
 围度不在上述 Sheet，也不参与体重/饮食校验。
 
@@ -94,7 +94,7 @@
 ## 3. 数据模型与业务规则 (Data Rules - SwiftData)
 
 ### 3.1 两条模型，职责分开
-* **`DailyRecord`**：每个本地日历日至多一条。**读写职责**只覆盖 `dietStatus`、`tags`、`note`。
+* **`DailyRecord`**：每个本地日历日至多一条。**读写职责**覆盖 `dietStatus`、`tags`、`note`、三餐文件名、`extraMealsJSON`。
 * **`WeightLog`**：一次称重一条。允许同一日历日多条。无 Unique Constraint（CloudKit / SwiftData 限制）。运行时体重/体脂的唯一真相源。
 
 **CloudKit 平滑过渡（强制）：**
@@ -108,9 +108,11 @@
 * `date`: Date（按本地日历日唯一，忽略时分秒；实现可用 `dayKey`）
 * `weight`: Double? — **legacy，Schema 保留，v1.1 起只读不写**
 * `bodyFat`: Double? — **legacy，Schema 保留，v1.1 起只读不写**
-* `dietStatus`: Enum?（Clean / Normal / Cheat，每日至多一个）
-* `tags`: [String]（稳定英文 key：`period` / `travel` / `bowel`；UI 分别用 `drop.fill` / `airplane` / `wind`，可多选，不可自定义）
+* `dietStatus`: Enum?（Clean / Normal / Cheat / Fasting，每日至多一个）
+* `tags`: [String]（预设 `period` / `travel` / `bowel` / `swollen` / `alcohol` / `lateNight`；自定义必须 `custom.` 前缀。UI：`drop.fill` / `airplane` / `wind` / `humidity.fill` / `wineglass` / `moon.fill`；`bowel` 文案 Cleared / 通畅。可多选）
 * `note`: String?
+* `breakfastPhotoFileName` / `lunchPhotoFileName` / `dinnerPhotoFileName`: String? — 三餐 JPEG 文件名（Documents）。配套 legacy `*PhotoData` 永不删除。
+* `extraMealsJSON`: String? — 下午茶、夜宵、自定义餐次。JSON 数组 `{ "id", "title?", "fileName" }`；预设 extra id 为 `afternoonTea` / `lateNight`；自定义 `custom.<uuid>`。早餐/午餐/晚餐永不写入此字段。解码失败视为空数组，不使整条记录失败。不要为餐次加 CloudKit `@Relationship`。
 * `updatedAt`: Date（同一 `dayKey` 两条冲突时保留较新者）
 
 字段级 Upsert 仅适用于本模型：同一天再次保存饮食/标签/备注时，只更新本次改过的字段。未改的保持原值。允许「只打饮食、不记体重」。
@@ -193,7 +195,7 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
     * 每个 `WeightLog` 一行。列：`date, time, weight, bodyFat, dietStatus, tags, note`。
     * `date` 为本地日历日 `YYYY-MM-DD`；`time` 为本地 `HH:mm`。
     * `dietStatus` / `tags` / `note` **只填该日按时间排序后的第一行**，同日后续行这三列留空。
-    * `dietStatus` 为 `clean|normal|cheat`；`tags` 为 `period;travel;bowel` 这类稳定 key。
+    * `dietStatus` 为 `clean|normal|cheat|fasting`；`tags` 为 `period;travel;bowel;swollen;alcohol;lateNight` 或 `custom.*`。CSV 表头不变，不导出餐次照片。
     * 某日只有饮食、没有 `WeightLog`：仍输出一行，`time/weight/bodyFat` 留空。
     * 扩展指标**另导出** `ease-metrics.csv`（见 §8.2）。
     * 支持按同一方言再导入（§8.1）。
@@ -217,13 +219,13 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 * **行规则**：
     * 未来日期、体重/体脂/围度越界、无法解析的行：计入 invalid，跳过；预览样本用行号 + 对应原因 key。
     * `WeightLog` 去重键：同一本地日 + 同一 `HH:mm` + 体重（0.1 kg）相同 → 视为重复跳过（预览样本类别 duplicate）；否则 insert。
-    * `DailyRecord`：有 `dietStatus` / `tags` / `note` 的单元格才 upsert；空单元格 = 未改。tags 只接受 `period|travel|bowel`。
+    * `DailyRecord`：有 `dietStatus` / `tags` / `note` 的单元格才 upsert；空单元格 = 未改。tags 接受预设白名单或 `custom.` 前缀；裸 `custom`、`kcal` 等未知 key 丢弃。
     * `MetricLog`：同一日 + 同一 `HH:mm` + 同一 `metricKey` + 同一圆整后数值 → 跳过；未知 `metricKey` 若不是内置 key 且用户未定义，计入 invalid。
 * **不导入**：睡眠、Active Energy、经期历史（继续只读 HealthKit）。
 * **结果**：导入结束后用一行 secondary 文案回报写入条数；不弹成功彩蛋。
 
 ### 8.2 扩展指标（围度）
-目标：可记腰围等围度，但首页不被指标卡淹没；饮食三标签仍然不可自定义。**不做饮水。**
+目标：可记腰围等围度，但首页不被指标卡淹没。自定义标签在饮食 Sheet 内添加，不在设置做管理页。**不做饮水。**
 
 * **模型（无 CloudKit `@Relationship`）**：`MetricDefinition` 与 `MetricLog` 用 `metricKey` 字符串对齐，禁止 `@Relationship`。
     * `MetricDefinition`：`key`、`kind`（`builtin` / `custom`）、`unit`（`cm` | `ml` | `count`）、`symbolName`、`displayName`、`isEnabled`、`sortOrder`、`updatedAt`。

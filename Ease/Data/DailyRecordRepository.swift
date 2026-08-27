@@ -23,7 +23,7 @@ struct DailyRecordRepository {
         return try context.fetch(descriptor)
     }
 
-    /// Journal fields (`dietStatus` / `tags` / `note` / meal photo filenames) upsert into `DailyRecord`.
+    /// Journal fields (`dietStatus` / `tags` / `note` / meal photo filenames / extra meals) upsert into `DailyRecord`.
     /// `patch.weight` / `patch.bodyFat` insert a `WeightLog` and never write the legacy fields.
     @discardableResult
     func upsert(on date: Date, patch: DailyRecordPatch) throws -> DailyRecord? {
@@ -39,7 +39,8 @@ struct DailyRecordRepository {
             (
                 breakfast: $0.breakfastPhotoFileName,
                 lunch: $0.lunchPhotoFileName,
-                dinner: $0.dinnerPhotoFileName
+                dinner: $0.dinnerPhotoFileName,
+                extras: $0.extraMeals
             )
         }
         let hasJournal = next.hasContent
@@ -57,6 +58,7 @@ struct DailyRecordRepository {
         record.breakfastPhotoFileName = next.breakfastPhoto
         record.lunchPhotoFileName = next.lunchPhoto
         record.dinnerPhotoFileName = next.dinnerPhoto
+        record.extraMeals = next.extraMeals
         record.updatedAt = .now
         if existing == nil {
             context.insert(record)
@@ -119,6 +121,7 @@ struct DailyRecordRepository {
         var breakfastPhoto: String?
         var lunchPhoto: String?
         var dinnerPhoto: String?
+        var extraMeals: [ExtraMealPhoto]
 
         var hasContent: Bool {
             diet != nil
@@ -127,6 +130,7 @@ struct DailyRecordRepository {
                 || breakfastPhoto != nil
                 || lunchPhoto != nil
                 || dinnerPhoto != nil
+                || !extraMeals.isEmpty
         }
     }
 
@@ -138,6 +142,7 @@ struct DailyRecordRepository {
         var breakfastPhoto = existing?.breakfastPhotoFileName
         var lunchPhoto = existing?.lunchPhotoFileName
         var dinnerPhoto = existing?.dinnerPhotoFileName
+        var extraMeals = existing?.extraMeals ?? []
 
         switch patch.dietStatus {
         case .unchanged:
@@ -176,6 +181,12 @@ struct DailyRecordRepository {
         case .set(let value):
             dinnerPhoto = value
         }
+        switch patch.extraMeals {
+        case .unchanged:
+            break
+        case .set(let value):
+            extraMeals = ExtraMealPhoto.sanitize(value)
+        }
 
         let journalTouched: Bool = {
             if case .unchanged = patch.dietStatus,
@@ -183,7 +194,8 @@ struct DailyRecordRepository {
                case .unchanged = patch.note,
                case .unchanged = patch.breakfastPhoto,
                case .unchanged = patch.lunchPhoto,
-               case .unchanged = patch.dinnerPhoto {
+               case .unchanged = patch.dinnerPhoto,
+               case .unchanged = patch.extraMeals {
                 return false
             }
             return true
@@ -196,7 +208,8 @@ struct DailyRecordRepository {
                 note: nil,
                 breakfastPhoto: nil,
                 lunchPhoto: nil,
-                dinnerPhoto: nil
+                dinnerPhoto: nil,
+                extraMeals: []
             )
         }
         return JournalState(
@@ -205,18 +218,26 @@ struct DailyRecordRepository {
             note: note,
             breakfastPhoto: breakfastPhoto,
             lunchPhoto: lunchPhoto,
-            dinnerPhoto: dinnerPhoto
+            dinnerPhoto: dinnerPhoto,
+            extraMeals: extraMeals
         )
     }
 
     private func cleanupReplacedPhotos(
-        previous: (breakfast: String?, lunch: String?, dinner: String?)?,
+        previous: (breakfast: String?, lunch: String?, dinner: String?, extras: [ExtraMealPhoto])?,
         patch: DailyRecordPatch
     ) {
         guard let previous else { return }
         cleanupIfReplaced(old: previous.breakfast, update: patch.breakfastPhoto)
         cleanupIfReplaced(old: previous.lunch, update: patch.lunchPhoto)
         cleanupIfReplaced(old: previous.dinner, update: patch.dinnerPhoto)
+        if case .set(let extras) = patch.extraMeals {
+            let oldNames = Set(previous.extras.compactMap(\.fileName))
+            let newNames = Set(extras.compactMap(\.fileName))
+            for name in oldNames.subtracting(newNames) {
+                MealPhotoStore.deleteAsync(fileName: name)
+            }
+        }
     }
 
     private func cleanupIfReplaced(old: String?, update: FieldUpdate<String?>) {

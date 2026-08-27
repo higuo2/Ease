@@ -256,16 +256,33 @@ final class CSVImporterTests: EaseStoreTestCase {
         XCTAssertEqual(record?.note, "imported note")
     }
 
-    func test_tags只保留period_travel_bowel() throws {
+    func test_tags只保留白名单与custom前缀() throws {
         let csv = """
         \(CSVImporter.journalHeader)
-        2026-08-10,,,,normal,foo;travel;kcal;bowel,
+        2026-08-10,,,,normal,foo;travel;kcal;bowel;swollen;custom.tea;custom,
         """
         let preview = try previewJournal(csv)
-        XCTAssertEqual(preview.pendingJournals.first?.tags, [.travel, .bowel])
+        XCTAssertEqual(
+            preview.pendingJournals.first?.tags,
+            [.travel, .bowel, .swollen, VariableTag(rawValue: "custom.tea")!]
+        )
         _ = try CSVImporter.apply(preview, context: context, calendar: calendar)
         let record = try dailyRecords.record(on: calendar.testDate(2026, 8, 10))
-        XCTAssertEqual(record?.variableTags, [.travel, .bowel])
+        XCTAssertEqual(
+            record?.variableTags,
+            [.travel, .bowel, .swollen, VariableTag(rawValue: "custom.tea")!]
+        )
+    }
+
+    func test_dietStatus_fasting可导入() throws {
+        let csv = """
+        \(CSVImporter.journalHeader)
+        2026-08-12,,,,fasting,,
+        """
+        let preview = try previewJournal(csv)
+        XCTAssertEqual(preview.pendingJournals.first?.dietStatus, .fasting)
+        _ = try CSVImporter.apply(preview, context: context, calendar: calendar)
+        XCTAssertEqual(try fetchAll(DailyRecord.self).first?.dietStatus, .fasting)
     }
 
     func test_仅饮食无体重_不插入WeightLog() throws {

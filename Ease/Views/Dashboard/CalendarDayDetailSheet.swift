@@ -25,6 +25,10 @@ struct CalendarDayDetailSheet: View {
     @State private var noteSaveTask: Task<Void, Never>?
     @State private var photoPersistTask: Task<Void, Never>?
     @State private var mealPreview: MealPhotoPreviewItem?
+    @State private var isAddMealPresented = false
+    @State private var customMealTitle = ""
+    @State private var isAddTagPresented = false
+    @State private var customTagTitle = ""
     @FocusState private var isNoteFocused: Bool
 
     private var record: DailyRecord? {
@@ -34,8 +38,12 @@ struct CalendarDayDetailSheet: View {
 
     private var diet: DietStatus? { record?.dietStatus }
 
-    private var mealColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
+    private var tags: Set<VariableTag> {
+        Set(record?.variableTags ?? [])
+    }
+
+    private var tagSelectionToken: Int {
+        tags.map(\.rawValue).sorted().joined().hashValue
     }
 
     private var pendingMealHasPhoto: Bool {
@@ -52,6 +60,7 @@ struct CalendarDayDetailSheet: View {
                         weightCard
                         mealsCard
                         dietChipsCard
+                        tagsCard
                         noteCard
                     }
                     .padding(20)
@@ -133,6 +142,14 @@ struct CalendarDayDetailSheet: View {
                         pendingMeal = nil
                     }
                 }
+                if pendingMeal?.isCustom == true {
+                    Button("meal.custom.remove", role: .destructive) {
+                        if let pendingMeal {
+                            removeCustomMeal(pendingMeal)
+                        }
+                        pendingMeal = nil
+                    }
+                }
                 Button("common.cancel", role: .cancel) {
                     pendingMeal = nil
                 }
@@ -149,7 +166,26 @@ struct CalendarDayDetailSheet: View {
             .fullScreenCover(item: $mealPreview) { item in
                 MealPhotoPreviewCover(fileName: item.fileName)
             }
+            .alert("meal.custom.title", isPresented: $isAddMealPresented) {
+                TextField("meal.custom.placeholder", text: $customMealTitle)
+                Button("common.add") {
+                    addCustomMeal()
+                }
+                Button("common.cancel", role: .cancel) {
+                    customMealTitle = ""
+                }
+            }
+            .alert("tag.custom.title", isPresented: $isAddTagPresented) {
+                TextField("tag.custom.placeholder", text: $customTagTitle)
+                Button("common.add") {
+                    addCustomTag()
+                }
+                Button("common.cancel", role: .cancel) {
+                    customTagTitle = ""
+                }
+            }
             .sensoryFeedback(.selection, trigger: dietSelectionToken)
+            .sensoryFeedback(.selection, trigger: tagSelectionToken)
         }
         .preferredColorScheme(.light)
     }
@@ -179,11 +215,30 @@ struct CalendarDayDetailSheet: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
-                LazyVGrid(columns: mealColumns, spacing: 10) {
-                    ForEach(MealSlot.allCases) { slot in
-                        mealTile(slot)
+                MealPhotoCarousel(
+                    slots: record?.visibleMealSlots ?? MealSlot.presets,
+                    fileName: { record?.mealPhotoFileName(for: $0) },
+                    isBusy: { isPhotoBusy && pendingMeal == $0 },
+                    onTap: { slot in
+                        if let fileName = record?.mealPhotoFileName(for: slot) {
+                            mealPreview = MealPhotoPreviewItem(fileName: fileName)
+                        } else {
+                            pendingMeal = slot
+                            isSourceDialogPresented = true
+                        }
+                    },
+                    onReplace: { slot in
+                        pendingMeal = slot
+                        isSourceDialogPresented = true
+                    },
+                    onClear: clearMealPhoto(for:),
+                    onRemoveCustom: removeCustomMeal,
+                    onAdd: {
+                        customMealTitle = ""
+                        isAddMealPresented = true
                     }
-                }
+                )
+                .disabled(isPhotoBusy)
             }
         }
     }
@@ -194,12 +249,29 @@ struct CalendarDayDetailSheet: View {
                 Text("log.diet")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                HStack(spacing: 8) {
-                    ForEach(DietStatus.allCases, id: \.self) { status in
-                        dietChip(status)
+                DietStatusChipFlow(selection: diet, onSelect: saveDiet)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var tagsCard: some View {
+        EaseCard(radius: 16, padding: 18) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("log.tags")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                VariableTagChipFlow(
+                    selection: tags,
+                    onToggle: toggleTag,
+                    onAddCustom: {
+                        customTagTitle = ""
+                        isAddTagPresented = true
+                    },
+                    onRemoveCustom: { tag in
+                        saveTags(tags.subtracting([tag]))
                     }
-                }
-                .animation(.snappy, value: dietSelectionToken)
+                )
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -224,71 +296,6 @@ struct CalendarDayDetailSheet: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-    }
-
-    private func mealTile(_ slot: MealSlot) -> some View {
-        let fileName = record?.mealPhotoFileName(for: slot)
-
-        return Button {
-            if let fileName {
-                mealPreview = MealPhotoPreviewItem(fileName: fileName)
-            } else {
-                pendingMeal = slot
-                isSourceDialogPresented = true
-            }
-        } label: {
-            VStack(spacing: 8) {
-                MealPhotoThumbnail(
-                    fileName: fileName,
-                    isBusy: isPhotoBusy && pendingMeal == slot
-                )
-                Text(LocalizedStringKey(slot.titleKey))
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(EasePalette.secondaryText)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-        }
-        .buttonStyle(.plain)
-        .disabled(isPhotoBusy)
-        .contextMenu {
-            if fileName != nil {
-                Button {
-                    pendingMeal = slot
-                    isSourceDialogPresented = true
-                } label: {
-                    Label("calendar.meal.replace", systemImage: "photo")
-                }
-                Button(role: .destructive) {
-                    clearMealPhoto(for: slot)
-                } label: {
-                    Label("calendar.meal.remove", systemImage: "trash")
-                }
-            }
-        }
-    }
-
-    private func dietChip(_ status: DietStatus) -> some View {
-        let selected = diet == status
-        let tint = EasePalette.dietTint(status)
-        return Button {
-            saveDiet(selected ? nil : status)
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: status.systemImage)
-                Text(LocalizedStringKey(status.titleKey))
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(selected ? tint : EasePalette.secondaryText)
-            .padding(.vertical, 10)
-            .padding(.horizontal, 10)
-            .frame(maxWidth: .infinity)
-            .background(
-                selected ? tint.opacity(0.18) : EasePalette.recessed,
-                in: Capsule()
-            )
-        }
-        .buttonStyle(.plain)
     }
 
     private func detailMetric(
@@ -347,6 +354,52 @@ struct CalendarDayDetailSheet: View {
             refreshReminders()
         } catch {
             // Keep UI quiet; chips reflect persisted state via @Query.
+        }
+    }
+
+    private func toggleTag(_ tag: VariableTag) {
+        var next = tags
+        if next.contains(tag) { next.remove(tag) } else { next.insert(tag) }
+        saveTags(next)
+    }
+
+    private func saveTags(_ next: Set<VariableTag>) {
+        var patch = DailyRecordPatch()
+        patch.tags = .set(VariableTag.sanitized(Array(next)))
+        do {
+            try DailyRecordRepository(context: modelContext).upsert(on: date, patch: patch)
+        } catch {
+            // Keep UI quiet; chips reflect persisted state via @Query.
+        }
+    }
+
+    private func addCustomTag() {
+        guard let tag = VariableTag.custom(from: customTagTitle) else { return }
+        customTagTitle = ""
+        saveTags(tags.union([tag]))
+    }
+
+    private func addCustomMeal() {
+        guard let slot = MealSlot.custom(title: customMealTitle) else { return }
+        customMealTitle = ""
+        do {
+            try saveMealPhotoFileName(nil, for: slot)
+        } catch {
+            // Keep carousel as persisted state.
+        }
+    }
+
+    private func removeCustomMeal(_ slot: MealSlot) {
+        var extras = record?.extraMeals ?? []
+        let oldName = extras.first(where: { $0.id == slot.id })?.fileName
+        extras.removeMeal(id: slot.id)
+        var patch = DailyRecordPatch()
+        patch.extraMeals = .set(extras)
+        do {
+            try DailyRecordRepository(context: modelContext).upsert(on: date, patch: patch)
+            MealPhotoStore.deleteAsync(fileName: oldName)
+        } catch {
+            // Keep existing slot if upsert fails.
         }
     }
 
@@ -426,7 +479,13 @@ struct CalendarDayDetailSheet: View {
 
     private func saveMealPhotoFileName(_ fileName: String?, for slot: MealSlot) throws {
         var patch = DailyRecordPatch()
-        patch.setMealPhotoFileName(fileName, for: slot)
+        if slot.storesInLegacyFields {
+            patch.setMealPhotoFileName(fileName, for: slot)
+        } else {
+            var extras = record?.extraMeals ?? []
+            extras.upsert(slot: slot, fileName: fileName)
+            patch.extraMeals = .set(extras)
+        }
         try DailyRecordRepository(context: modelContext).upsert(on: date, patch: patch)
     }
 

@@ -41,6 +41,7 @@ enum EasePalette {
     static let dietClean = Color(red: 0.42, green: 0.70, blue: 0.52)
     static let dietNormal = Color(red: 0.92, green: 0.68, blue: 0.28)
     static let dietCheat = Color(red: 0.86, green: 0.42, blue: 0.40)
+    static let dietFasting = Color(red: 0.46, green: 0.58, blue: 0.62)
 
     /// Quiet Morandi fills for home square modules
     static let morandiSage = Color(red: 197 / 255, green: 206 / 255, blue: 195 / 255)
@@ -78,6 +79,7 @@ enum EasePalette {
         case .clean: dietClean
         case .normal: dietNormal
         case .cheat: dietCheat
+        case .fasting: dietFasting
         }
     }
 }

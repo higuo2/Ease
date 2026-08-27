@@ -26,7 +26,7 @@
 只在「系统已经认定一次结果」时触发：
 
 * `ScaleOCR` 解析出合法体重/体脂 → `.success`（失败保持现有 `.error`，不要再加一层）。
-* 饮食三选一 / 变量标签选中 → `.selection`（`LogSheetView` / 日历日明细已有，勿重复叠两下）。
+* 饮食四选一 / 变量标签选中 → `.selection`（`LogSheetView` / 日历日明细已有，勿重复叠两下）。
 * 保存体重或饮食成功 → `.success`（已有 `saveSuccessPulse`）。
 * 滑动或上下文菜单删除 `WeightLog` → `.warning`（已有）。
 
@@ -125,7 +125,7 @@ Windows 不能 `xcodebuild`。实现后在 Mac 真机测：日历三餐格快滚
 
 ### 9. 三餐图全屏预览（不是 Hero 相册）
 
-`LogSheetView` 饮食三餐格与 `CalendarDayDetailSheet` 同一套：
+`LogSheetView` 饮食餐次横滑与 `CalendarDayDetailSheet` 同一套 `MealPhotoCarousel`：
 
 * **无图**：单击 → 现有来源对话框（拍照 / 相册 / 取消）。
 * **有图**：单击 → `fullScreenCover` 看原图（奶油底或黑底均可，关闭用系统关闭控件）。长按 → 替换/删除（现有 `confirmationDialog` / context menu）。

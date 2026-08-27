@@ -23,6 +23,8 @@ struct DailyRecordPatch: Sendable {
     var breakfastPhoto: FieldUpdate<String?> = .unchanged
     var lunchPhoto: FieldUpdate<String?> = .unchanged
     var dinnerPhoto: FieldUpdate<String?> = .unchanged
+    /// Full replacement of extra meal slots (afternoon tea, late night, custom).
+    var extraMeals: FieldUpdate<[ExtraMealPhoto]> = .unchanged
 
     var isEmpty: Bool {
         if case .unchanged = weight,
@@ -32,7 +34,8 @@ struct DailyRecordPatch: Sendable {
            case .unchanged = note,
            case .unchanged = breakfastPhoto,
            case .unchanged = lunchPhoto,
-           case .unchanged = dinnerPhoto {
+           case .unchanged = dinnerPhoto,
+           case .unchanged = extraMeals {
             return true
         }
         return false
@@ -43,6 +46,7 @@ struct DailyRecordPatch: Sendable {
         case .breakfast: breakfastPhoto = .set(fileName)
         case .lunch: lunchPhoto = .set(fileName)
         case .dinner: dinnerPhoto = .set(fileName)
+        default: break
         }
     }
 }

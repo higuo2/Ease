@@ -9,12 +9,12 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
 - Platform: iOS 18+, Light Mode ONLY. Units are kg / cm. No in-app language or unit toggle.
 - Local First: SwiftData + CloudKit.
 - Two models, split by duty:
-  - Exactly one `DailyRecord` per local calendar day. Read/write `dietStatus`, `tags`, `note` only.
+  - Exactly one `DailyRecord` per local calendar day. Read/write `dietStatus`, `tags`, `note`, meal filenames, and `extraMealsJSON`.
   - **Keep** `DailyRecord.weight` and `DailyRecord.bodyFat` on the SwiftData schema as `Double?` forever (CloudKit). Never delete these properties, never change them to non-optional, never assign `nil` just to “clean up”. Treat them as legacy read-only snapshots. After v1.1, new weigh-ins never write these fields.
   - `WeightLog`: one row per weigh-in (`id`, `timestamp`, `weight`, `bodyFat?`). Many per day. Insert on save; do not overwrite the day's other logs. No Unique Constraint. No CloudKit `@Relationship` to `DailyRecord`. Runtime source of truth for weight.
   - Startup migrator (idempotent, `UserProfile.hasMigratedWeightLogs`): copy each `DailyRecord` that still has `weight` into a `WeightLog` only if that `dayKey` has no `WeightLog` yet. Leave the old optional fields populated.
 - CloudKit conflicts: same `DailyRecord.dayKey` or same `WeightLog.id` → keep the newer `updatedAt`. Multiple `WeightLog`s on one day are valid — never collapse them by date.
-  - Meal photos: JPEG files live in Documents; `DailyRecord` stores filenames only. Keep unused legacy `breakfastPhotoData` / `lunchPhotoData` / `dinnerPhotoData` (`@Attribute(.externalStorage)`) on the schema forever if they ever shipped — never delete CloudKit attributes.
+  - Meal photos: JPEG files live in Documents; `DailyRecord` stores filenames only. Keep unused legacy `breakfastPhotoData` / `lunchPhotoData` / `dinnerPhotoData` (`@Attribute(.externalStorage)`) on the schema forever if they ever shipped — never delete CloudKit attributes. Keep `breakfastPhotoFileName` / `lunchPhotoFileName` / `dinnerPhotoFileName`. Extra slots (afternoon tea, late night, custom) live in `extraMealsJSON` (array of `{id, title?, fileName}`); never add more CloudKit photo columns or `@Relationship` meal models. Breakfast/lunch/dinner never go in that JSON. Decode failure → empty array.
   - v1.2 models: `MetricDefinition` + `MetricLog`, split like weight vs day journal. No CloudKit `@Relationship`. No Unique Constraint. Enabled metrics appear in the Metric Sheet; disabled keys stay out of the entry form even if that day has `MetricLog`s. Home **measurements** tile is the daily entry; Settings only toggles definitions + secondary History.
   - `UserProfile.homeModulesRaw` persists which Morandi tiles are on the Weight tab.
 - Keep views modularized. Extract reusable UI components (cards, buttons, chart markers, health-detail sheets) into separate files. New `.swift` files must be registered in `Ease.xcodeproj/project.pbxproj`.
@@ -60,8 +60,8 @@ Core feel: generous whitespace, soft hierarchy via fill color (not borders/shado
 - **Table / history cells**: 15pt Regular or `.body`, monospaced digits for numeric columns.
 - **Icons**: STRICTLY single-color `SF Symbols` (`Image(systemName:)`).
   - DO NOT use emojis (NO 🩸, ✈️, 🚽 — use SF Symbols; delta arrows via SF Symbol or consistent localized glyphs).
-  - Diet: Clean (`leaf.fill`), Normal (`fork.knife`), Cheat (`takeoutbag.and.cup.and.straw`).
-  - Variables: Period (`drop.fill`), Travel (`airplane`), Bowel (`wind`).
+  - Diet: Clean (`leaf.fill`), Normal (`fork.knife`), Cheat (`takeoutbag.and.cup.and.straw`), Fasting (`moon.zzz.fill`).
+  - Variables: Period (`drop.fill`), Travel (`airplane`), Bowel/Cleared (`wind`), Swollen (`humidity.fill`), Alcohol (`wineglass`), Late Night (`moon.fill`). Custom tags use `tag`.
   - Tabs: Weight (`scalemass`), Trend (`chart.xyaxis.line`), Calendar (`calendar`), Settings (`gearshape`).
   - Built-in metrics (v1.2): circumferences use `ruler`. No water tracking.
   - Home modules: Morandi squares — BMI, Measurements, Weight, Diet (+ optional Sleep / Period / Energy).
@@ -91,8 +91,8 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 ### Tab 3 — 日历 (Calendar)
 1. **月历网格**：7 列。每格 — 日号、当日体重、涨跌（`▼0.2` / `▲0.2`）。点日期打开日明细 Sheet（非内嵌卡片）。
 2. **周均 / 月均**体重卡（选中日所在周 / 当前浏览月）。
-3. **月度 Overview**：净变化、清淡天数、最长连续清淡、打卡 / 减重 / 增重天数。
-4. **日明细 Sheet**（`.medium` / `.large`）：早晚体重、三餐照片格（拍照或相册 → JPEG 写入 Documents 沙盒，`DailyRecord` 只存文件名）。**有图单击全屏预览原图**（`fullScreenCover`，不要 `matchedGeometryEffect`）；空格单击或长按走拍照/相册/删除。饮食三选一芯片与备注（立即写入 `DailyRecord`）。**禁止**卡路里合计或宏量营养素。
+3. **月度 Overview**：净变化、清淡天数（只计 `clean`）、最长连续清淡、打卡 / 减重 / 增重天数。
+4. **日明细 Sheet**（`.medium` / `.large`）：早晚体重、餐次横滑（五预设 + `+ Add Meal`；拍照或相册 → JPEG 写入 Documents；早餐/午餐/晚餐写三个文件名字段，其余进 `extraMealsJSON`）。**有图单击全屏预览原图**（`fullScreenCover`，不要 `matchedGeometryEffect`）；空格单击或长按走拍照/相册/删除。饮食四选一芯片与标签流式换行、备注（立即写入 `DailyRecord`）。Save/Delete 不在日历日明细（即时写入）。**禁止**卡路里合计或宏量营养素。
 
 ### Tab 4 — 设置 (Settings)
 Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-grouped list; extra bottom inset so the last rows clear the tab bar.
@@ -100,7 +100,7 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 
 ### Shared Sheets
 - **Weight Log Sheet**：可展开图形日历 → 体重 + OCR → 体脂 → 黑 Capsule Save（不含饮食）。
-- **Diet Log Sheet**：可展开日历 → 饮食三选一 → 三餐照片（拍照/相册，Documents 文件名；有图单击全屏预览）→ 标签 → 备注 → 珊瑚 Capsule Save（不含体重）。
+- **Diet Log Sheet**：可展开日历 → 饮食四选一（流式芯片）→ 餐次横滑（五预设 + 自定义；有图单击全屏预览）→ 标签（预设 + 自定义）→ 备注 → 底部 `safeAreaInset` 珊瑚 Capsule Save（不含体重）。
 - **Weight History Sheet**：全部体重日列表（与首页行同构）；点行编辑。
 - **Metrics Sheet**：日期 → 已启用围度 → Save → **历史列表**（无围度趋势图）。主入口 = 首页围度格。
 - **Sleep / Cycle / Energy / BMI Detail**：睡眠/经期/消耗只读 HealthKit；BMI 只读档案+体重。sheet 内可用安静 tint；Sleep/Energy 图需有轴。BMI 可用莫兰迪分段条，档名灰色胶囊，禁止绿黄红交通灯。
