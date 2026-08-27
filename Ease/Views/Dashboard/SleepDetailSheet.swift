@@ -13,6 +13,7 @@ struct SleepDetailSheet: View {
         return min(max(focusHours / targetHours, 0), 1)
     }
     private var chartNights: [SleepNight] { history.nights.filter { $0.hours != nil } }
+    private var latestChartDate: Date { chartNights.last?.morning ?? history.endingOn }
 
     var body: some View {
         NavigationStack {
@@ -66,14 +67,15 @@ struct SleepDetailSheet: View {
                                         ForEach(chartNights) { night in
                                             BarMark(
                                                 x: .value("chart.axis.date", night.morning, unit: .day),
-                                                y: .value("chart.axis.sleep", night.hours ?? 0)
+                                                y: .value("chart.axis.sleep", night.hours ?? 0),
+                                                width: .ratio(HealthDetailChart.barRatio)
                                             )
                                             .foregroundStyle(EasePalette.sleepTeal.opacity(0.7))
-                                            .cornerRadius(3)
+                                            .cornerRadius(HealthDetailChart.barCornerRadius)
                                         }
                                     }
                                     .chartXAxis {
-                                        AxisMarks(values: .automatic(desiredCount: 6)) { value in
+                                        AxisMarks(values: .stride(by: .day)) { value in
                                             AxisGridLine().foregroundStyle(EasePalette.track)
                                             AxisValueLabel {
                                                 if let date = value.as(Date.self) {
@@ -96,6 +98,10 @@ struct SleepDetailSheet: View {
                                             }
                                         }
                                     }
+                                    .easeScrollableHealthChart(
+                                        latestDate: latestChartDate,
+                                        visibleDays: HealthDetailChart.dayBarVisibleDays
+                                    )
                                     .frame(height: 180)
 
                                     if let average = history.averageHours {
@@ -105,16 +111,12 @@ struct SleepDetailSheet: View {
                                             .foregroundStyle(EasePalette.secondaryText)
                                     }
 
-                                    ForEach(Array(chartNights.suffix(10).reversed())) { night in
-                                        HStack {
-                                            Text(night.morning, format: .dateTime.month(.abbreviated).day().weekday(.narrow))
-                                                .font(.system(size: 13, weight: .regular))
-                                                .foregroundStyle(EasePalette.secondaryText)
-                                            Spacer()
-                                            Text(EaseFormatters.sleepDuration(night.hours ?? 0))
-                                                .font(EaseFont.number(15))
-                                                .monospacedDigit()
-                                                .foregroundStyle(EasePalette.primaryText)
+                                    VStack(spacing: 8) {
+                                        ForEach(Array(chartNights.reversed())) { night in
+                                            HealthHistoryRow(
+                                                date: night.morning,
+                                                value: EaseFormatters.sleepDuration(night.hours ?? 0)
+                                            )
                                         }
                                     }
                                 }
@@ -128,8 +130,8 @@ struct SleepDetailSheet: View {
             .navigationTitle("sleep.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    EaseTextButton(title: "common.close", action: { dismiss() })
+                ToolbarItem(placement: .topBarLeading) {
+                    EaseCloseToolbarButton(action: { dismiss() })
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)

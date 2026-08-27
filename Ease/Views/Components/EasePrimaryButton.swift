@@ -74,6 +74,21 @@ struct EaseTextButton: View {
     }
 }
 
+/// Compact toolbar close that does not wrap localized “Close” / 「关闭」.
+struct EaseCloseToolbarButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "xmark.circle.fill")
+                .font(.title3)
+                .foregroundStyle(.tertiary)
+                .symbolRenderingMode(.hierarchical)
+        }
+        .accessibilityLabel(Text("common.close"))
+    }
+}
+
 struct EaseFAB: View {
     let action: () -> Void
 

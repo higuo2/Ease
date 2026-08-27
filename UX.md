@@ -75,6 +75,8 @@
 * `.presentationDragIndicator(.visible)`
 * `.presentationContentInteraction(.scrolls)`（内容可滚时）
 
+Sleep / Energy 日柱与 Cycle 时间轴：横向 `chartScrollableAxes`，一次只清楚显示约 7 天（经期约 14 天），默认停在最近日期。历史列表用固定左列日期 + 右列等宽数字，浅底分行。关闭用 `xmark.circle.fill`，不要让「关闭」在 leading 折行。
+
 动画走系统 sheet spring，不要自定义 `spring(response:damping)` 夸张回弹。模块编辑 Sheet 已符合，勿再套一层。
 
 ### 7. 经期 Sheet 内 tint（可选、克制）

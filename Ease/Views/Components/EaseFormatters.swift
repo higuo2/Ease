@@ -50,7 +50,7 @@ enum EaseFormatters {
         return String(format: String(localized: "cycle.next"), locale: .current, stamp)
     }
 
-    /// Compact asleep duration, e.g. `7h 59m`.
+    /// Compact asleep duration, e.g. `7h 59m` / `6h 00m`.
     static func sleepDuration(_ hours: Double) -> String {
         let totalMinutes = max(0, Int((hours * 60).rounded()))
         return String(

@@ -2080,13 +2080,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%dh %dm"
+            "value": "%dh %02dm"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d小时 %d分钟"
+            "value": "%d小时 %02d分钟"
           }
         }
       }

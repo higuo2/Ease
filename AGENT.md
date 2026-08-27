@@ -133,7 +133,7 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 - Target: dashed rule.
 - Selection callout: black rounded tooltip in `chartOverlay` (not plot-area annotation). Weight, 7-day MA, and target share one Y encoding + `chartYScale`. Do not `chartPlotStyle` top-pad the plot — it desyncs dots from axis ticks. Drag scrubs only; a short tap opens the weight sheet and clears selection.
 - Non-zero Y domain so a single point still renders.
-- Quiet but **visible** axes on Trend / Sleep / Energy charts.
+- Quiet but **visible** axes on Trend / Sleep / Energy charts. Sleep / Energy day bars and the Cycle timeline use horizontal `chartScrollableAxes` with a ~7-day (cycle ~14-day) visible domain so 30–180 days are not crammed into one width; initial scroll shows the latest dates. Do not `chartPlotStyle` top-pad the plot.
 - Diet / variable markers: SF Symbols only; not on the Trend weight chart.
 
 ## 6. Localization (Strict Requirement)

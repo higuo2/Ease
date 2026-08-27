@@ -8,6 +8,7 @@ struct EnergyDetailSheet: View {
     var isPlaceholder = false
 
     private var chartDays: [EnergyDay] { history.loggedDays }
+    private var latestChartDate: Date { chartDays.last?.date ?? history.endingOn }
 
     var body: some View {
         NavigationStack {
@@ -49,14 +50,15 @@ struct EnergyDetailSheet: View {
                                         ForEach(chartDays) { day in
                                             BarMark(
                                                 x: .value("chart.axis.date", day.date, unit: .day),
-                                                y: .value("chart.axis.energy", day.kcal ?? 0)
+                                                y: .value("chart.axis.energy", day.kcal ?? 0),
+                                                width: .ratio(HealthDetailChart.barRatio)
                                             )
                                             .foregroundStyle(EasePalette.morandiEnergy)
-                                            .cornerRadius(3)
+                                            .cornerRadius(HealthDetailChart.barCornerRadius)
                                         }
                                     }
                                     .chartXAxis {
-                                        AxisMarks(values: .automatic(desiredCount: 6)) { value in
+                                        AxisMarks(values: .stride(by: .day)) { value in
                                             AxisGridLine().foregroundStyle(EasePalette.track)
                                             AxisValueLabel {
                                                 if let date = value.as(Date.self) {
@@ -79,18 +81,18 @@ struct EnergyDetailSheet: View {
                                             }
                                         }
                                     }
+                                    .easeScrollableHealthChart(
+                                        latestDate: latestChartDate,
+                                        visibleDays: HealthDetailChart.dayBarVisibleDays
+                                    )
                                     .frame(height: 180)
 
-                                    ForEach(Array(chartDays.suffix(14).reversed())) { day in
-                                        HStack {
-                                            Text(day.date, format: .dateTime.month(.abbreviated).day().weekday(.narrow))
-                                                .font(.system(size: 13, weight: .regular))
-                                                .foregroundStyle(EasePalette.secondaryText)
-                                            Spacer()
-                                            Text(EaseFormatters.kcal(day.kcal ?? 0))
-                                                .font(EaseFont.number(15))
-                                                .monospacedDigit()
-                                                .foregroundStyle(EasePalette.primaryText)
+                                    VStack(spacing: 8) {
+                                        ForEach(Array(chartDays.suffix(30).reversed())) { day in
+                                            HealthHistoryRow(
+                                                date: day.date,
+                                                value: EaseFormatters.kcal(day.kcal ?? 0)
+                                            )
                                         }
                                     }
                                 }
@@ -111,8 +113,8 @@ struct EnergyDetailSheet: View {
             .navigationTitle("health.energy")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    EaseTextButton(title: "common.close", action: { dismiss() })
+                ToolbarItem(placement: .topBarLeading) {
+                    EaseCloseToolbarButton(action: { dismiss() })
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)

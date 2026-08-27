@@ -32,8 +32,17 @@ struct CycleDetailSheet: View {
                                     Text("cycle.recent")
                                         .font(.system(size: 15, weight: .semibold))
                                         .foregroundStyle(EasePalette.primaryText)
-                                    ForEach(Array(history.spans.reversed().prefix(8))) { span in
-                                        spanRow(span)
+                                    VStack(spacing: 8) {
+                                        ForEach(Array(history.spans.reversed().prefix(8))) { span in
+                                            HealthHistoryRow(
+                                                leading: spanLabel(span),
+                                                value: String(
+                                                    format: String(localized: "cycle.spanDays"),
+                                                    locale: .current,
+                                                    span.durationDays
+                                                )
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -53,8 +62,8 @@ struct CycleDetailSheet: View {
             .navigationTitle("cycle.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    EaseTextButton(title: "common.close", action: { dismiss() })
+                ToolbarItem(placement: .topBarLeading) {
+                    EaseCloseToolbarButton(action: { dismiss() })
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)
@@ -124,6 +133,10 @@ struct CycleDetailSheet: View {
             }
         }
         .chartYAxis(.hidden)
+        .easeScrollableHealthChart(
+            latestDate: history.endingOn == .distantPast ? (lastSpan?.end ?? .now) : history.endingOn,
+            visibleDays: HealthDetailChart.cycleVisibleDays
+        )
         .frame(height: 56)
     }
 
@@ -156,21 +169,6 @@ struct CycleDetailSheet: View {
                 }
             }
         }
-    }
-
-    private func spanRow(_ span: CycleSpan) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(spanLabel(span))
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(EasePalette.primaryText)
-                Text(String(format: String(localized: "cycle.spanDays"), locale: .current, span.durationDays))
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
-            }
-            Spacer()
-        }
-        .padding(.vertical, 4)
     }
 
     private func spanLabel(_ span: CycleSpan) -> String {
