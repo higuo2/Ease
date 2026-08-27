@@ -83,6 +83,10 @@ Sleep / Energy 日柱与 Cycle 时间轴：横向 `chartScrollableAxes`，一次
 
 只在 `CycleDetailSheet` 摘要卡：经期日用现有 `EasePalette` 粉做 **低饱和** 背景或细条，不是全屏渐变，不是首页方块换皮。文案仍是事实，不写关怀口号。
 
+### 8. 四 Tab 版式
+
+Weight / Trend / Calendar / Settings 共用 `EaseLayout`：左右 16pt、块间距 16pt、指标网格 12pt、滚动底 inset 100pt（躲开 Tab Bar）。四个页都用系统 Large Title（Weight 用 `tab.weight`，不要居中 “Ease”）。设置页保持 inset-grouped，不要 Done。
+
 ## 明确不写进实现
 
 * WidgetKit / App Intent / 锁屏组件 / 从 Widget 拍照。

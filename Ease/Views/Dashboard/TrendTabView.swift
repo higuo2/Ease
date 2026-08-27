@@ -22,7 +22,7 @@ struct TrendTabView: View {
                 EasePalette.background.ignoresSafeArea()
                 if hasWeighIns {
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 20) {
+                        VStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
                             TrendChartCard(
                                 records: records,
                                 logs: logs,
@@ -49,8 +49,7 @@ struct TrendTabView: View {
                                 snapshot: snapshot
                             )
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
+                        .easeTabScrollContent()
                     }
                 } else {
                     EaseEmptyState(
@@ -59,6 +58,7 @@ struct TrendTabView: View {
                         message: "empty.trend.message",
                         action: { viewModel.openWeightEntry(for: .now) }
                     )
+                    .easeTabScrollContent()
                 }
             }
             .navigationTitle("tab.trend")
@@ -146,11 +146,11 @@ struct AdvancedPaceCard: View {
 
                     LazyVGrid(
                         columns: [
-                            GridItem(.flexible(), spacing: 16),
-                            GridItem(.flexible(), spacing: 16)
+                            GridItem(.flexible(), spacing: EaseLayout.gridGap),
+                            GridItem(.flexible(), spacing: EaseLayout.gridGap)
                         ],
                         alignment: .leading,
-                        spacing: 16
+                        spacing: EaseLayout.gridGap
                     ) {
                         factorItem(
                             symbol: "moon.fill",
@@ -261,11 +261,11 @@ struct TrendStatsGrid: View {
     var body: some View {
         LazyVGrid(
             columns: [
-                GridItem(.flexible(), spacing: 10),
-                GridItem(.flexible(), spacing: 10),
-                GridItem(.flexible(), spacing: 10)
+                GridItem(.flexible(), spacing: EaseLayout.gridGap),
+                GridItem(.flexible(), spacing: EaseLayout.gridGap),
+                GridItem(.flexible(), spacing: EaseLayout.gridGap)
             ],
-            spacing: 10
+            spacing: EaseLayout.gridGap
         ) {
             weightStat(
                 "trend.stats.high",

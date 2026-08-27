@@ -112,7 +112,7 @@ struct HomeModuleGrid: View {
     let onOpenBMI: () -> Void
     let onAddModule: () -> Void
 
-    private let spacing: CGFloat = 14
+    private let spacing: CGFloat = EaseLayout.gridGap
 
     var body: some View {
         LazyVGrid(
@@ -539,7 +539,6 @@ struct WeightHeroView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
     }
 }
 

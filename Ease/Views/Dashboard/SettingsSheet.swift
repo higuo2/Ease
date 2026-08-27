@@ -103,12 +103,10 @@ struct SettingsSheet: View {
             .scrollDismissesKeyboard(.interactively)
             .background { EasePalette.background.ignoresSafeArea() }
             .tint(EasePalette.coral)
-            .contentMargins(.bottom, 28, for: .scrollContent)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                Color.clear.frame(height: 8)
-            }
+            .easeTabListMargins()
             .navigationTitle("settings.title")
             .navigationBarTitleDisplayMode(.large)
+            .toolbarBackground(EasePalette.background, for: .navigationBar)
             .confirmationDialog("settings.deleteConfirm", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
                 Button("settings.deleteContinue", role: .destructive) {
                     showDeleteConfirmAgain = true

@@ -65,7 +65,7 @@ struct WeightTabView: View {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(spacing: EaseLayout.sectionSpacing) {
                         WeightHeroView(weight: snapshot.displayWeight, weekDelta: weekDelta)
                         if snapshot.startWeight > 0, snapshot.targetWeight > 0 {
                             StageGoalCard(
@@ -112,13 +112,11 @@ struct WeightTabView: View {
                             onShowAll: { isWeightHistoryPresented = true }
                         )
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .padding(.bottom, 32)
+                    .easeTabScrollContent()
                 }
             }
-            .navigationTitle("app.name")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("tab.weight")
+            .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
             .sheet(isPresented: $isWeightHistoryPresented) {
                 WeightHistorySheet(

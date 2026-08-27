@@ -74,7 +74,7 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 「当天」默认今天；日历选中日可驱动明细。不可选未来日期。
 
 ### Tab 1 — 体重 (Dashboard)
-1. **Hero**：居中巨幅当前体重（所选日最新 `WeightLog`，否则全局最新）。下方一行小字周增减（如 `▼1.8 kg 本周`），coral on loss / quiet green on gain.
+1. **Hero**：系统 Large Title（`tab.weight`，左对齐）下方居中巨幅当前体重（所选日最新 `WeightLog`，否则全局最新）。下方一行小字周增减（如 `▼1.8 kg 本周`），coral on loss / quiet green on gain.
 2. **阶段目标卡片**：recessed `#F2F3F5` / `#F5F5F7` rounded card — linear progress bar, start / target weight, optional **basic** pace ETA line (PRD §8.3.A). No purple ring.
 3. **可自定义莫兰迪方块**：默认 BMI / 围度 / 体重 / 饮食。BMI 格显示数字 + 灰色档名；点开 BMI 详情 Sheet。可新增睡眠、经期、活动消耗。虚线「添加」打开模块编辑。
 4. **体重列表**：默认近 **30** 天；早（太阳）/ 晚（月亮）、相对昨日涨跌、备注。点行编辑。点 **All** → 体重历史 Sheet（全部记录）。**不要**在本页原地折叠展开全部历史。
@@ -89,13 +89,13 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 图表交互：预览不改数据；点已有日可编辑体重。删体重不得删当日饮食/标签/备注。
 
 ### Tab 3 — 日历 (Calendar)
-1. **月历网格**：7 列。每格 — 日号、当日体重、涨跌（`▼0.2` / `▲0.2`）。点日期打开日明细 Sheet（非内嵌卡片）。
+1. **月历网格**：系统 Large Title（`tab.calendar`）下是 `< 月份 >` 选择器，再是 7 列月历。每格 — 日号、当日体重、涨跌（`▼0.2` / `▲0.2`）。点日期打开日明细 Sheet（非内嵌卡片）。
 2. **周均 / 月均**体重卡（选中日所在周 / 当前浏览月）。
 3. **月度 Overview**：净变化、清淡天数（只计 `clean`）、最长连续清淡、打卡 / 减重 / 增重天数。
 4. **日明细 Sheet**（`.medium` / `.large`）：早晚体重、餐次横滑（五预设 + `+ Add Meal`；拍照或相册 → JPEG 写入 Documents；早餐/午餐/晚餐写三个文件名字段，其余进 `extraMealsJSON`）。**有图单击全屏预览原图**（`fullScreenCover`，不要 `matchedGeometryEffect`）；空格单击或长按走拍照/相册/删除。饮食四选一芯片与标签流式换行、备注（立即写入 `DailyRecord`）。Save/Delete 不在日历日明细（即时写入）。**禁止**卡路里合计或宏量营养素。
 
 ### Tab 4 — 设置 (Settings)
-Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-grouped list; extra bottom inset so the last rows clear the tab bar.
+Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-grouped list; 16pt horizontal content margins and 100pt bottom inset so the last rows clear the tab bar.
 身高 / 生日（紧凑 DatePicker，未设置显示 Not set，用 trailing X 清除）/ 性别 / 起止体重 / 睡眠目标 / 首页模块 / 通知与提醒时刻 / CSV 导出导入 / 扩展指标开关与 History / **两次确认**的清除全部数据（独立 destructive section）。
 
 ### Shared Sheets
@@ -112,7 +112,7 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 - Default fill `#FFFFFF` on `#F7F8F9` background; nested / stage blocks use `#F2F3F5` or `#F5F5F7`.
 - **Corner Radius**: cards `16pt–20pt`; capsules / primary buttons `24pt` (full capsule OK).
 - **No hard borders**; no heavy shadows on content cards.
-- **Padding**: `16–20pt` inside cards; section spacing generous (`24pt+` between major blocks).
+- **Padding**: `16–20pt` inside cards. Root tabs share `EaseLayout`: 16pt screen edge, 16pt between stacked sections, 12pt metric-grid gap, 100pt scroll inset above the tab bar. All four tabs use `.navigationBarTitleDisplayMode(.large)` (Weight / Trend / Calendar / Settings) so titles share one vertical offset.
 - **Accessibility**: `EaseCard` grows vertically with Dynamic Type. Rings (`EaseArcRing`) are decorative — put the spoken facts on the enclosing card (`accessibilityLabel`); hide the ring from VoiceOver. `StageGoalCard` must expose progress + remaining kg.
 
 ### Buttons

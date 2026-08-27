@@ -32,17 +32,16 @@ struct CalendarTabView: View {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: EaseLayout.sectionSpacing) {
                         monthHeader
                         calendarCard
                         monthOverviewCard
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
+                    .easeTabScrollContent()
                 }
             }
             .navigationTitle("tab.calendar")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
             .sheet(item: $daySheet) { item in
                 CalendarDayDetailSheet(
@@ -216,12 +215,12 @@ struct CalendarTabView: View {
 
                 LazyVGrid(
                     columns: [
-                        GridItem(.flexible(), spacing: 12),
-                        GridItem(.flexible(), spacing: 12),
-                        GridItem(.flexible(), spacing: 12)
+                        GridItem(.flexible(), spacing: EaseLayout.gridGap),
+                        GridItem(.flexible(), spacing: EaseLayout.gridGap),
+                        GridItem(.flexible(), spacing: EaseLayout.gridGap)
                     ],
                     alignment: .leading,
-                    spacing: 14
+                    spacing: EaseLayout.gridGap
                 ) {
                     netChangeStat
                     iconStat(
