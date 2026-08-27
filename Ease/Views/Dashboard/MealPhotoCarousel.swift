@@ -10,6 +10,8 @@ struct MealPhotoCarousel: View {
     var onRemoveCustom: ((MealSlot) -> Void)? = nil
     var onAdd: () -> Void
 
+    @Environment(MealCutoutPreferences.self) private var cutoutPrefs
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: 12) {
@@ -23,30 +25,53 @@ struct MealPhotoCarousel: View {
 
     private func card(_ slot: MealSlot) -> some View {
         let name = fileName(slot)
-        return Button {
-            onTap(slot)
-        } label: {
-            VStack(spacing: 8) {
-                MealPhotoThumbnail(
-                    fileName: name,
-                    isBusy: isBusy(slot)
-                )
-                .frame(width: 100, height: 100)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(EasePalette.hairline, lineWidth: 0.5)
-                )
-                slotTitle(slot)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(EasePalette.secondaryText)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .frame(width: 100)
+        let showsCutout = cutoutPrefs.isCutoutActive(for: name)
+        return VStack(spacing: 8) {
+            ZStack(alignment: .topTrailing) {
+                Button {
+                    onTap(slot)
+                } label: {
+                    MealPhotoThumbnail(
+                        fileName: name,
+                        isBusy: isBusy(slot),
+                        showsCutout: showsCutout
+                    )
+                    .frame(width: 100, height: 100)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(EasePalette.hairline, lineWidth: 0.5)
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(isBusy(slot))
+
+                if let name {
+                    Button {
+                        cutoutPrefs.toggle(fileName: name)
+                    } label: {
+                        Image(systemName: "wand.and.stars")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(showsCutout ? Color.white : EasePalette.secondaryText)
+                            .frame(width: 28, height: 28)
+                            .background(
+                                showsCutout ? EasePalette.primaryText.opacity(0.72) : EasePalette.card.opacity(0.92),
+                                in: Circle()
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .padding(6)
+                    .accessibilityLabel(
+                        Text(showsCutout ? "meal.cutout.on" : "meal.cutout.off")
+                    )
+                }
             }
+            slotTitle(slot)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(EasePalette.secondaryText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(width: 100)
         }
-        .buttonStyle(.plain)
-        .disabled(isBusy(slot))
         .contextMenu {
             if name != nil {
                 Button {
@@ -68,6 +93,7 @@ struct MealPhotoCarousel: View {
                 }
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(verbatim: slot.displayTitle))
     }
 

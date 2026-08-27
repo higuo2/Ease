@@ -117,6 +117,7 @@ struct UserProfileRepository {
         }
         try context.save()
         MealPhotoStore.removeAllCached()
+        MealCutoutPreferences.shared.reset()
     }
 
     private func validate(heightCm: Double, startWeight: Double, targetWeight: Double) throws {

@@ -22,6 +22,8 @@
 		A100000000000000000000FB /* EaseFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000FA /* EaseFlowLayout.swift */; };
 		A100000000000000000000FD /* DietJournalChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000FC /* DietJournalChips.swift */; };
 		A100000000000000000000FF /* MealPhotoCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000FE /* MealPhotoCarousel.swift */; };
+		A10000000000000000000101 /* ImageCutoutService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000100 /* ImageCutoutService.swift */; };
+		A10000000000000000000103 /* MealCutoutPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000102 /* MealCutoutPreferences.swift */; };
 		A10000000000000000000019 /* DailyRecordRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000049 /* DailyRecordRepository.swift */; };
 		A1000000000000000000001A /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004A /* UserProfileRepository.swift */; };
 		A1000000000000000000001B /* EaseModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004B /* EaseModelContainer.swift */; };
@@ -108,6 +110,7 @@
 		T10000000000000000000043 /* MealPhotoStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000033 /* MealPhotoStoreTests.swift */; };
 		T10000000000000000000044 /* HealthKitCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000034 /* HealthKitCacheTests.swift */; };
 		T10000000000000000000045 /* AdvancedPaceEstimatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000035 /* AdvancedPaceEstimatorTests.swift */; };
+		T10000000000000000000046 /* MealCutoutPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000036 /* MealCutoutPreferencesTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -137,6 +140,8 @@
 		A100000000000000000000FA /* EaseFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseFlowLayout.swift; sourceTree = "<group>"; };
 		A100000000000000000000FC /* DietJournalChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietJournalChips.swift; sourceTree = "<group>"; };
 		A100000000000000000000FE /* MealPhotoCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPhotoCarousel.swift; sourceTree = "<group>"; };
+		A10000000000000000000100 /* ImageCutoutService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCutoutService.swift; sourceTree = "<group>"; };
+		A10000000000000000000102 /* MealCutoutPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCutoutPreferences.swift; sourceTree = "<group>"; };
 		A10000000000000000000049 /* DailyRecordRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRecordRepository.swift; sourceTree = "<group>"; };
 		A1000000000000000000004A /* UserProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileRepository.swift; sourceTree = "<group>"; };
 		A1000000000000000000004B /* EaseModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseModelContainer.swift; sourceTree = "<group>"; };
@@ -227,6 +232,7 @@
 		T10000000000000000000033 /* MealPhotoStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPhotoStoreTests.swift; sourceTree = "<group>"; };
 		T10000000000000000000034 /* HealthKitCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitCacheTests.swift; sourceTree = "<group>"; };
 		T10000000000000000000035 /* AdvancedPaceEstimatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedPaceEstimatorTests.swift; sourceTree = "<group>"; };
+		T10000000000000000000036 /* MealCutoutPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCutoutPreferencesTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -308,6 +314,7 @@
 				T10000000000000000000033 /* MealPhotoStoreTests.swift */,
 				T10000000000000000000034 /* HealthKitCacheTests.swift */,
 				T10000000000000000000035 /* AdvancedPaceEstimatorTests.swift */,
+				T10000000000000000000036 /* MealCutoutPreferencesTests.swift */,
 			);
 			path = EaseTests;
 			sourceTree = "<group>";
@@ -338,6 +345,8 @@
 				A100000000000000000000F0 /* BMIClassification.swift */,
 				A10000000000000000000049 /* DailyRecordRepository.swift */,
 				A100000000000000000000DC /* MealPhotoStore.swift */,
+				A10000000000000000000100 /* ImageCutoutService.swift */,
+				A10000000000000000000102 /* MealCutoutPreferences.swift */,
 				A1000000000000000000009C /* WeightLogRepository.swift */,
 				A1000000000000000000009D /* LegacyWeightMigrator.swift */,
 				A1000000000000000000004A /* UserProfileRepository.swift */,
@@ -610,6 +619,8 @@
 				A100000000000000000000FB /* EaseFlowLayout.swift in Sources */,
 				A100000000000000000000FD /* DietJournalChips.swift in Sources */,
 				A100000000000000000000FF /* MealPhotoCarousel.swift in Sources */,
+				A10000000000000000000101 /* ImageCutoutService.swift in Sources */,
+				A10000000000000000000103 /* MealCutoutPreferences.swift in Sources */,
 				A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */,
 				A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */,
 				A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */,
@@ -646,6 +657,7 @@
 				T10000000000000000000043 /* MealPhotoStoreTests.swift in Sources */,
 				T10000000000000000000044 /* HealthKitCacheTests.swift in Sources */,
 				T10000000000000000000045 /* AdvancedPaceEstimatorTests.swift in Sources */,
+				T10000000000000000000046 /* MealCutoutPreferencesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

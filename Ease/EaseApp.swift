@@ -8,6 +8,7 @@ struct EaseApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(MealCutoutPreferences.shared)
         }
         .modelContainer(container)
     }

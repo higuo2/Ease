@@ -113,6 +113,7 @@
 * `note`: String?
 * `breakfastPhotoFileName` / `lunchPhotoFileName` / `dinnerPhotoFileName`: String? — 三餐 JPEG 文件名（Documents）。配套 legacy `*PhotoData` 永不删除。
 * `extraMealsJSON`: String? — 下午茶、夜宵、自定义餐次。JSON 数组 `{ "id", "title?", "fileName" }`；预设 extra id 为 `afternoonTea` / `lateNight`；自定义 `custom.<uuid>`。早餐/午餐/晚餐永不写入此字段。解码失败视为空数组，不使整条记录失败。不要为餐次加 CloudKit `@Relationship`。
+* 餐图抠图（本地 Vision）：原图 JPEG 为真相源；抠图是 Documents 里 `{stem}-cutout.png` 派生缓存。展示偏好在 `UserDefaults`（全局默认开 + 按文件名覆盖），不进 SwiftData / CloudKit。
 * `updatedAt`: Date（同一 `dayKey` 两条冲突时保留较新者）
 
 字段级 Upsert 仅适用于本模型：同一天再次保存饮食/标签/备注时，只更新本次改过的字段。未改的保持原值。允许「只打饮食、不记体重」。

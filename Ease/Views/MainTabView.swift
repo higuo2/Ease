@@ -167,4 +167,5 @@ private enum AppTab: Hashable {
 #Preview {
     MainTabView()
         .modelContainer(EaseModelContainer.preview())
+        .environment(MealCutoutPreferences.shared)
 }

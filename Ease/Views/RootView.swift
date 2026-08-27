@@ -29,4 +29,5 @@ struct RootView: View {
 #Preview {
     RootView()
         .modelContainer(EaseModelContainer.preview())
+        .environment(MealCutoutPreferences.shared)
 }

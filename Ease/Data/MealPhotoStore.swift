@@ -3,6 +3,7 @@ import UIKit
 
 enum MealPhotoStore {
     private static let maxThumbnailPixel: CGFloat = 512
+    private static let cutoutSuffix = "-cutout.png"
     private static let lock = NSLock()
     private static let cache: NSCache<NSString, UIImage> = {
         let cache = NSCache<NSString, UIImage>()
@@ -34,6 +35,30 @@ enum MealPhotoStore {
         return fileName
     }
 
+    static func cutoutFileName(for original: String?) -> String? {
+        guard let original, isAllowedJPEG(original) else { return nil }
+        let stem = (original as NSString).deletingPathExtension
+        guard !stem.isEmpty else { return nil }
+        return stem + cutoutSuffix
+    }
+
+    static func saveCutout(_ image: UIImage, forOriginal original: String) async throws -> String {
+        guard let fileName = cutoutFileName(for: original) else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+        try await Task.detached(priority: .userInitiated) {
+            guard let data = image.pngData() else {
+                throw CocoaError(.fileWriteUnknown)
+            }
+            guard let url = fileURL(for: fileName) else {
+                throw CocoaError(.fileWriteUnknown)
+            }
+            try data.write(to: url, options: .atomic)
+        }.value
+        storeCached(thumbnail(image, preservesAlpha: true), fileName: fileName)
+        return fileName
+    }
+
     static func peek(_ fileName: String?) -> UIImage? {
         guard let fileName, !fileName.isEmpty else { return nil }
         lock.lock()
@@ -44,17 +69,33 @@ enum MealPhotoStore {
     static func loadImage(fileName: String?) async -> UIImage? {
         guard let fileName, !fileName.isEmpty else { return nil }
         if let hit = peek(fileName) { return hit }
+        let preserveAlpha = isAllowedCutoutPNG(fileName)
         let loaded = await Task.detached(priority: .utility) { () -> UIImage? in
             guard let url = fileURL(for: fileName) else { return nil }
             guard let data = try? Data(contentsOf: url), let image = UIImage(data: data) else {
                 return nil
             }
-            return thumbnail(image)
+            return thumbnail(image, preservesAlpha: preserveAlpha)
         }.value
         if let loaded {
             storeCached(loaded, fileName: fileName)
         }
         return loaded
+    }
+
+    /// Loads a cached cutout PNG, or generates one from the original JPEG thumbnail.
+    static func cutoutImage(forOriginal fileName: String?) async -> UIImage? {
+        guard let fileName, let cutoutName = cutoutFileName(for: fileName) else { return nil }
+        if let hit = peek(cutoutName) { return hit }
+        if let disk = await loadImage(fileName: cutoutName) { return disk }
+        guard let source = await loadImage(fileName: fileName) else { return nil }
+        do {
+            let cut = try await ImageCutoutService.shared.cutout(from: source)
+            _ = try? await saveCutout(cut, forOriginal: fileName)
+            return cut
+        } catch {
+            return nil
+        }
     }
 
     /// Full-resolution JPEG from Documents. Not stored in the thumbnail cache.
@@ -69,20 +110,30 @@ enum MealPhotoStore {
 
     /// Fire-and-forget sandbox cleanup — never block the main actor.
     static func deleteAsync(fileName: String?) {
-        guard let fileName, !fileName.isEmpty else { return }
-        removeCached(fileName)
-        Task.detached(priority: .utility) {
-            deleteSync(fileName: fileName)
-        }
+        deleteAsync(fileNames: [fileName])
     }
 
     static func deleteAsync(fileNames: [String?]) {
-        let names = fileNames.compactMap { $0 }.filter { !$0.isEmpty }
-        guard !names.isEmpty else { return }
-        for name in names { removeCached(name) }
+        var names: [String] = []
+        var originals: [String] = []
+        for raw in fileNames.compactMap({ $0 }).filter({ !$0.isEmpty }) {
+            names.append(raw)
+            originals.append(raw)
+            if let cutout = cutoutFileName(for: raw) {
+                names.append(cutout)
+            }
+        }
+        let unique = Array(Set(names))
+        guard !unique.isEmpty else { return }
+        for name in unique { removeCached(name) }
         Task.detached(priority: .utility) {
-            for name in names {
+            for name in unique {
                 deleteSync(fileName: name)
+            }
+        }
+        Task { @MainActor in
+            for name in originals {
+                MealCutoutPreferences.shared.removeOverride(for: name)
             }
         }
     }
@@ -110,7 +161,7 @@ enum MealPhotoStore {
         lock.unlock()
     }
 
-    private static func thumbnail(_ image: UIImage) -> UIImage {
+    private static func thumbnail(_ image: UIImage, preservesAlpha: Bool = false) -> UIImage {
         let pixelWidth = image.size.width * image.scale
         let pixelHeight = image.size.height * image.scale
         let longest = max(pixelWidth, pixelHeight)
@@ -119,6 +170,7 @@ enum MealPhotoStore {
         let size = CGSize(width: image.size.width * ratio, height: image.size.height * ratio)
         let format = UIGraphicsImageRendererFormat.default()
         format.scale = image.scale
+        format.opaque = !preservesAlpha
         return UIGraphicsImageRenderer(size: size, format: format).image { _ in
             image.draw(in: CGRect(origin: .zero, size: size))
         }
@@ -129,10 +181,19 @@ enum MealPhotoStore {
         try? FileManager.default.removeItem(at: url)
     }
 
+    private static func isAllowedJPEG(_ fileName: String) -> Bool {
+        let safe = (fileName as NSString).lastPathComponent
+        return safe == fileName && (safe.hasSuffix(".jpg") || safe.hasSuffix(".jpeg"))
+    }
+
+    private static func isAllowedCutoutPNG(_ fileName: String) -> Bool {
+        let safe = (fileName as NSString).lastPathComponent
+        return safe == fileName && safe.hasSuffix(cutoutSuffix) && safe.count > cutoutSuffix.count
+    }
+
     private static func fileURL(for fileName: String?) -> URL? {
         guard let fileName, !fileName.isEmpty else { return nil }
-        let safe = (fileName as NSString).lastPathComponent
-        guard safe == fileName, safe.hasSuffix(".jpg") || safe.hasSuffix(".jpeg") else { return nil }
-        return documentsDirectory.appendingPathComponent(safe)
+        guard isAllowedJPEG(fileName) || isAllowedCutoutPNG(fileName) else { return nil }
+        return documentsDirectory.appendingPathComponent(fileName)
     }
 }

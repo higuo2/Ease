@@ -2740,6 +2740,38 @@
         }
       }
     },
+    "meal.cutout.off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show cutout"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示抠图"
+          }
+        }
+      }
+    },
+    "meal.cutout.on": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show original"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示原图"
+          }
+        }
+      }
+    },
     "meal.afternoonTea": {
       "localizations": {
         "en": {

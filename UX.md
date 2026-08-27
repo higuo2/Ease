@@ -86,7 +86,7 @@
 
 * WidgetKit / App Intent / 锁屏组件 / 从 Widget 拍照。
 * 趋势图第二轴、Tooltip 体脂、双指缩放（未要求且易和 scrub 抢手势）。
-* 首页 `ultraThinMaterial`、卡片 drop shadow（含 0.04）。
+* 首页 `ultraThinMaterial`、卡片 drop shadow（含 0.04）。餐图抠图主体层可用 `opacity(0.12) radius 8`，不要加到卡片或首页方块。
 * `Task.detached` 包 `HealthKitReader` 或 SwiftData。
 * 全局 skeleton、庆祝式 haptic、进度 100% 动效。
 
@@ -130,6 +130,7 @@ Windows 不能 `xcodebuild`。实现后在 Mac 真机测：日历三餐格快滚
 * **无图**：单击 → 现有来源对话框（拍照 / 相册 / 取消）。
 * **有图**：单击 → `fullScreenCover` 看原图（奶油底或黑底均可，关闭用系统关闭控件）。长按 → 替换/删除（现有 `confirmationDialog` / context menu）。
 * 预览读 **Documents 原图**，不要把原图像素写进缩略图 `NSCache`。可在 `MealPhotoStore` 加 `loadOriginal`，与 `loadImage`（≤512）分开。
+* 默认抠图（本地 Vision PNG sidecar）。魔棒切换单卡覆盖；全屏预览仍是原图。主体轻阴影只打在抠图层。
 * 不要 `matchedGeometryEffect`、不要第三方图片浏览器、不要双指相册手势库。
 
 ### 10. 软性达标区间（只改文案）
@@ -164,7 +165,7 @@ Windows 不能 `xcodebuild`。实现后在 Mac 真机测：日历三餐格快滚
 
 * WidgetKit / App Intent / 锁屏组件 / 从 Widget 拍照。
 * 趋势图第二轴、Tooltip 体脂、双指缩放。
-* 首页 `ultraThinMaterial`、卡片 drop shadow（含 0.04）。
+* 首页 `ultraThinMaterial`、卡片 drop shadow（含 0.04）。餐图抠图主体层可用轻阴影，不要加到卡片或首页方块。
 * `Task.detached` 包 `HealthKitReader` 或 SwiftData。
 * 全局 skeleton、庆祝式 haptic、进度 100% 动效、`UIImpactFeedbackGenerator` 叠在已有 `.sensoryFeedback` 上。
 * 「一键同步 HealthKit」、空状态里的假同步。

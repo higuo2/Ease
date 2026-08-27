@@ -10,4 +10,5 @@ struct DashboardView: View {
 #Preview {
     DashboardView()
         .modelContainer(EaseModelContainer.preview())
+        .environment(MealCutoutPreferences.shared)
 }
