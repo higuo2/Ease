@@ -92,7 +92,7 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 1. **月历网格**：系统 Large Title（`tab.calendar`）下是 `< 月份 >` 选择器，再是 7 列月历。每格 — 日号、当日体重、涨跌（`▼0.2` / `▲0.2`）。点未选中日期只选中该日并刷新下方 Moments；再点同一天打开日明细 Sheet。
 2. **周均 / 月均**体重卡（选中日所在周 / 当前浏览月）。
 3. **月度 Overview**：净变化、清淡天数（只计 `clean`）、最长连续清淡、打卡 / 减重 / 增重天数。
-4. **当日 Moments**（Overview 下方）：选中日的餐图网格、饮食胶囊、备注；空状态「+ Add Meal」打开 Diet Log Sheet。点缩略图全屏预览。日明细 Sheet 仍可从其它入口打开。
+4. **美食日志卡**（Overview 下方）：选中日横滑餐图（110pt 方图）、饮食胶囊、备注；右上角 All 打开 `FoodJournalSheet`（按日倒序的餐图时间线）。空状态「+ Add Meal」打开 Diet Log Sheet。点缩略图全屏预览。再点同一天打开日明细 Sheet。
 5. **日明细 Sheet**（`.medium` / `.large`）：早晚体重、餐次横滑（五预设 + `+ Add Meal`；拍照或相册 → JPEG 写入 Documents；早餐/午餐/晚餐写三个文件名字段，其余进 `extraMealsJSON`）。**有图单击全屏预览原图**（`fullScreenCover`，不要 `matchedGeometryEffect`）；空格单击或长按走拍照/相册/删除。饮食四选一芯片与标签流式换行、备注（立即写入 `DailyRecord`）。Save/Delete 不在日历日明细（即时写入）。**禁止**卡路里合计或宏量营养素。
 
 ### Tab 4 — 设置 (Settings)
@@ -102,7 +102,7 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 ### Shared Sheets
 - **Weight Log Sheet**：可展开图形日历 → 体重 + OCR → 体脂 → 黑 Capsule Save（不含饮食）。
 - **Diet Log Sheet**：可展开日历 → 饮食四选一（流式芯片）→ 餐次横滑（五预设 + 自定义；有图单击全屏预览）→ 标签（预设 + 自定义）→ 备注 → 底部 `safeAreaInset` 珊瑚 Capsule Save（不含体重）。
-- **Weight History Sheet**：全部体重日列表（与首页行同构）；点行编辑。
+- **Food Journal Sheet**：日历 Food Journal 卡 All 入口。有餐图的日子按日期倒序；点图全屏预览。无照片时空状态。
 - **Metrics Sheet**：日期 → 已启用围度 → Save → **历史列表**（无围度趋势图）。主入口 = 首页围度格。
 - **Sleep / Cycle / Energy / BMI Detail**：睡眠/经期/消耗只读 HealthKit；BMI 只读档案+体重。sheet 内可用安静 tint；Sleep/Energy 图需有轴。BMI 可用莫兰迪分段条，档名灰色胶囊，禁止绿黄红交通灯。
 - **Onboarding**：三步不变；奶油底 + 黑 Capsule 主按钮。

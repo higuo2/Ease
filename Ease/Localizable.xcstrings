@@ -5753,13 +5753,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Daily Timeline"
+            "value": "Food Journal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当日动态"
+            "value": "美食日志"
           }
         }
       }
@@ -5808,6 +5808,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "编辑"
+          }
+        }
+      }
+    },
+    "calendar.feed.all": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部"
+          }
+        }
+      }
+    },
+    "calendar.feed.journal.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No food moments logged yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有美食记录"
+          }
+        }
+      }
+    },
+    "calendar.feed.journal.empty.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photos you add with Diet will show up here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在饮食里拍下的餐食会出现在这里。"
           }
         }
       }

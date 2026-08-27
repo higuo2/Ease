@@ -27,6 +27,7 @@
 		A10000000000000000000105 /* HealthHistoryRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000104 /* HealthHistoryRow.swift */; };
 		A10000000000000000000107 /* EaseLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000106 /* EaseLayout.swift */; };
 		A10000000000000000000109 /* DailyMomentsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000108 /* DailyMomentsCard.swift */; };
+		A10000000000000000000111 /* FoodJournalSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000110 /* FoodJournalSheet.swift */; };
 		A10000000000000000000019 /* DailyRecordRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000049 /* DailyRecordRepository.swift */; };
 		A1000000000000000000001A /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004A /* UserProfileRepository.swift */; };
 		A1000000000000000000001B /* EaseModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004B /* EaseModelContainer.swift */; };
@@ -148,6 +149,7 @@
 		A10000000000000000000104 /* HealthHistoryRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthHistoryRow.swift; sourceTree = "<group>"; };
 		A10000000000000000000106 /* EaseLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseLayout.swift; sourceTree = "<group>"; };
 		A10000000000000000000108 /* DailyMomentsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyMomentsCard.swift; sourceTree = "<group>"; };
+		A10000000000000000000110 /* FoodJournalSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodJournalSheet.swift; sourceTree = "<group>"; };
 		A10000000000000000000049 /* DailyRecordRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRecordRepository.swift; sourceTree = "<group>"; };
 		A1000000000000000000004A /* UserProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileRepository.swift; sourceTree = "<group>"; };
 		A1000000000000000000004B /* EaseModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EaseModelContainer.swift; sourceTree = "<group>"; };
@@ -434,6 +436,7 @@
 				A100000000000000000000D3 /* TrendTabView.swift */,
 				A100000000000000000000D4 /* CalendarTabView.swift */,
 				A10000000000000000000108 /* DailyMomentsCard.swift */,
+				A10000000000000000000110 /* FoodJournalSheet.swift */,
 				A100000000000000000000DA /* CalendarDayDetailSheet.swift */,
 				A100000000000000000000FE /* MealPhotoCarousel.swift */,
 				A100000000000000000000D5 /* HistoryTabView.swift */,
@@ -623,6 +626,7 @@
 				A100000000000000000000E3 /* TrendTabView.swift in Sources */,
 				A100000000000000000000E4 /* CalendarTabView.swift in Sources */,
 				A10000000000000000000109 /* DailyMomentsCard.swift in Sources */,
+				A10000000000000000000111 /* FoodJournalSheet.swift in Sources */,
 				A100000000000000000000E5 /* HistoryTabView.swift in Sources */,
 				A100000000000000000000E6 /* HomeModule.swift in Sources */,
 				A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */,

@@ -41,6 +41,7 @@ struct CalendarTabView: View {
                             record: records.first {
                                 $0.dayKey == CalendarDay.dayKey(from: selectedDate)
                             },
+                            journalRecords: records,
                             onAddMeal: {
                                 viewModel.openDietEntry(for: selectedDate)
                             }

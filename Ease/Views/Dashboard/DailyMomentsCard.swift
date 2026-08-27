@@ -3,33 +3,21 @@ import SwiftUI
 struct DailyMomentsCard: View {
     let date: Date
     let record: DailyRecord?
+    let journalRecords: [DailyRecord]
     let onAddMeal: () -> Void
 
     @State private var mealPreview: MealPhotoPreviewItem?
+    @State private var isJournalPresented = false
 
-    private var loggedMeals: [(slot: MealSlot, fileName: String)] {
-        guard let record else { return [] }
-        return record.visibleMealSlots.compactMap { slot in
-            guard let fileName = record.mealPhotoFileName(for: slot) else { return nil }
-            return (slot, fileName)
-        }
-    }
-
-    private var note: String? {
-        record?.note?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+    private var loggedMeals: [FoodJournalMeal] {
+        FoodJournalMeal.logged(in: record)
     }
 
     private var hasJournal: Bool {
         record?.dietStatus != nil
             || !(record?.variableTags.isEmpty ?? true)
-            || note != nil
+            || FoodJournalMeal.note(from: record) != nil
             || !loggedMeals.isEmpty
-    }
-
-    private var mealColumns: [GridItem] {
-        let count = max(loggedMeals.count, 1)
-        let columns = min(2, count)
-        return Array(repeating: GridItem(.flexible(), spacing: 10), count: columns)
     }
 
     var body: some View {
@@ -38,15 +26,11 @@ struct DailyMomentsCard: View {
                 header
                 if hasJournal {
                     if !loggedMeals.isEmpty {
-                        mealGrid
+                        FoodJournalPhotoStrip(meals: loggedMeals) { fileName in
+                            mealPreview = MealPhotoPreviewItem(fileName: fileName)
+                        }
                     }
-                    badges
-                    if let note {
-                        Text(note)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    FoodJournalMetaBlock(record: record)
                 } else {
                     emptyState
                 }
@@ -55,6 +39,12 @@ struct DailyMomentsCard: View {
         }
         .fullScreenCover(item: $mealPreview) { item in
             MealPhotoPreviewCover(fileName: item.fileName)
+        }
+        .sheet(isPresented: $isJournalPresented) {
+            FoodJournalSheet(records: journalRecords)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationContentInteraction(.scrolls)
         }
     }
 
@@ -69,53 +59,114 @@ struct DailyMomentsCard: View {
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 8)
-            if hasJournal {
-                Button(action: onAddMeal) {
-                    Text("calendar.feed.edit")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(EasePalette.accent)
+            Button {
+                isJournalPresented = true
+            } label: {
+                HStack(spacing: 2) {
+                    Text("calendar.feed.all")
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
                 }
-                .buttonStyle(.plain)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(EasePalette.secondaryText)
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("calendar.feed.all"))
         }
     }
 
-    private var mealGrid: some View {
-        LazyVGrid(columns: mealColumns, spacing: 10) {
-            ForEach(loggedMeals, id: \.slot.id) { item in
-                Button {
-                    mealPreview = MealPhotoPreviewItem(fileName: item.fileName)
-                } label: {
-                    VStack(spacing: 6) {
-                        MealPhotoThumbnail(
-                            fileName: item.fileName,
-                            cornerRadius: 12
-                        )
-                        Text(verbatim: item.slot.displayTitle)
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(EasePalette.secondaryText)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("calendar.feed.empty")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Button(action: onAddMeal) {
+                Text("calendar.feed.add")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(EasePalette.accent)
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 4)
+    }
+}
+
+struct FoodJournalMeal: Identifiable {
+    var id: String { slot.id }
+    let slot: MealSlot
+    let fileName: String
+
+    static func logged(in record: DailyRecord?) -> [FoodJournalMeal] {
+        guard let record else { return [] }
+        return record.visibleMealSlots.compactMap { slot in
+            guard let fileName = record.mealPhotoFileName(for: slot) else { return nil }
+            return FoodJournalMeal(slot: slot, fileName: fileName)
+        }
+    }
+
+    static func note(from record: DailyRecord?) -> String? {
+        record?.note?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+    }
+}
+
+struct FoodJournalPhotoStrip: View {
+    let meals: [FoodJournalMeal]
+    var thumbnailSize: CGFloat = 110
+    let onSelect: (String) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(alignment: .top, spacing: 10) {
+                ForEach(meals) { item in
+                    Button {
+                        onSelect(item.fileName)
+                    } label: {
+                        VStack(spacing: 6) {
+                            MealPhotoThumbnail(
+                                fileName: item.fileName,
+                                cornerRadius: 12
+                            )
+                            .frame(width: thumbnailSize, height: thumbnailSize)
+                            Text(verbatim: item.slot.displayTitle)
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(EasePalette.secondaryText)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                                .frame(width: thumbnailSize)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text(verbatim: item.slot.displayTitle))
+                    .accessibilityHint(Text("calendar.meal.preview"))
+                }
+            }
+        }
+    }
+}
+
+struct FoodJournalMetaBlock: View {
+    let record: DailyRecord?
+
+    var body: some View {
+        let tags = record?.variableTags ?? []
+        let note = FoodJournalMeal.note(from: record)
+        VStack(alignment: .leading, spacing: 8) {
+            if record?.dietStatus != nil || !tags.isEmpty {
+                EaseFlowLayout(spacing: 8) {
+                    if let diet = record?.dietStatus {
+                        dietBadge(diet)
+                    }
+                    ForEach(tags) { tag in
+                        tagBadge(tag)
                     }
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text(verbatim: item.slot.displayTitle))
-                .accessibilityHint(Text("calendar.meal.preview"))
             }
-        }
-    }
-
-    @ViewBuilder
-    private var badges: some View {
-        let tags = record?.variableTags ?? []
-        if record?.dietStatus != nil || !tags.isEmpty {
-            EaseFlowLayout(spacing: 8) {
-                if let diet = record?.dietStatus {
-                    dietBadge(diet)
-                }
-                ForEach(tags) { tag in
-                    tagBadge(tag)
-                }
+            if let note {
+                Text(note)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -144,26 +195,10 @@ struct DailyMomentsCard: View {
         .padding(.horizontal, 10)
         .background(EasePalette.recessed, in: Capsule())
     }
-
-    private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("calendar.feed.empty")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Button(action: onAddMeal) {
-                Text("calendar.feed.add")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(EasePalette.accent)
-            }
-            .buttonStyle(.plain)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 4)
-    }
 }
 
-private extension String {
-    var nilIfEmpty: String? {
+extension String {
+    fileprivate var nilIfEmpty: String? {
         isEmpty ? nil : self
     }
 }
