@@ -4,14 +4,16 @@ import UIKit
 import UniformTypeIdentifiers
 
 struct SettingsSheet: View {
-    @Environment(\.dismiss) private var dismiss
+    private enum Field: Hashable {
+        case height, start, target, sleep
+    }
+
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MetricDefinition.sortOrder, order: .forward) private var metricDefinitions: [MetricDefinition]
     @Query(sort: \MetricLog.timestamp, order: .forward) private var metricLogs: [MetricLog]
     let profile: UserProfile
     let records: [DailyRecord]
     let logs: [WeightLog]
-    var showsDismissButton: Bool = true
 
     @State private var heightText: String
     @State private var startText: String
@@ -24,6 +26,7 @@ struct SettingsSheet: View {
     @State private var dietReminderDate: Date
     @State private var showDeleteConfirm = false
     @State private var showDeleteConfirmAgain = false
+    @State private var showImportInfo = false
     @State private var sharePayload: SharePayload?
     @State private var errorKey: String?
     @State private var importResult: String?
@@ -36,23 +39,16 @@ struct SettingsSheet: View {
     @State private var isAddingMetric = false
     @State private var isWeightReminderExpanded = false
     @State private var isDietReminderExpanded = false
-    @State private var isModulesExpanded = false
-    @State private var isMetricsExpanded = false
+    @FocusState private var focusedField: Field?
 
     init(
         profile: UserProfile,
         records: [DailyRecord],
-        logs: [WeightLog] = [],
-        showsDismissButton: Bool = true,
-        onOpenSleep: (() -> Void)? = nil,
-        onOpenCycle: (() -> Void)? = nil
+        logs: [WeightLog] = []
     ) {
         self.profile = profile
         self.records = records
         self.logs = logs
-        self.showsDismissButton = showsDismissButton
-        _ = onOpenSleep
-        _ = onOpenCycle
         _heightText = State(initialValue: EaseFormatters.oneDecimal(profile.heightCm))
         _startText = State(initialValue: EaseFormatters.oneDecimal(profile.startWeight))
         _targetText = State(initialValue: EaseFormatters.oneDecimal(profile.targetWeight))
@@ -70,29 +66,23 @@ struct SettingsSheet: View {
         ))
     }
 
-    private var homeModulesBinding: Binding<[HomeModule]> {
-        Binding(
-            get: { profile.homeModules },
-            set: { newValue in
-                profile.homeModules = newValue
-                profile.updatedAt = .now
-                try? modelContext.save()
-            }
-        )
-    }
-
     private var customCount: Int {
         metricDefinitions.filter { $0.kind == .custom }.count
     }
 
+    private var activeMetrics: [MetricDefinition] {
+        metricDefinitions.filter { MetricCatalog.isActiveMetricKey($0.key) }
+    }
+
     var body: some View {
         NavigationStack {
-            Form {
+            List {
                 personalSection
                 remindersSection
                 modulesSection
                 metricsSection
                 dataSection
+                deleteSection
                 if let errorKey {
                     Section {
                         Text(LocalizedStringKey(errorKey))
@@ -108,23 +98,17 @@ struct SettingsSheet: View {
                     }
                 }
             }
-            .formStyle(.grouped)
+            .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
-            .background(EasePalette.background.ignoresSafeArea())
+            .scrollDismissesKeyboard(.interactively)
+            .background { EasePalette.background.ignoresSafeArea() }
             .tint(EasePalette.coral)
-            .navigationTitle("settings.title")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if showsDismissButton {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("common.close") { dismiss() }
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("common.done", action: save)
-                        .fontWeight(.semibold)
-                }
+            .contentMargins(.bottom, 28, for: .scrollContent)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Color.clear.frame(height: 8)
             }
+            .navigationTitle("settings.title")
+            .navigationBarTitleDisplayMode(.large)
             .confirmationDialog("settings.deleteConfirm", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
                 Button("settings.deleteContinue", role: .destructive) {
                     showDeleteConfirmAgain = true
@@ -157,15 +141,87 @@ struct SettingsSheet: View {
             ) { result in
                 handleImport(result)
             }
+            .onChange(of: focusedField) { oldValue, _ in
+                if oldValue != nil {
+                    persistMeasurements()
+                }
+            }
+            .onChange(of: birthDate) { _, _ in
+                persistBirthDate()
+            }
+            .onChange(of: sex) { _, _ in
+                persistSex()
+            }
+            .onChange(of: notificationsEnabled) { _, enabled in
+                Task { await persistNotifications(enabled) }
+            }
+            .onChange(of: isWeightReminderExpanded) { _, expanded in
+                if expanded {
+                    isDietReminderExpanded = false
+                } else {
+                    persistReminders()
+                }
+            }
+            .onChange(of: isDietReminderExpanded) { _, expanded in
+                if expanded {
+                    isWeightReminderExpanded = false
+                } else {
+                    persistReminders()
+                }
+            }
+            .onDisappear {
+                persistMeasurements()
+                persistReminders()
+            }
         }
         .preferredColorScheme(.light)
     }
 
     private var personalSection: some View {
         Section {
-            settingsField("settings.height", text: $heightText, suffix: "unit.cm", placeholder: "onboarding.height.placeholder")
-            settingsField("settings.startWeight", text: $startText, suffix: "unit.kg", placeholder: "onboarding.weight.placeholder")
-            settingsField("settings.targetWeight", text: $targetText, suffix: "unit.kg", placeholder: "onboarding.weight.placeholder")
+            settingsField(
+                "settings.height",
+                text: $heightText,
+                suffix: "unit.cm",
+                placeholder: "onboarding.height.placeholder",
+                field: .height
+            )
+            settingsField(
+                "settings.startWeight",
+                text: $startText,
+                suffix: "unit.kg",
+                placeholder: "onboarding.weight.placeholder",
+                field: .start
+            )
+            settingsField(
+                "settings.targetWeight",
+                text: $targetText,
+                suffix: "unit.kg",
+                placeholder: "onboarding.weight.placeholder",
+                field: .target
+            )
+            birthdayRow
+            Picker("settings.sex", selection: $sex) {
+                ForEach(BiologicalSex.allCases) { option in
+                    Text(LocalizedStringKey(option.titleKey)).tag(option)
+                }
+            }
+            settingsField(
+                "settings.sleepTarget",
+                text: $sleepTargetText,
+                suffix: "unit.hours",
+                placeholder: "settings.sleepTarget.placeholder",
+                field: .sleep
+            )
+        } header: {
+            Text("settings.section.personal")
+        }
+    }
+
+    private var birthdayRow: some View {
+        HStack {
+            Text("settings.birthDate")
+            Spacer(minLength: 12)
             if birthDate != nil {
                 DatePicker(
                     "settings.birthDate",
@@ -173,23 +229,25 @@ struct SettingsSheet: View {
                     in: birthDateRange,
                     displayedComponents: .date
                 )
-                Button("settings.birthDate.clear", role: .destructive) {
+                .labelsHidden()
+                .datePickerStyle(.compact)
+                Button {
                     birthDate = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(EasePalette.secondaryText)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("settings.birthDate.clear"))
             } else {
-                Button("settings.birthDate.add") {
+                Button("settings.birthDate.notSet") {
                     birthDate = Self.defaultBirthDate()
                 }
+                .foregroundStyle(EasePalette.secondaryText)
+                .buttonStyle(.plain)
             }
-            Picker("settings.sex", selection: $sex) {
-                ForEach(BiologicalSex.allCases) { option in
-                    Text(LocalizedStringKey(option.titleKey)).tag(option)
-                }
-            }
-            settingsField("settings.sleepTarget", text: $sleepTargetText, suffix: "unit.hours", placeholder: "settings.sleepTarget.placeholder")
-        } header: {
-            Text("settings.section.personal")
         }
+        .contentShape(Rectangle())
     }
 
     private var birthDateBinding: Binding<Date> {
@@ -209,6 +267,7 @@ struct SettingsSheet: View {
     private var remindersSection: some View {
         Section {
             Toggle("settings.notifications", isOn: $notificationsEnabled)
+                .contentShape(Rectangle())
 
             DisclosureGroup(isExpanded: $isWeightReminderExpanded) {
                 DatePicker(
@@ -227,9 +286,6 @@ struct SettingsSheet: View {
                         .font(.body.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
-            }
-            .onChange(of: isWeightReminderExpanded) { _, expanded in
-                if expanded { isDietReminderExpanded = false }
             }
 
             DisclosureGroup(isExpanded: $isDietReminderExpanded) {
@@ -250,9 +306,6 @@ struct SettingsSheet: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .onChange(of: isDietReminderExpanded) { _, expanded in
-                if expanded { isWeightReminderExpanded = false }
-            }
         } header: {
             Text("settings.section.reminders")
         }
@@ -260,84 +313,68 @@ struct SettingsSheet: View {
 
     private var modulesSection: some View {
         Section {
-            DisclosureGroup(isExpanded: $isModulesExpanded) {
-                ForEach(HomeModule.allCases) { module in
-                    Toggle(isOn: moduleBinding(module)) {
-                        Label {
-                            Text(LocalizedStringKey(module.titleKey))
-                        } icon: {
-                            Image(systemName: module.symbolName)
-                        }
+            ForEach(HomeModule.allCases) { module in
+                Toggle(isOn: moduleBinding(module)) {
+                    Label {
+                        Text(LocalizedStringKey(module.titleKey))
+                    } icon: {
+                        Image(systemName: module.symbolName)
                     }
                 }
-            } label: {
-                Text("settings.section.modules")
+                .contentShape(Rectangle())
             }
+        } header: {
+            Text("settings.section.modules")
         } footer: {
-            if isModulesExpanded {
-                Text("settings.section.modules.footer")
-            }
+            Text("settings.section.modules.footer")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
         }
     }
 
     private var metricsSection: some View {
         Section {
-            DisclosureGroup(isExpanded: $isMetricsExpanded) {
-                ForEach(metricDefinitions.filter { MetricCatalog.isActiveMetricKey($0.key) }, id: \.key) { definition in
-                    let spec = MetricCatalog.spec(for: definition)
-                    Toggle(isOn: enabledBinding(definition)) {
-                        Label {
-                            Text(verbatim: spec.resolvedTitle)
-                        } icon: {
-                            Image(systemName: spec.symbolName)
-                        }
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button("metric.history.title") {
-                            historyTarget = MetricHistoryTarget(definition: definition)
-                        }
-                        .tint(EasePalette.primaryText)
-                    }
+            ForEach(activeMetrics, id: \.persistentModelID) { definition in
+                SettingsMetricToggleRow(definition: definition) {
+                    historyTarget = MetricHistoryTarget(definition: definition)
                 }
+            }
 
-                if customCount < MetricCatalog.maxCustom {
-                    DisclosureGroup(isExpanded: $isAddingMetric) {
-                        TextField("settings.metrics.name", text: $customName)
-                        Picker("settings.metrics.unit", selection: $customUnit) {
-                            ForEach(MetricUnit.allCases, id: \.self) { unit in
-                                Text(LocalizedStringKey(unit.titleKey)).tag(unit)
-                            }
+            if customCount < MetricCatalog.maxCustom {
+                DisclosureGroup(isExpanded: $isAddingMetric) {
+                    TextField("settings.metrics.name", text: $customName)
+                    Picker("settings.metrics.unit", selection: $customUnit) {
+                        ForEach(MetricUnit.allCases, id: \.self) { unit in
+                            Text(LocalizedStringKey(unit.titleKey)).tag(unit)
                         }
-                        Picker("settings.metrics.symbol", selection: $customSymbol) {
-                            ForEach(MetricCatalog.allowedSymbols, id: \.self) { symbol in
-                                Image(systemName: symbol).tag(symbol)
-                            }
-                        }
-                        Button("settings.metrics.add", action: addCustom)
-                            .disabled(customName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    } label: {
-                        Label("settings.metrics.add", systemImage: "plus")
                     }
-                } else {
-                    Text("settings.metrics.maxCustom")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    Picker("settings.metrics.symbol", selection: $customSymbol) {
+                        ForEach(MetricCatalog.allowedSymbols, id: \.self) { symbol in
+                            Image(systemName: symbol).tag(symbol)
+                        }
+                    }
+                    Button("settings.metrics.add", action: addCustom)
+                        .disabled(customName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                } label: {
+                    Label("settings.metrics.add", systemImage: "plus")
                 }
-            } label: {
-                Text("settings.section.metrics")
+            } else {
+                Text("settings.metrics.maxCustom")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
+        } header: {
+            Text("settings.section.metrics")
         } footer: {
-            if isMetricsExpanded {
-                Text("settings.section.metrics.footer")
-            }
+            Text("settings.section.metrics.footer")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
         }
     }
 
     private var dataSection: some View {
         Section {
-            Button {
-                exportCSV()
-            } label: {
+            Button(action: exportCSV) {
                 Label("settings.export", systemImage: "square.and.arrow.up")
             }
             Button {
@@ -345,13 +382,38 @@ struct SettingsSheet: View {
             } label: {
                 Label("settings.import", systemImage: "square.and.arrow.down")
             }
-            Button("settings.deleteAll", role: .destructive) {
-                showDeleteConfirm = true
+            .overlay(alignment: .trailing) {
+                Button {
+                    showImportInfo = true
+                } label: {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(Text("settings.import.info"))
+                .popover(isPresented: $showImportInfo) {
+                    Text("settings.import.hint")
+                        .font(.system(size: 13))
+                        .foregroundStyle(EasePalette.secondaryText)
+                        .padding(16)
+                        .frame(maxWidth: 280, alignment: .leading)
+                        .presentationCompactAdaptation(.popover)
+                }
             }
         } header: {
             Text("settings.section.data")
         } footer: {
-            Text("settings.import.hint")
+            Text("settings.import.footer")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var deleteSection: some View {
+        Section {
+            Button("settings.deleteAll", role: .destructive) {
+                showDeleteConfirm = true
+            }
         }
     }
 
@@ -359,7 +421,8 @@ struct SettingsSheet: View {
         _ title: LocalizedStringKey,
         text: Binding<String>,
         suffix: LocalizedStringKey,
-        placeholder: LocalizedStringKey
+        placeholder: LocalizedStringKey,
+        field: Field
     ) -> some View {
         HStack {
             Text(title)
@@ -369,6 +432,8 @@ struct SettingsSheet: View {
                 .multilineTextAlignment(.trailing)
                 .monospacedDigit()
                 .frame(maxWidth: 120)
+                .focused($focusedField, equals: field)
+                .onSubmit { persistMeasurements() }
             Text(suffix)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -377,30 +442,27 @@ struct SettingsSheet: View {
 
     private func moduleBinding(_ module: HomeModule) -> Binding<Bool> {
         Binding(
-            get: { homeModulesBinding.wrappedValue.contains(module) },
+            get: { profile.homeModules.contains(module) },
             set: { isOn in
-                var modules = homeModulesBinding.wrappedValue
+                var modules = profile.homeModules
                 if isOn {
                     if !modules.contains(module) { modules.append(module) }
                 } else {
                     modules.removeAll { $0 == module }
                     if modules.isEmpty { modules = HomeModule.defaults }
                 }
-                homeModulesBinding.wrappedValue = modules
+                profile.homeModules = modules
+                profile.updatedAt = .now
+                try? modelContext.save()
             }
         )
     }
 
-    private func enabledBinding(_ definition: MetricDefinition) -> Binding<Bool> {
-        Binding(
-            get: { definition.isEnabled },
-            set: { newValue in
-                try? MetricRepository(context: modelContext).setEnabled(definition, isEnabled: newValue)
-            }
-        )
+    private var repository: UserProfileRepository {
+        UserProfileRepository(context: modelContext)
     }
 
-    private func save() {
+    private func persistMeasurements() {
         guard let height = EaseFormatters.parseDecimal(heightText),
               let start = EaseFormatters.parseDecimal(startText),
               let target = EaseFormatters.parseDecimal(targetText),
@@ -408,39 +470,72 @@ struct SettingsSheet: View {
             errorKey = "onboarding.error.invalid"
             return
         }
+        do {
+            try repository.update(
+                heightCm: height,
+                startWeight: start,
+                targetWeight: target,
+                sleepTargetHours: sleepTarget
+            )
+            errorKey = nil
+        } catch {
+            errorKey = "onboarding.error.invalid"
+        }
+    }
+
+    private func persistBirthDate() {
+        do {
+            try repository.update(birthDate: .set(birthDate))
+            errorKey = nil
+        } catch {
+            errorKey = "onboarding.error.invalid"
+        }
+    }
+
+    private func persistSex() {
+        do {
+            try repository.update(sex: sex)
+            errorKey = nil
+        } catch {
+            errorKey = "onboarding.error.invalid"
+        }
+    }
+
+    private func persistReminders() {
         let weightParts = Calendar.current.dateComponents([.hour, .minute], from: weightReminderDate)
         let dietParts = Calendar.current.dateComponents([.hour, .minute], from: dietReminderDate)
+        do {
+            try repository.update(
+                weightReminderHour: weightParts.hour,
+                weightReminderMinute: weightParts.minute,
+                dietReminderHour: dietParts.hour,
+                dietReminderMinute: dietParts.minute
+            )
+            errorKey = nil
+        } catch {
+            errorKey = "onboarding.error.invalid"
+            return
+        }
         Task {
-            var enabled = notificationsEnabled
-            if enabled {
-                enabled = await PermissionsService.requestNotifications()
+            await NotificationScheduler.refresh(enabled: notificationsEnabled, context: modelContext)
+        }
+    }
+
+    private func persistNotifications(_ enabled: Bool) async {
+        var next = enabled
+        if next {
+            next = await PermissionsService.requestNotifications()
+        }
+        do {
+            try repository.update(notificationsEnabled: next)
+            await NotificationScheduler.refresh(enabled: next, context: modelContext)
+            await MainActor.run {
+                notificationsEnabled = next
+                errorKey = nil
             }
-            do {
-                try UserProfileRepository(context: modelContext).update(
-                    heightCm: height,
-                    startWeight: start,
-                    targetWeight: target,
-                    sleepTargetHours: sleepTarget,
-                    notificationsEnabled: enabled,
-                    weightReminderHour: weightParts.hour,
-                    weightReminderMinute: weightParts.minute,
-                    dietReminderHour: dietParts.hour,
-                    dietReminderMinute: dietParts.minute,
-                    birthDate: .set(birthDate),
-                    sex: sex
-                )
-                await NotificationScheduler.refresh(enabled: enabled, context: modelContext)
-                await MainActor.run {
-                    errorKey = nil
-                    notificationsEnabled = enabled
-                    if showsDismissButton {
-                        dismiss()
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    errorKey = "onboarding.error.invalid"
-                }
+        } catch {
+            await MainActor.run {
+                errorKey = "onboarding.error.invalid"
             }
         }
     }
@@ -540,9 +635,6 @@ struct SettingsSheet: View {
         withAnimation(.easeInOut(duration: 0.25)) {
             try? UserProfileRepository(context: modelContext).resetAll()
         }
-        if showsDismissButton {
-            dismiss()
-        }
     }
 
     private static func defaultBirthDate() -> Date {
@@ -558,6 +650,48 @@ struct SettingsSheet: View {
             second: 0,
             of: Date()
         ) ?? Date()
+    }
+}
+
+private struct SettingsMetricToggleRow: View {
+    @Environment(\.modelContext) private var modelContext
+    let definition: MetricDefinition
+    let onHistory: () -> Void
+    @State private var isEnabled: Bool
+
+    init(definition: MetricDefinition, onHistory: @escaping () -> Void) {
+        self.definition = definition
+        self.onHistory = onHistory
+        _isEnabled = State(initialValue: definition.isEnabled)
+    }
+
+    private var spec: MetricSpec { MetricCatalog.spec(for: definition) }
+
+    var body: some View {
+        Toggle(isOn: $isEnabled) {
+            Label {
+                Text(verbatim: spec.resolvedTitle)
+            } icon: {
+                Image(systemName: spec.symbolName)
+            }
+        }
+        .toggleStyle(.switch)
+        .contentShape(Rectangle())
+        .onChange(of: isEnabled) { _, newValue in
+            guard definition.isEnabled != newValue else { return }
+            try? MetricRepository(context: modelContext).setEnabled(definition, isEnabled: newValue)
+        }
+        .onChange(of: definition.isEnabled) { _, newValue in
+            if isEnabled != newValue {
+                isEnabled = newValue
+            }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button("metric.history.title") {
+                onHistory()
+            }
+            .tint(EasePalette.primaryText)
+        }
     }
 }
 

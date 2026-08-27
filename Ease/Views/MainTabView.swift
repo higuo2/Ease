@@ -60,8 +60,7 @@ struct MainTabView: View {
                 SettingsSheet(
                     profile: profile,
                     records: Array(records),
-                    logs: Array(weightLogs),
-                    showsDismissButton: false
+                    logs: Array(weightLogs)
                 )
                 .tabItem { Label("tab.settings", systemImage: "gearshape") }
                 .tag(AppTab.settings)

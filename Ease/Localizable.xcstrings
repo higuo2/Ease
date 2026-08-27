@@ -3819,6 +3819,22 @@
         }
       }
     },
+    "settings.birthDate.notSet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未设置"
+          }
+        }
+      }
+    },
     "settings.height": {
       "localizations": {
         "en": {
@@ -3928,6 +3944,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择 ease-export.csv（体重/饮食）或 ease-metrics.csv（围度）。一次一个文件，表头必须完全一致。"
+          }
+        }
+      }
+    },
+    "settings.import.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV import help"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV 导入说明"
+          }
+        }
+      }
+    },
+    "settings.import.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One Ease CSV at a time. Headers must match."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次导入一个 Ease CSV，表头须一致。"
           }
         }
       }

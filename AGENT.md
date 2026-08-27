@@ -95,8 +95,8 @@ Sheets (weight log, diet log, metrics, weight history, sleep, cycle, energy) rem
 4. **日明细 Sheet**（`.medium` / `.large`）：早晚体重、三餐照片格（拍照或相册 → JPEG 写入 Documents 沙盒，`DailyRecord` 只存文件名）。**有图单击全屏预览原图**（`fullScreenCover`，不要 `matchedGeometryEffect`）；空格单击或长按走拍照/相册/删除。饮食三选一芯片与备注（立即写入 `DailyRecord`）。**禁止**卡路里合计或宏量营养素。
 
 ### Tab 4 — 设置 (Settings)
-Full-tab settings (not a sheet, no Close unless reused as sheet elsewhere).
-身高 / 生日 / 性别 / 起止体重 / 睡眠目标 / 首页模块 / 通知与提醒时刻 / CSV 导出导入 / 扩展指标开关与 History / 睡眠·经期次级入口 / **两次确认**的清除全部数据。
+Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-grouped list; extra bottom inset so the last rows clear the tab bar.
+身高 / 生日（紧凑 DatePicker，未设置显示 Not set，用 trailing X 清除）/ 性别 / 起止体重 / 睡眠目标 / 首页模块 / 通知与提醒时刻 / CSV 导出导入 / 扩展指标开关与 History / **两次确认**的清除全部数据（独立 destructive section）。
 
 ### Shared Sheets
 - **Weight Log Sheet**：可展开图形日历 → 体重 + OCR → 体脂 → 黑 Capsule Save（不含饮食）。
