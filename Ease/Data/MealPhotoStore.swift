@@ -1,14 +1,15 @@
 import Foundation
+import ImageIO
 import UIKit
 
 enum MealPhotoStore {
-    private static let maxThumbnailPixel: CGFloat = 512
+    private static let maxThumbnailPixel: CGFloat = 300
     private static let cutoutSuffix = "-cutout.png"
     private static let lock = NSLock()
     private static let cache: NSCache<NSString, UIImage> = {
         let cache = NSCache<NSString, UIImage>()
-        cache.countLimit = 30
-        cache.totalCostLimit = 30 * 512 * 512 * 4
+        cache.countLimit = 100
+        cache.totalCostLimit = 100 * 300 * 300 * 4
         return cache
     }()
 
@@ -31,7 +32,9 @@ enum MealPhotoStore {
             try data.write(to: url, options: .atomic)
             return fileName
         }.value
-        storeCached(thumbnail(image), fileName: fileName)
+        if let url = fileURL(for: fileName), let thumb = downsample(at: url, maxPixelSize: maxThumbnailPixel) {
+            storeCached(thumb, fileName: fileName)
+        }
         return fileName
     }
 
@@ -55,7 +58,9 @@ enum MealPhotoStore {
             }
             try data.write(to: url, options: .atomic)
         }.value
-        storeCached(thumbnail(image, preservesAlpha: true), fileName: fileName)
+        if let url = fileURL(for: fileName), let thumb = downsample(at: url, maxPixelSize: maxThumbnailPixel) {
+            storeCached(thumb, fileName: fileName)
+        }
         return fileName
     }
 
@@ -69,13 +74,9 @@ enum MealPhotoStore {
     static func loadImage(fileName: String?) async -> UIImage? {
         guard let fileName, !fileName.isEmpty else { return nil }
         if let hit = peek(fileName) { return hit }
-        let preserveAlpha = isAllowedCutoutPNG(fileName)
         let loaded = await Task.detached(priority: .utility) { () -> UIImage? in
             guard let url = fileURL(for: fileName) else { return nil }
-            guard let data = try? Data(contentsOf: url), let image = UIImage(data: data) else {
-                return nil
-            }
-            return thumbnail(image, preservesAlpha: preserveAlpha)
+            return downsample(at: url, maxPixelSize: maxThumbnailPixel)
         }.value
         if let loaded {
             storeCached(loaded, fileName: fileName)
@@ -161,19 +162,25 @@ enum MealPhotoStore {
         lock.unlock()
     }
 
-    private static func thumbnail(_ image: UIImage, preservesAlpha: Bool = false) -> UIImage {
-        let pixelWidth = image.size.width * image.scale
-        let pixelHeight = image.size.height * image.scale
-        let longest = max(pixelWidth, pixelHeight)
-        guard longest > maxThumbnailPixel else { return image }
-        let ratio = maxThumbnailPixel / longest
-        let size = CGSize(width: image.size.width * ratio, height: image.size.height * ratio)
-        let format = UIGraphicsImageRendererFormat.default()
-        format.scale = image.scale
-        format.opaque = !preservesAlpha
-        return UIGraphicsImageRenderer(size: size, format: format).image { _ in
-            image.draw(in: CGRect(origin: .zero, size: size))
+    private static func downsample(at url: URL, maxPixelSize: CGFloat) -> UIImage? {
+        let pixel = max(Int(maxPixelSize.rounded()), 1)
+        let options: [CFString: Any] = [
+            kCGImageSourceShouldCache: false,
+            kCGImageSourceShouldCacheImmediately: false
+        ]
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, options as CFDictionary) else {
+            return nil
         }
+        let thumbOptions: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: pixel,
+            kCGImageSourceShouldCacheImmediately: true
+        ]
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, thumbOptions as CFDictionary) else {
+            return nil
+        }
+        return UIImage(cgImage: cgImage)
     }
 
     private static func deleteSync(fileName: String) {

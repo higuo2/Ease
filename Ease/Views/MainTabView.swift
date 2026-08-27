@@ -16,14 +16,6 @@ struct MainTabView: View {
     private var enabledMetrics: [MetricDefinition] {
         metricDefinitions.filter { $0.isEnabled && MetricCatalog.isActiveMetricKey($0.key) }
     }
-    private var snapshotBMI: DashboardSnapshot {
-        DashboardSnapshot.make(
-            profile: profile,
-            records: Array(records),
-            logs: Array(weightLogs),
-            now: viewModel.selectedDate
-        )
-    }
 
     var body: some View {
         @Bindable var viewModel = viewModel
@@ -31,10 +23,10 @@ struct MainTabView: View {
             WeightTabView(
                 viewModel: viewModel,
                 profile: profile,
-                records: Array(records),
-                logs: Array(weightLogs),
+                records: records,
+                logs: weightLogs,
                 metricDefinitions: enabledMetrics,
-                metricLogs: Array(metricLogs)
+                metricLogs: metricLogs
             )
             .tabItem { Label("tab.weight", systemImage: "scalemass") }
             .tag(AppTab.weight)
@@ -42,16 +34,16 @@ struct MainTabView: View {
             TrendTabView(
                 viewModel: viewModel,
                 profile: profile,
-                records: Array(records),
-                logs: Array(weightLogs)
+                records: records,
+                logs: weightLogs
             )
             .tabItem { Label("tab.trend", systemImage: "chart.xyaxis.line") }
             .tag(AppTab.trend)
 
             CalendarTabView(
                 viewModel: viewModel,
-                records: Array(records),
-                logs: Array(weightLogs)
+                records: records,
+                logs: weightLogs
             )
             .tabItem { Label("tab.calendar", systemImage: "calendar") }
             .tag(AppTab.calendar)
@@ -59,8 +51,8 @@ struct MainTabView: View {
             if let profile {
                 SettingsSheet(
                     profile: profile,
-                    records: Array(records),
-                    logs: Array(weightLogs)
+                    records: records,
+                    logs: weightLogs
                 )
                 .tabItem { Label("tab.settings", systemImage: "gearshape") }
                 .tag(AppTab.settings)
@@ -77,13 +69,7 @@ struct MainTabView: View {
             .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isSleepPresented) {
-            SleepDetailSheet(
-                history: viewModel.sleepHistory,
-                focusHours: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.previousNightSleepHours,
-                targetHours: profile?.sleepTargetHours ?? 8.0,
-                isPlaceholder: !viewModel.hasLoadedHealth
-            )
-            .easeSheetPresentation()
+            SleepSheetHost(viewModel: viewModel, profile: profile)
         }
         .sheet(isPresented: $viewModel.isCyclePresented) {
             CycleDetailSheet(
@@ -93,30 +79,21 @@ struct MainTabView: View {
             .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isEnergyPresented) {
-            EnergyDetailSheet(
-                history: viewModel.energyHistory,
-                focusKcal: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.activeEnergyKcal,
-                isPlaceholder: !viewModel.hasLoadedHealth
-            )
-            .easeSheetPresentation()
+            EnergySheetHost(viewModel: viewModel)
         }
         .sheet(isPresented: $viewModel.isBMIPresented) {
-            BMIDetailSheet(
-                bmi: snapshotBMI.bmi,
-                weightKg: snapshotBMI.displayWeight,
-                heightCm: profile?.heightCm ?? 0,
-                birthDate: profile?.birthDate,
-                sex: profile?.sex ?? .unspecified,
-                now: viewModel.selectedDate
+            BMISheetHost(
+                viewModel: viewModel,
+                profile: profile,
+                records: records,
+                logs: weightLogs
             )
-            .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isMetricSheetPresented) {
             MetricSheet(date: viewModel.metricsDate, initialKey: viewModel.metricFocusKey)
                 .easeSheetPresentation()
         }
         .task(id: scenePhase) {
-            // Only refresh when returning to foreground — avoid heavy work during background/teardown.
             guard scenePhase == .active else { return }
             await reloadHealthAndNotifications(forceHealth: false)
         }
@@ -137,8 +114,8 @@ struct MainTabView: View {
     private func reloadHealthAndNotifications(forceHealth: Bool) async {
         await viewModel.reloadHealthAndNotifications(
             enabled: profile?.notificationsEnabled == true,
-            records: Array(records),
-            logs: Array(weightLogs),
+            records: records,
+            logs: weightLogs,
             weightHour: profile?.weightReminderHour ?? NotificationSchedulePolicy.weightHour,
             weightMinute: profile?.weightReminderMinute ?? NotificationSchedulePolicy.weightMinute,
             dietHour: profile?.dietReminderHour ?? NotificationSchedulePolicy.dietHour,
@@ -150,13 +127,66 @@ struct MainTabView: View {
     private func refreshNotifications() async {
         await viewModel.refreshNotifications(
             enabled: profile?.notificationsEnabled == true,
-            records: Array(records),
-            logs: Array(weightLogs),
+            records: records,
+            logs: weightLogs,
             weightHour: profile?.weightReminderHour ?? NotificationSchedulePolicy.weightHour,
             weightMinute: profile?.weightReminderMinute ?? NotificationSchedulePolicy.weightMinute,
             dietHour: profile?.dietReminderHour ?? NotificationSchedulePolicy.dietHour,
             dietMinute: profile?.dietReminderMinute ?? NotificationSchedulePolicy.dietMinute
         )
+    }
+}
+
+private struct SleepSheetHost: View {
+    @Bindable var viewModel: DashboardViewModel
+    let profile: UserProfile?
+
+    var body: some View {
+        SleepDetailSheet(
+            history: viewModel.sleepHistory,
+            focusHours: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.previousNightSleepHours,
+            targetHours: profile?.sleepTargetHours ?? 8.0,
+            isPlaceholder: !viewModel.hasLoadedHealth
+        )
+        .easeSheetPresentation()
+    }
+}
+
+private struct EnergySheetHost: View {
+    @Bindable var viewModel: DashboardViewModel
+
+    var body: some View {
+        EnergyDetailSheet(
+            history: viewModel.energyHistory,
+            focusKcal: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.activeEnergyKcal,
+            isPlaceholder: !viewModel.hasLoadedHealth
+        )
+        .easeSheetPresentation()
+    }
+}
+
+private struct BMISheetHost: View {
+    @Bindable var viewModel: DashboardViewModel
+    let profile: UserProfile?
+    let records: [DailyRecord]
+    let logs: [WeightLog]
+
+    var body: some View {
+        let snapshot = DashboardSnapshot.make(
+            profile: profile,
+            records: records,
+            logs: logs,
+            now: viewModel.selectedDate
+        )
+        BMIDetailSheet(
+            bmi: snapshot.bmi,
+            weightKg: snapshot.displayWeight,
+            heightCm: profile?.heightCm ?? 0,
+            birthDate: profile?.birthDate,
+            sex: profile?.sex ?? .unspecified,
+            now: viewModel.selectedDate
+        )
+        .easeSheetPresentation()
     }
 }
 

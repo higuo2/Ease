@@ -75,7 +75,8 @@ struct MealPhotoThumbnail: View {
             cutout = hit
             return
         }
-        isCutoutBusy = true
+        let shouldShowSpinner = original == nil
+        if shouldShowSpinner { isCutoutBusy = true }
         defer { isCutoutBusy = false }
         let generated = await MealPhotoStore.cutoutImage(forOriginal: fileName)
         guard !Task.isCancelled else { return }

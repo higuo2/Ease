@@ -12,7 +12,8 @@ struct SleepDetailSheet: View {
         guard let focusHours, targetHours > 0 else { return nil }
         return min(max(focusHours / targetHours, 0), 1)
     }
-    private var chartNights: [SleepNight] { history.nights.filter { $0.hours != nil } }
+    private var loggedNights: [SleepNight] { history.nights.filter { $0.hours != nil } }
+    private var chartNights: [SleepNight] { Array(loggedNights.suffix(HealthDetailChart.chartPointLimit)) }
     private var latestChartDate: Date { chartNights.last?.morning ?? history.endingOn }
 
     var body: some View {

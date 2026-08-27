@@ -7,6 +7,7 @@ struct CycleDetailSheet: View {
     var isPlaceholder = false
 
     private var lastSpan: CycleSpan? { history.spans.last }
+    private var chartSpans: [CycleSpan] { Array(history.spans.suffix(HealthDetailChart.cycleSpanLimit)) }
 
     var body: some View {
         NavigationStack {
@@ -110,7 +111,7 @@ struct CycleDetailSheet: View {
 
     private var timelineChart: some View {
         Chart {
-            ForEach(history.spans) { span in
+            ForEach(chartSpans) { span in
                 BarMark(
                     xStart: .value("chart.axis.date", span.start),
                     xEnd: .value("chart.axis.date", CalendarDay.endOfDay(span.end)),

@@ -46,7 +46,7 @@ final class AdvancedPaceEstimatorTests: XCTestCase {
     }
 
     func test_进度已达100_隐藏() {
-        let samples = consecutive(from: calendar.testDate(2026, 7, 1), count: 40) { 70 }
+        let samples = consecutive(from: calendar.testDate(2026, 7, 1), count: 40) { _ in 70 }
         XCTAssertNil(
             AdvancedPaceEstimator.estimate(
                 samples: samples,
@@ -61,7 +61,7 @@ final class AdvancedPaceEstimatorTests: XCTestCase {
     }
 
     func test_斜率过小_隐藏() {
-        let samples = consecutive(from: calendar.testDate(2026, 7, 1), count: 40) { 80 }
+        let samples = consecutive(from: calendar.testDate(2026, 7, 1), count: 40) { _ in 80 }
         XCTAssertNil(
             AdvancedPaceEstimator.estimate(
                 samples: samples,

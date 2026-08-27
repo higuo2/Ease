@@ -10,37 +10,37 @@ struct CalendarTabView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var selectedDate: Date { viewModel.selectedDate }
+    private var selectedDayKey: String { CalendarDay.dayKey(from: selectedDate) }
     private var monthDays: [Date] { CalendarDay.daysInMonth(containing: visibleMonth) }
     private var leadingEmpty: Int { CalendarDay.leadingEmptyDays(inMonthContaining: visibleMonth) }
     private var weekdaySymbols: [String] { CalendarDay.weekdayHeaderSymbols() }
-    private var monthStats: MonthWeightStats {
-        MonthWeightStats.make(records: records, logs: logs, monthContaining: visibleMonth)
-    }
-    private var weekAverageWeight: Double? {
-        WeekWeightStats.averageWeight(
-            records: records,
-            logs: logs,
-            weekContaining: selectedDate
-        )
-    }
     private var gridColumns: [GridItem] {
         Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
     }
 
     var body: some View {
+        let recordsByDay = WeightMetrics.recordsByDayKey(records)
+        let weightIndex = WeightMetrics.DayIndex.make(records: records, logs: logs)
+        let monthStats = MonthWeightStats.make(
+            recordsByDay: recordsByDay,
+            weightIndex: weightIndex,
+            monthContaining: visibleMonth
+        )
+        let weekAverageWeight = WeekWeightStats.averageWeight(
+            weightIndex: weightIndex,
+            weekContaining: selectedDate
+        )
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: EaseLayout.sectionSpacing) {
                         monthHeader
-                        calendarCard
-                        monthOverviewCard
+                        calendarCard(recordsByDay: recordsByDay, weightIndex: weightIndex)
+                        monthOverviewCard(monthStats: monthStats, weekAverageWeight: weekAverageWeight)
                         DailyMomentsCard(
                             date: selectedDate,
-                            record: records.first {
-                                $0.dayKey == CalendarDay.dayKey(from: selectedDate)
-                            },
+                            record: recordsByDay[selectedDayKey],
                             journalRecords: records,
                             onAddMeal: {
                                 viewModel.openDietEntry(for: selectedDate)
@@ -102,7 +102,10 @@ struct CalendarTabView: View {
         .padding(.horizontal, 4)
     }
 
-    private var calendarCard: some View {
+    private func calendarCard(
+        recordsByDay: [String: DailyRecord],
+        weightIndex: WeightMetrics.DayIndex
+    ) -> some View {
         EaseCard(padding: 16) {
             VStack(spacing: 12) {
                 LazyVGrid(columns: gridColumns, spacing: 4) {
@@ -118,7 +121,7 @@ struct CalendarTabView: View {
                         Color.clear.frame(minHeight: isAccessibilityType ? 88 : 64)
                     }
                     ForEach(monthDays, id: \.self) { day in
-                        dayCell(day)
+                        dayCell(day, recordsByDay: recordsByDay, weightIndex: weightIndex)
                     }
                 }
             }
@@ -129,17 +132,17 @@ struct CalendarTabView: View {
         dynamicTypeSize.isAccessibilitySize
     }
 
-    private func dayCell(_ day: Date) -> some View {
+    private func dayCell(
+        _ day: Date,
+        recordsByDay: [String: DailyRecord],
+        weightIndex: WeightMetrics.DayIndex
+    ) -> some View {
         let isFuture = CalendarDay.isFuture(day)
-        let isSelected = CalendarDay.dayKey(from: day) == CalendarDay.dayKey(from: selectedDate)
-        let weight = WeightMetrics.weightOnDay(records: records, logs: logs, on: day)
-        let previous = CalendarDay.addingDays(-1, to: day)
-        let prevWeight = WeightMetrics.weightOnDay(records: records, logs: logs, on: previous)
-        let delta: Double? = {
-            guard let weight, let prevWeight else { return nil }
-            return MeasurementBounds.roundedToTenth(weight - prevWeight)
-        }()
-        let diet = records.first { $0.dayKey == CalendarDay.dayKey(from: day) }?.dietStatus
+        let dayKey = CalendarDay.dayKey(from: day)
+        let isSelected = dayKey == selectedDayKey
+        let weight = weightIndex.weight(on: day)
+        let delta = weightIndex.delta(on: day)
+        let diet = recordsByDay[dayKey]?.dietStatus
 
         return Button {
             guard !isFuture else { return }
@@ -203,7 +206,10 @@ struct CalendarTabView: View {
         return ""
     }
 
-    private var monthOverviewCard: some View {
+    private func monthOverviewCard(
+        monthStats: MonthWeightStats,
+        weekAverageWeight: Double?
+    ) -> some View {
         EaseCard(padding: 20) {
             VStack(alignment: .leading, spacing: 16) {
                 Text(overviewTitle)
@@ -235,7 +241,7 @@ struct CalendarTabView: View {
                     alignment: .leading,
                     spacing: EaseLayout.gridGap
                 ) {
-                    netChangeStat
+                    netChangeStat(monthDelta: monthStats.monthDelta)
                     iconStat(
                         title: "calendar.stat.cleanDays",
                         value: daysCount(monthStats.cleanDays),
@@ -257,14 +263,14 @@ struct CalendarTabView: View {
         }
     }
 
-    private var netChangeStat: some View {
+    private func netChangeStat(monthDelta: Double?) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("calendar.stat.monthDelta")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-            if let delta = monthStats.monthDelta {
+            if let delta = monthDelta {
                 Text(deltaPrefix(delta) + EaseFormatters.oneDecimal(abs(delta)) + " kg")
                     .font(.subheadline.bold())
                     .monospacedDigit()
@@ -374,8 +380,8 @@ struct MonthWeightStats {
     var bestCleanStreak: Int
 
     static func make(
-        records: [DailyRecord],
-        logs: [WeightLog],
+        recordsByDay: [String: DailyRecord],
+        weightIndex: WeightMetrics.DayIndex,
         monthContaining date: Date,
         calendar: Calendar = .current
     ) -> MonthWeightStats {
@@ -392,8 +398,6 @@ struct MonthWeightStats {
         var bestCleanStreak = 0
         var currentCleanStreak = 0
 
-        let recordsByDay = Dictionary(grouping: records, by: \.dayKey).compactMapValues(\.first)
-
         for day in days {
             let key = CalendarDay.dayKey(from: day, calendar: calendar)
             if recordsByDay[key]?.dietStatus == .clean {
@@ -404,16 +408,14 @@ struct MonthWeightStats {
                 currentCleanStreak = 0
             }
 
-            guard let weight = WeightMetrics.weightOnDay(records: records, logs: logs, on: day, calendar: calendar) else {
+            guard let weight = weightIndex.weight(on: day, calendar: calendar) else {
                 continue
             }
             checkins += 1
             weights.append(weight)
             if firstWeight == nil { firstWeight = weight }
             lastWeight = weight
-            let previous = CalendarDay.addingDays(-1, to: day, calendar: calendar)
-            if let prev = WeightMetrics.weightOnDay(records: records, logs: logs, on: previous, calendar: calendar) {
-                let delta = MeasurementBounds.roundedToTenth(weight - prev)
+            if let delta = weightIndex.delta(on: day, calendar: calendar) {
                 deltas.append(delta)
                 if delta < 0 { loss += 1 }
                 if delta > 0 { gain += 1 }
@@ -448,16 +450,13 @@ struct MonthWeightStats {
 
 enum WeekWeightStats {
     static func averageWeight(
-        records: [DailyRecord],
-        logs: [WeightLog],
+        weightIndex: WeightMetrics.DayIndex,
         weekContaining date: Date,
         calendar: Calendar = .current
     ) -> Double? {
         let days = CalendarDay.weekDates(containing: date, calendar: calendar)
             .filter { !CalendarDay.isFuture($0, calendar: calendar) }
-        let weights = days.compactMap {
-            WeightMetrics.weightOnDay(records: records, logs: logs, on: $0, calendar: calendar)
-        }
+        let weights = days.compactMap { weightIndex.weight(on: $0, calendar: calendar) }
         guard !weights.isEmpty else { return nil }
         return MeasurementBounds.roundedToTenth(weights.reduce(0, +) / Double(weights.count))
     }

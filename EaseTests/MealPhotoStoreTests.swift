@@ -41,20 +41,26 @@ final class MealPhotoStoreTests: XCTestCase {
         MealPhotoStore.removeAllCached()
         let fileName = try await MealPhotoStore.saveJPEG(sampleImage())
         MealPhotoStore.removeAllCached()
-        XCTAssertNotNil(await MealPhotoStore.loadOriginal(fileName: fileName))
+        let original = await MealPhotoStore.loadOriginal(fileName: fileName)
+        XCTAssertNotNil(original)
         XCTAssertNil(MealPhotoStore.peek(fileName))
         MealPhotoStore.deleteAsync(fileName: fileName)
     }
 
     func test_loadOriginal_缺失或不安全文件名_返回nil() async {
         MealPhotoStore.removeAllCached()
-        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: nil))
-        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: ""))
-        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: "missing.jpg"))
-        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: "../escape.jpg"))
-        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: "photo.png"))
-        XCTAssertNil(await MealPhotoStore.loadImage(fileName: "../escape.jpg"))
-        XCTAssertNil(await MealPhotoStore.loadImage(fileName: "missing.jpg"))
+        let missingOriginals = [
+            await MealPhotoStore.loadOriginal(fileName: nil),
+            await MealPhotoStore.loadOriginal(fileName: ""),
+            await MealPhotoStore.loadOriginal(fileName: "missing.jpg"),
+            await MealPhotoStore.loadOriginal(fileName: "../escape.jpg"),
+            await MealPhotoStore.loadOriginal(fileName: "photo.png")
+        ]
+        missingOriginals.forEach { XCTAssertNil($0) }
+        let escapedImage = await MealPhotoStore.loadImage(fileName: "../escape.jpg")
+        let missingImage = await MealPhotoStore.loadImage(fileName: "missing.jpg")
+        XCTAssertNil(escapedImage)
+        XCTAssertNil(missingImage)
     }
 
     func test_removeAllCached_驱逐已保存缩略图() async throws {
@@ -83,7 +89,8 @@ final class MealPhotoStoreTests: XCTestCase {
         XCTAssertNotNil(MealPhotoStore.peek(cutoutName))
 
         MealPhotoStore.removeAllCached()
-        XCTAssertNotNil(await MealPhotoStore.loadImage(fileName: cutoutName))
+        let reloaded = await MealPhotoStore.loadImage(fileName: cutoutName)
+        XCTAssertNotNil(reloaded)
 
         MealPhotoStore.deleteAsync(fileName: original)
         XCTAssertNil(MealPhotoStore.peek(original))
@@ -92,9 +99,12 @@ final class MealPhotoStoreTests: XCTestCase {
 
     func test_loadImage_拒绝任意png和路径穿越cutout() async {
         MealPhotoStore.removeAllCached()
-        XCTAssertNil(await MealPhotoStore.loadImage(fileName: "photo.png"))
-        XCTAssertNil(await MealPhotoStore.loadImage(fileName: "../escape-cutout.png"))
-        XCTAssertNil(await MealPhotoStore.loadOriginal(fileName: "photo.png"))
+        let rejectedImage = await MealPhotoStore.loadImage(fileName: "photo.png")
+        let rejectedEscape = await MealPhotoStore.loadImage(fileName: "../escape-cutout.png")
+        let rejectedOriginal = await MealPhotoStore.loadOriginal(fileName: "photo.png")
+        XCTAssertNil(rejectedImage)
+        XCTAssertNil(rejectedEscape)
+        XCTAssertNil(rejectedOriginal)
     }
 
     private func sampleImage(size: CGSize = CGSize(width: 8, height: 8)) -> UIImage {
