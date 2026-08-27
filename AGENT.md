@@ -131,7 +131,7 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 ### Charts
 - Smooth weight lines: `interpolationMethod(.catmullRom)`.
 - Target: dashed rule.
-- Selection callout: black rounded tooltip, white text (date, last-per-day weight, optional 7-day MA). No body fat.
+- Selection callout: black rounded tooltip in `chartOverlay` (not plot-area annotation). Weight, 7-day MA, and target share one Y encoding + `chartYScale`. Do not `chartPlotStyle` top-pad the plot — it desyncs dots from axis ticks. Drag scrubs only; a short tap opens the weight sheet and clears selection.
 - Non-zero Y domain so a single point still renders.
 - Quiet but **visible** axes on Trend / Sleep / Energy charts.
 - Diet / variable markers: SF Symbols only; not on the Trend weight chart.

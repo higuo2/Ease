@@ -28,6 +28,7 @@ struct TrendTabView: View {
                                 logs: logs,
                                 range: viewModel.chartRange,
                                 targetWeight: snapshot.targetWeight > 0 ? snapshot.targetWeight : nil,
+                                logSheetPresented: viewModel.isLogPresented,
                                 onSelectRange: { viewModel.chartRange = $0 },
                                 onSelectLog: { viewModel.openWeightLog($0) }
                             )

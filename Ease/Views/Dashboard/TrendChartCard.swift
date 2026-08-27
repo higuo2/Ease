@@ -3,7 +3,7 @@ import Charts
 
 private struct ChartDayPreview: Equatable {
     var date: Date
-    var weight: Double?
+    var weight: Double
     var movingAverage: Double?
 }
 
@@ -18,11 +18,17 @@ struct TrendChartCard: View {
     let logs: [WeightLog]
     let range: ChartRange
     var targetWeight: Double? = nil
+    var logSheetPresented: Bool = false
     let onSelectRange: (ChartRange) -> Void
     let onSelectLog: (WeightLog) -> Void
 
     @State private var preview: ChartDayPreview?
     @State private var scrubDayKey = ""
+    @State private var isScrubbing = false
+
+    /// Single Y encoding so weight, MA, target, and selection share one scale.
+    private static let yWeight = "chart.axis.weight"
+    private static let xDate = "chart.axis.date"
 
     private var rangeEnd: Date {
         CalendarDay.startOfDay(.now)
@@ -53,7 +59,7 @@ struct TrendChartCard: View {
         records.filter { $0.date >= rangeStart && $0.date <= rangeEnd }
     }
 
-    /// Every weigh-in in range (muted dots).
+    /// Every weigh-in in range.
     private var chartWeightPoints: [ChartWeightPoint] {
         let fromLogs = logsInRange.map {
             ChartWeightPoint(id: $0.id.uuidString, date: $0.timestamp, weight: $0.weight)
@@ -108,6 +114,14 @@ struct TrendChartCard: View {
                 }
             }
         }
+        .onChange(of: logSheetPresented) { _, presented in
+            if presented {
+                clearPreview()
+            }
+        }
+        .onChange(of: range) { _, _ in
+            clearPreview()
+        }
     }
 
     private var rangePicker: some View {
@@ -134,7 +148,7 @@ struct TrendChartCard: View {
     private var weightChart: some View {
         Chart {
             if let targetWeight {
-                RuleMark(y: .value("chart.axis.target", targetWeight))
+                RuleMark(y: .value(Self.yWeight, targetWeight))
                     .foregroundStyle(EasePalette.secondaryText.opacity(0.55))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 4]))
                     .annotation(position: .top, alignment: .trailing) {
@@ -147,8 +161,8 @@ struct TrendChartCard: View {
             if dailyPoints.count >= 2 {
                 ForEach(dailyPoints) { point in
                     LineMark(
-                        x: .value("chart.axis.date", point.date),
-                        y: .value("chart.axis.weight", point.weight)
+                        x: .value(Self.xDate, point.date),
+                        y: .value(Self.yWeight, point.weight)
                     )
                     .foregroundStyle(EasePalette.chartLineGradient)
                     .interpolationMethod(.catmullRom)
@@ -158,8 +172,8 @@ struct TrendChartCard: View {
 
             ForEach(dailyPoints) { point in
                 PointMark(
-                    x: .value("chart.axis.date", point.date),
-                    y: .value("chart.axis.weight", point.weight)
+                    x: .value(Self.xDate, point.date),
+                    y: .value(Self.yWeight, point.weight)
                 )
                 .foregroundStyle(EasePalette.coral)
                 .symbolSize(48)
@@ -167,30 +181,23 @@ struct TrendChartCard: View {
 
             ForEach(movingAveragePoints, id: \.date) { point in
                 LineMark(
-                    x: .value("chart.axis.date", point.date),
-                    y: .value("chart.axis.ma", point.value)
+                    x: .value(Self.xDate, point.date),
+                    y: .value(Self.yWeight, point.value)
                 )
                 .foregroundStyle(EasePalette.chartMuted)
                 .interpolationMethod(.catmullRom)
                 .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
             }
 
-            if let preview, let weight = preview.weight {
-                RuleMark(x: .value("chart.axis.date", preview.date))
+            if let preview {
+                RuleMark(x: .value(Self.xDate, preview.date))
                     .foregroundStyle(EasePalette.primaryText.opacity(0.18))
                 PointMark(
-                    x: .value("chart.axis.date", preview.date),
-                    y: .value("chart.axis.weight", weight)
+                    x: .value(Self.xDate, preview.date),
+                    y: .value(Self.yWeight, preview.weight)
                 )
                 .foregroundStyle(EasePalette.coralDeep)
                 .symbolSize(70)
-                .annotation(position: .top, spacing: 8) {
-                    tooltip(
-                        date: preview.date,
-                        weight: weight,
-                        movingAverage: preview.movingAverage
-                    )
-                }
             }
         }
         .chartXScale(domain: xDomain)
@@ -221,13 +228,10 @@ struct TrendChartCard: View {
                 }
             }
         }
-        .chartPlotStyle { plot in
-            plot.padding(.top, 28)
-        }
         .frame(height: 260)
         .chartOverlay { proxy in
             GeometryReader { geometry in
-                dragLayer(proxy: proxy, geometry: geometry)
+                interactionLayer(proxy: proxy, geometry: geometry)
             }
         }
         .sensoryFeedback(.selection, trigger: scrubDayKey)
@@ -254,34 +258,100 @@ struct TrendChartCard: View {
         .background(EasePalette.tooltip, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
-    private func dragLayer(proxy: ChartProxy, geometry: GeometryProxy) -> some View {
-        Rectangle()
-            .fill(Color.clear)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 8)
-                    .onChanged { value in
-                        let next = makePreview(at: value.location, proxy: proxy, geometry: geometry)
-                        preview = next
-                        if let next {
-                            let key = CalendarDay.dayKey(from: next.date)
-                            if key != scrubDayKey {
-                                scrubDayKey = key
-                            }
-                        }
-                    }
-            )
-            .onTapGesture { location in
-                if let next = makePreview(at: location, proxy: proxy, geometry: geometry) {
-                    preview = next
-                    if let log = nearestLog(to: next.date) {
-                        onSelectLog(log)
-                    }
-                } else {
-                    preview = nil
-                    scrubDayKey = ""
-                }
+    private func interactionLayer(proxy: ChartProxy, geometry: GeometryProxy) -> some View {
+        let previewPoint: CGPoint? = {
+            guard let preview else { return nil }
+            return plotPoint(for: preview.date, weight: preview.weight, proxy: proxy, geometry: geometry)
+        }()
+
+        return ZStack(alignment: .topLeading) {
+            Rectangle()
+                .fill(Color.clear)
+                .contentShape(Rectangle())
+                .highPriorityGesture(scrubAndTapGesture(proxy: proxy, geometry: geometry))
+
+            if let preview, let point = previewPoint {
+                tooltip(
+                    date: preview.date,
+                    weight: preview.weight,
+                    movingAverage: preview.movingAverage
+                )
+                .fixedSize()
+                .position(
+                    x: tooltipX(point.x, width: geometry.size.width),
+                    y: max(22, point.y - 36)
+                )
+                .allowsHitTesting(false)
             }
+        }
+    }
+
+    private func scrubAndTapGesture(proxy: ChartProxy, geometry: GeometryProxy) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                let distance = hypot(value.translation.width, value.translation.height)
+                guard distance >= 8 else { return }
+                isScrubbing = true
+                applyPreview(makePreview(at: value.location, proxy: proxy, geometry: geometry))
+            }
+            .onEnded { value in
+                let distance = hypot(value.translation.width, value.translation.height)
+                let wasScrubbing = isScrubbing
+                isScrubbing = false
+                if wasScrubbing || distance >= 8 {
+                    return
+                }
+                handleTap(at: value.location, proxy: proxy, geometry: geometry)
+            }
+    }
+
+    private func handleTap(at location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) {
+        guard let next = makePreview(at: location, proxy: proxy, geometry: geometry) else {
+            clearPreview()
+            return
+        }
+        if let log = nearestLog(to: next.date) {
+            clearPreview()
+            onSelectLog(log)
+        } else {
+            applyPreview(next)
+        }
+    }
+
+    private func applyPreview(_ next: ChartDayPreview?) {
+        preview = next
+        guard let next else {
+            scrubDayKey = ""
+            return
+        }
+        let key = CalendarDay.dayKey(from: next.date)
+        if key != scrubDayKey {
+            scrubDayKey = key
+        }
+    }
+
+    private func clearPreview() {
+        preview = nil
+        scrubDayKey = ""
+        isScrubbing = false
+    }
+
+    private func plotPoint(
+        for date: Date,
+        weight: Double,
+        proxy: ChartProxy,
+        geometry: GeometryProxy
+    ) -> CGPoint? {
+        guard let plotFrame = proxy.plotFrame else { return nil }
+        let frame = geometry[plotFrame]
+        guard let x = proxy.position(forX: date), let y = proxy.position(forY: weight) else {
+            return nil
+        }
+        return CGPoint(x: frame.origin.x + x, y: frame.origin.y + y)
+    }
+
+    private func tooltipX(_ x: CGFloat, width: CGFloat) -> CGFloat {
+        min(max(x, 64), max(64, width - 64))
     }
 
     private func dateAt(_ location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> Date? {
@@ -299,12 +369,14 @@ struct TrendChartCard: View {
 
     private func makePreview(at location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> ChartDayPreview? {
         guard let date = dateAt(location, proxy: proxy, geometry: geometry) else { return nil }
-        let day = CalendarDay.startOfDay(date)
-        guard let weight = WeightMetrics.weightOnDay(records: records, logs: logs, on: day) else { return nil }
+        let key = CalendarDay.dayKey(from: date)
+        guard let point = dailyPoints.first(where: { CalendarDay.dayKey(from: $0.date) == key }) else {
+            return nil
+        }
         return ChartDayPreview(
-            date: day,
-            weight: weight,
-            movingAverage: WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: day)
+            date: point.date,
+            weight: point.weight,
+            movingAverage: WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: point.date)
         )
     }
 
