@@ -98,6 +98,56 @@ enum WeightMetrics {
         MeasurementBounds.roundedToTenth(max(0, display - target))
     }
 
+    /// Last weigh-in per local day. Built once, then calendar cells only look up.
+    struct DayIndex: Sendable {
+        let lastWeightByDay: [String: Double]
+
+        func weight(on date: Date, calendar: Calendar = .current) -> Double? {
+            lastWeightByDay[CalendarDay.dayKey(from: date, calendar: calendar)]
+        }
+
+        func delta(on date: Date, calendar: Calendar = .current) -> Double? {
+            guard let todayWeight = weight(on: date, calendar: calendar) else { return nil }
+            let previous = CalendarDay.addingDays(-1, to: date, calendar: calendar)
+            guard let prev = weight(on: previous, calendar: calendar) else { return nil }
+            return MeasurementBounds.roundedToTenth(todayWeight - prev)
+        }
+
+        static func make(
+            records: [DailyRecord],
+            logs: [WeightLog],
+            calendar: Calendar = .current
+        ) -> DayIndex {
+            var last: [String: (date: Date, weight: Double)] = [:]
+            last.reserveCapacity(logs.count)
+            for log in logs {
+                let key = CalendarDay.dayKey(from: log.timestamp, calendar: calendar)
+                if let existing = last[key] {
+                    if log.timestamp >= existing.date {
+                        last[key] = (log.timestamp, log.weight)
+                    }
+                } else {
+                    last[key] = (log.timestamp, log.weight)
+                }
+            }
+            let daysWithLogs = Set(last.keys)
+            for record in records {
+                guard let weight = record.weight, !daysWithLogs.contains(record.dayKey) else { continue }
+                last[record.dayKey] = (record.date, weight)
+            }
+            var weights: [String: Double] = [:]
+            weights.reserveCapacity(last.count)
+            for (key, value) in last {
+                weights[key] = value.weight
+            }
+            return DayIndex(lastWeightByDay: weights)
+        }
+    }
+
+    static func recordsByDayKey(_ records: [DailyRecord]) -> [String: DailyRecord] {
+        Dictionary(grouping: records, by: \.dayKey).compactMapValues(\.first)
+    }
+
     static func samples(
         from records: [DailyRecord],
         logs: [WeightLog] = [],

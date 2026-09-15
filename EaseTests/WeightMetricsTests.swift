@@ -326,4 +326,21 @@ final class WeightMetricsTests: EaseStoreTestCase {
         XCTAssertGreaterThan(who[.normal] ?? 0, china[.normal] ?? 0)
         XCTAssertEqual(china[.underweight], who[.underweight])
     }
+
+    func test_dayIndex_与weightOnDay一致且同日多次取最后一次() {
+        let day = calendar.testDate(2026, 8, 10)
+        let rec = DailyRecord(date: day, calendar: calendar)
+        rec.weight = 70.0
+        let lateLog = WeightLog(
+            timestamp: calendar.testDate(2026, 8, 10, hour: 21),
+            weight: 69.4
+        )
+        let index = WeightMetrics.DayIndex.make(records: [rec], logs: [lateLog], calendar: calendar)
+        XCTAssertEqual(index.weight(on: rec.date, calendar: calendar), 69.4)
+        XCTAssertEqual(
+            WeightMetrics.weightOnDay(records: [rec], logs: [lateLog], on: day, calendar: calendar),
+            69.4
+        )
+        XCTAssertNil(index.weight(on: calendar.testDate(2026, 8, 11), calendar: calendar))
+    }
 }

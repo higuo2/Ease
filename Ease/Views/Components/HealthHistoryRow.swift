@@ -43,6 +43,8 @@ struct HealthHistoryRow: View {
 }
 
 enum HealthDetailChart {
+    static let chartPointLimit = 30
+    static let cycleSpanLimit = 12
     static let dayBarVisibleDays = 7
     static let cycleVisibleDays = 14
     static let barRatio: CGFloat = 0.55

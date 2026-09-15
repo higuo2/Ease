@@ -86,8 +86,8 @@ enum BMIClassifier {
 
     static func band(bmi: Double, standard: BMIStandard) -> BMIBand {
         switch standard {
-        case .china: chinaBand(bmi)
-        case .who: whoBand(bmi)
+        case .china: chinaBand(bmi: bmi)
+        case .who: whoBand(bmi: bmi)
         }
     }
 

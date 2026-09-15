@@ -7,7 +7,8 @@ struct EnergyDetailSheet: View {
     let focusKcal: Double?
     var isPlaceholder = false
 
-    private var chartDays: [EnergyDay] { history.loggedDays }
+    private var loggedDays: [EnergyDay] { history.loggedDays }
+    private var chartDays: [EnergyDay] { Array(loggedDays.suffix(HealthDetailChart.chartPointLimit)) }
     private var latestChartDate: Date { chartDays.last?.date ?? history.endingOn }
 
     var body: some View {
@@ -88,7 +89,7 @@ struct EnergyDetailSheet: View {
                                     .frame(height: 180)
 
                                     VStack(spacing: 8) {
-                                        ForEach(Array(chartDays.suffix(30).reversed())) { day in
+                                        ForEach(Array(chartDays.reversed())) { day in
                                             HealthHistoryRow(
                                                 date: day.date,
                                                 value: EaseFormatters.kcal(day.kcal ?? 0)
