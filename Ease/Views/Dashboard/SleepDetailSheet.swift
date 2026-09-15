@@ -7,6 +7,7 @@ struct SleepDetailSheet: View {
     let focusHours: Double?
     let targetHours: Double
     var isPlaceholder = false
+    var insight: HealthInsight?
 
     private var ringProgress: Double? {
         guard let focusHours, targetHours > 0 else { return nil }
@@ -122,6 +123,10 @@ struct SleepDetailSheet: View {
                                     }
                                 }
                             }
+                        }
+
+                        if let insight {
+                            HealthInsightNoteCard(insight: insight)
                         }
                     }
                     .padding(20)

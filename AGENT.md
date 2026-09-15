@@ -24,7 +24,7 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
 ## 1. Aesthetic: Milk & Card Minimalist（奶油极简）
 Core feel: generous whitespace, soft hierarchy via fill color (not borders/shadows), low-saturation milk/gray card surfaces, high-contrast rounded display numbers, and quiet coral / mint accents for direction feedback.
 
-- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles (no Diet); segmented trend ranges; black chart tooltip (date + last-per-day weight + optional 7-day MA); month calendar with dual-line day cells; weight-history sheet; BMI detail sheet (gray band capsule, quiet Morandi range bar, CN/WHO picker); quiet sleep/period/energy detail tints inside their sheets only.
+- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles (no Diet); segmented trend ranges; black chart tooltip (date + last-per-day weight + optional 7-day MA); month calendar with dual-line day cells; weight-history sheet; BMI detail sheet (gray band capsule, quiet Morandi range bar, CN/WHO picker); quiet sleep/period/energy detail tints inside their sheets only; quiet Patterns card on Trend (health × weight associations, hide when empty).
 - **ABSOLUTELY FORBIDDEN**:
     - NO calorie counting, NO macros (carbs/protein/fats), NO calorie goal ring. **No diet check-in UI.** Active Energy may show HK kcal as a fact only.
     - NO streak flames, celebration animations, or goal-reached confetti (including “import succeeded” and “you will hit your goal”).
@@ -83,6 +83,7 @@ Sheets (weight log, metrics, weight history, sleep, cycle, energy) remain modal 
 2. **折线**：按日最后一次体重连成主线；X/Y 轴有刻度；目标虚线带文案；拖动黑色 Tooltip。**不显示经期/标签标记。**
 3. **数据卡片网格 (3×2)**：最高（含日期）、最低（含日期）、平均、体重变化、距离目标、记录天数。
 4. **高级估算卡**（PRD §8.3.B）：体重斜率 + 轻度睡眠/消耗/经期修正；主行是旬区间，不把剩余天数做成倒计时。与阶段卡基础 pace 分开展示。
+5. **交叉对照卡**（PRD §8.5）：高级估算下方；数据不足则整卡隐藏。
 
 图表交互：预览不改数据；点已有日可编辑体重。删体重不得删当日 `DailyRecord`。
 
@@ -100,7 +101,7 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 - **Weight Log Sheet**：可展开图形日历 → 体重 + OCR → 体脂 → 黑 Capsule Save。
 - **Weight History Sheet**：全部体重日列表（与首页行同构）；点行编辑。
 - **Metrics Sheet**：日期 → 已启用围度 → Save → **历史列表**（无围度趋势图）。主入口 = 首页围度格。
-- **Sleep / Cycle / Energy / BMI Detail**：睡眠/经期/消耗只读 HealthKit；BMI 只读档案+体重。sheet 内可用安静 tint；Sleep/Energy 图需有轴。BMI 可用莫兰迪分段条，档名灰色胶囊，禁止绿黄红交通灯。
+- **Sleep / Cycle / Energy / BMI Detail**：睡眠/经期/消耗只读 HealthKit；BMI 只读档案+体重。sheet 内可用安静 tint；Sleep/Energy 图需有轴。BMI 可用莫兰迪分段条，档名灰色胶囊，禁止绿黄红交通灯。Sleep / Energy 底部可附一条交叉对照（`HealthInsightNoteCard`），没有则整段不渲染。
 - **Onboarding**：三步不变；奶油底 + 黑 Capsule 主按钮。
 
 ## 5. UI Components & Styling
@@ -144,7 +145,7 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 4. If a compiler error is pasted, fix it directly without verbose explanations.
 5. When PRD and this file conflict on product rules, PRD wins; this file wins on visual styling.
 6. Do not reintroduce "one weight per `DailyRecord`" or "main-card weight = 7-day MA". Those rules are retired as of v1.1.
-7. v1.2 is in scope: CSV import, `MetricLog`, basic + advanced pace ETA, reminder time pickers, home modules, Settings as Tab. Do not add water/waist reminder nags, dual-axis charts, third-party CSV dialects, Weight-tab FAB, a History Tab, WidgetKit, or home-card `ultraThinMaterial` / drop shadows.
+7. v1.3 is in scope: Trend Patterns card (`HealthInsightEngine`) plus v1.2 (CSV import, `MetricLog`, basic + advanced pace ETA, reminder time pickers, home modules, Settings as Tab). Do not add water/waist reminder nags, dual-axis charts, third-party CSV dialects, Weight-tab FAB, a History Tab, WidgetKit, home-card `ultraThinMaterial` / drop shadows, Apple Health XML import, step/RHR/noise types, or EventKit “because of a meeting” copy.
 8. Never drop `DailyRecord.weight` / `bodyFat` from the schema. Never nil them after copying to `WeightLog`. Weight writes go only to `WeightLog`.
 9. Root navigation is Weight / Trend / Calendar / Settings. Do not collapse back into a single scrolling dashboard without tabs. Do not resurrect History as a fourth tab unless the PRD changes again.
 10. Quiet polish only, per `UX.md`: `.sensoryFeedback` on confirmed results (save / OCR / delete / calendar month change), `.contentTransition(.numericText())` on the hero/BMI/remaining numbers (not pace-day countdown), sheet detents on log/health sheets. Do not `Task.detached` HealthKit or SwiftData. Do not put body fat on the Trend chart. Skeleton placeholders only while the first HealthKit payload is empty. Empty states may include a log-weight CTA; never a fake HealthKit sync button.

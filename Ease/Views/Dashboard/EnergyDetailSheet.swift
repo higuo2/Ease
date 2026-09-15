@@ -6,6 +6,7 @@ struct EnergyDetailSheet: View {
     let history: EnergyHistory
     let focusKcal: Double?
     var isPlaceholder = false
+    var insight: HealthInsight?
 
     private var loggedDays: [EnergyDay] { history.loggedDays }
     private var chartDays: [EnergyDay] { Array(loggedDays.suffix(HealthDetailChart.chartPointLimit)) }
@@ -105,6 +106,10 @@ struct EnergyDetailSheet: View {
                                     .foregroundStyle(EasePalette.secondaryText)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
+                        }
+
+                        if let insight {
+                            HealthInsightNoteCard(insight: insight)
                         }
                     }
                     .padding(20)

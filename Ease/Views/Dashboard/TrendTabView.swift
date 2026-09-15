@@ -48,6 +48,7 @@ struct TrendTabView: View {
                                 cycleHistory: viewModel.cycleHistory,
                                 snapshot: snapshot
                             )
+                            HealthInsightsCard(insights: insightReport.trend)
                         }
                         .easeTabScrollContent()
                     }
@@ -70,6 +71,17 @@ struct TrendTabView: View {
     private var hasWeighIns: Bool {
         !WeightMetrics.samples(from: records, logs: logs).isEmpty
     }
+
+    private var insightReport: HealthInsightReport {
+        HealthInsightEngine.report(
+            records: records,
+            logs: logs,
+            healthByDay: viewModel.healthByDay,
+            sleepHistory: viewModel.sleepHistory,
+            energyHistory: viewModel.energyHistory,
+            cycleHistory: viewModel.cycleHistory
+        )
+    }
 }
 
 struct AdvancedPaceCard: View {
@@ -83,44 +95,21 @@ struct AdvancedPaceCard: View {
     let snapshot: DashboardSnapshot
 
     private var estimate: AdvancedPaceEstimator.Result? {
-        var sleepMap: [String: Double] = [:]
-        for night in sleepHistory.nights {
-            if let hours = night.hours {
-                sleepMap[night.dayKey] = hours
-            }
-        }
-        for (key, snap) in healthByDay {
-            if let hours = snap.previousNightSleepHours {
-                sleepMap[key] = sleepMap[key] ?? hours
-            }
-        }
-
-        var energyMap: [String: Double] = [:]
-        for day in energyHistory.days {
-            if let kcal = day.kcal {
-                energyMap[day.dayKey] = kcal
-            }
-        }
-        for (key, snap) in healthByDay {
-            if let kcal = snap.activeEnergyKcal {
-                energyMap[key] = energyMap[key] ?? kcal
-            }
-        }
-
-        var periodKeys = cycleHistory.periodDayKeys
-        for (key, snap) in healthByDay where snap.isMenstrual {
-            periodKeys.insert(key)
-        }
-
+        let series = HealthInsightEngine.series(
+            healthByDay: healthByDay,
+            sleepHistory: sleepHistory,
+            energyHistory: energyHistory,
+            cycleHistory: cycleHistory
+        )
         return AdvancedPaceEstimator.estimate(
             samples: WeightMetrics.samples(from: records, logs: logs),
             targetWeight: snapshot.targetWeight,
             displayWeight: snapshot.displayWeight,
             progress: snapshot.progress,
             context: .init(
-                sleepHoursByDay: sleepMap,
-                energyKcalByDay: energyMap,
-                periodDayKeys: periodKeys,
+                sleepHoursByDay: series.sleepHoursByDay,
+                energyKcalByDay: series.energyKcalByDay,
+                periodDayKeys: series.periodDayKeys,
                 sleepTargetHours: profile?.sleepTargetHours ?? 8.0
             )
         )

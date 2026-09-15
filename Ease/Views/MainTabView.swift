@@ -68,7 +68,12 @@ struct MainTabView: View {
             .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isSleepPresented) {
-            SleepSheetHost(viewModel: viewModel, profile: profile)
+            SleepSheetHost(
+                viewModel: viewModel,
+                profile: profile,
+                records: records,
+                logs: weightLogs
+            )
         }
         .sheet(isPresented: $viewModel.isCyclePresented) {
             CycleDetailSheet(
@@ -78,7 +83,11 @@ struct MainTabView: View {
             .easeSheetPresentation()
         }
         .sheet(isPresented: $viewModel.isEnergyPresented) {
-            EnergySheetHost(viewModel: viewModel)
+            EnergySheetHost(
+                viewModel: viewModel,
+                records: records,
+                logs: weightLogs
+            )
         }
         .sheet(isPresented: $viewModel.isBMIPresented) {
             BMISheetHost(
@@ -135,28 +144,60 @@ struct MainTabView: View {
 private struct SleepSheetHost: View {
     @Bindable var viewModel: DashboardViewModel
     let profile: UserProfile?
+    let records: [DailyRecord]
+    let logs: [WeightLog]
 
     var body: some View {
         SleepDetailSheet(
             history: viewModel.sleepHistory,
             focusHours: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.previousNightSleepHours,
             targetHours: profile?.sleepTargetHours ?? 8.0,
-            isPlaceholder: !viewModel.hasLoadedHealth
+            isPlaceholder: !viewModel.hasLoadedHealth,
+            insight: insightReport(
+                viewModel: viewModel,
+                records: records,
+                logs: logs
+            ).sleepNote
         )
         .easeSheetPresentation()
+    }
+
+    private var insightReport: HealthInsightReport {
+        HealthInsightEngine.report(
+            records: records,
+            logs: logs,
+            healthByDay: viewModel.healthByDay,
+            sleepHistory: viewModel.sleepHistory,
+            energyHistory: viewModel.energyHistory,
+            cycleHistory: viewModel.cycleHistory
+        )
     }
 }
 
 private struct EnergySheetHost: View {
     @Bindable var viewModel: DashboardViewModel
+    let records: [DailyRecord]
+    let logs: [WeightLog]
 
     var body: some View {
         EnergyDetailSheet(
             history: viewModel.energyHistory,
             focusKcal: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.activeEnergyKcal,
-            isPlaceholder: !viewModel.hasLoadedHealth
+            isPlaceholder: !viewModel.hasLoadedHealth,
+            insight: insightReport.energyNote
         )
         .easeSheetPresentation()
+    }
+
+    private var insightReport: HealthInsightReport {
+        HealthInsightEngine.report(
+            records: records,
+            logs: logs,
+            healthByDay: viewModel.healthByDay,
+            sleepHistory: viewModel.sleepHistory,
+            energyHistory: viewModel.energyHistory,
+            cycleHistory: viewModel.cycleHistory
+        )
     }
 }
 

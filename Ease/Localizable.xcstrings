@@ -813,6 +813,7 @@
       }
     },
     "calendar.meal.chooseLibrary" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -877,6 +878,7 @@
       }
     },
     "calendar.meal.source.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -893,6 +895,7 @@
       }
     },
     "calendar.meal.takePhoto" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -909,6 +912,7 @@
       }
     },
     "calendar.meals" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -925,6 +929,7 @@
       }
     },
     "calendar.note.placeholder" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -974,6 +979,7 @@
       }
     },
     "calendar.stat.bestStreak" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1006,6 +1012,7 @@
       }
     },
     "calendar.stat.cleanDays" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1022,6 +1029,7 @@
       }
     },
     "calendar.stat.daysCount" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1319,6 +1327,7 @@
       }
     },
     "common.add" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2287,6 +2296,22 @@
         }
       }
     },
+    "format.signedKg" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kg"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kg"
+          }
+        }
+      }
+    },
     "format.sleepDuration" : {
       "localizations" : {
         "en" : {
@@ -2692,6 +2717,7 @@
       }
     },
     "log.diet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2742,6 +2768,7 @@
       }
     },
     "log.note" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2758,6 +2785,7 @@
       }
     },
     "log.note.placeholder" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2806,6 +2834,7 @@
       }
     },
     "log.tags" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2839,6 +2868,7 @@
       }
     },
     "log.title.diet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2937,6 +2967,7 @@
       }
     },
     "meal.custom.placeholder" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2969,6 +3000,7 @@
       }
     },
     "meal.custom.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3552,6 +3584,7 @@
       }
     },
     "notify.diet" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4162,6 +4195,7 @@
       }
     },
     "settings.dietReminder" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5134,6 +5168,7 @@
       }
     },
     "tag.custom.placeholder" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5166,6 +5201,7 @@
       }
     },
     "tag.custom.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5250,6 +5286,7 @@
       }
     },
     "today.dietPending" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5422,6 +5459,102 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要更多朝向目标的体重记录。"
+          }
+        }
+      }
+    },
+    "trend.insights.footnote" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Association, not cause. Not medical advice."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只描述关联，不是因果，也不是医疗建议。"
+          }
+        }
+      }
+    },
+    "trend.insights.lowEnergyWeight" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When the previous day's active energy was below the recent median, weight change averaged %@ vs %@ on other days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前一日活动消耗低于近窗中位数时，次日体重变化平均为 %@，其余日子为 %@。"
+          }
+        }
+      }
+    },
+    "trend.insights.periodWeight" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On period days, weight change averaged %@ vs %@ on other days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经期日的体重变化平均为 %@，其余日子为 %@。"
+          }
+        }
+      }
+    },
+    "trend.insights.shortSleepWeight" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After nights under 6 hours, next-day weight change averaged %@ vs %@ on other days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠不足 6 小时的次日，体重变化平均为 %@，其余日子为 %@。"
+          }
+        }
+      }
+    },
+    "trend.insights.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Patterns"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "交叉对照"
+          }
+        }
+      }
+    },
+    "trend.insights.weekdaySleep" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ nights averaged %@ of sleep vs %@ on other nights."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@的夜晚平均睡眠 %@，其余夜为 %@。"
           }
         }
       }

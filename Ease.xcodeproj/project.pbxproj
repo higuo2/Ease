@@ -86,6 +86,8 @@
 		A100000000000000000000E6 /* HomeModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D6 /* HomeModule.swift */; };
 		A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D7 /* EnergyDetailSheet.swift */; };
 		A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D8 /* AdvancedPaceEstimator.swift */; };
+		A10000000000000000000113 /* InsightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000112 /* InsightEngine.swift */; };
+		A10000000000000000000115 /* HealthInsightsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000114 /* HealthInsightsCard.swift */; };
 		A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D9 /* WeightHistorySheet.swift */; };
 		A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DA /* CalendarDayDetailSheet.swift */; };
 		A100000000000000000000EB /* MealSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DB /* MealSlot.swift */; };
@@ -114,6 +116,7 @@
 		T10000000000000000000043 /* MealPhotoStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000033 /* MealPhotoStoreTests.swift */; };
 		T10000000000000000000044 /* HealthKitCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000034 /* HealthKitCacheTests.swift */; };
 		T10000000000000000000045 /* AdvancedPaceEstimatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000035 /* AdvancedPaceEstimatorTests.swift */; };
+		T10000000000000000000047 /* InsightEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000037 /* InsightEngineTests.swift */; };
 		T10000000000000000000046 /* MealCutoutPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000036 /* MealCutoutPreferencesTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -209,6 +212,8 @@
 		A100000000000000000000D6 /* HomeModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModule.swift; sourceTree = "<group>"; };
 		A100000000000000000000D7 /* EnergyDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnergyDetailSheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000D8 /* AdvancedPaceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedPaceEstimator.swift; sourceTree = "<group>"; };
+		A10000000000000000000112 /* InsightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightEngine.swift; sourceTree = "<group>"; };
+		A10000000000000000000114 /* HealthInsightsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthInsightsCard.swift; sourceTree = "<group>"; };
 		A100000000000000000000D9 /* WeightHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightHistorySheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000DA /* CalendarDayDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarDayDetailSheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000DB /* MealSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealSlot.swift; sourceTree = "<group>"; };
@@ -240,6 +245,7 @@
 		T10000000000000000000033 /* MealPhotoStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPhotoStoreTests.swift; sourceTree = "<group>"; };
 		T10000000000000000000034 /* HealthKitCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitCacheTests.swift; sourceTree = "<group>"; };
 		T10000000000000000000035 /* AdvancedPaceEstimatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedPaceEstimatorTests.swift; sourceTree = "<group>"; };
+		T10000000000000000000037 /* InsightEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightEngineTests.swift; sourceTree = "<group>"; };
 		T10000000000000000000036 /* MealCutoutPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCutoutPreferencesTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -322,6 +328,7 @@
 				T10000000000000000000033 /* MealPhotoStoreTests.swift */,
 				T10000000000000000000034 /* HealthKitCacheTests.swift */,
 				T10000000000000000000035 /* AdvancedPaceEstimatorTests.swift */,
+				T10000000000000000000037 /* InsightEngineTests.swift */,
 				T10000000000000000000036 /* MealCutoutPreferencesTests.swift */,
 			);
 			path = EaseTests;
@@ -365,6 +372,7 @@
 				A100000000000000000000B3 /* MetricRepository.swift */,
 				A100000000000000000000B5 /* PaceEstimator.swift */,
 				A100000000000000000000D8 /* AdvancedPaceEstimator.swift */,
+				A10000000000000000000112 /* InsightEngine.swift */,
 				A1000000000000000000008A /* PermissionsService.swift */,
 				A10000000000000000000098 /* HealthKitReader.swift */,
 				A1000000000000000000009E /* SleepHistory.swift */,
@@ -434,6 +442,7 @@
 				A100000000000000000000D1 /* WeightTabView.swift */,
 				A100000000000000000000D2 /* WeightTabComponents.swift */,
 				A100000000000000000000D3 /* TrendTabView.swift */,
+				A10000000000000000000114 /* HealthInsightsCard.swift */,
 				A100000000000000000000D4 /* CalendarTabView.swift */,
 				A10000000000000000000108 /* DailyMomentsCard.swift */,
 				A10000000000000000000110 /* FoodJournalSheet.swift */,
@@ -638,6 +647,8 @@
 				A10000000000000000000101 /* ImageCutoutService.swift in Sources */,
 				A10000000000000000000103 /* MealCutoutPreferences.swift in Sources */,
 				A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */,
+				A10000000000000000000113 /* InsightEngine.swift in Sources */,
+				A10000000000000000000115 /* HealthInsightsCard.swift in Sources */,
 				A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */,
 				A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */,
 				A100000000000000000000EB /* MealSlot.swift in Sources */,
@@ -673,6 +684,7 @@
 				T10000000000000000000043 /* MealPhotoStoreTests.swift in Sources */,
 				T10000000000000000000044 /* HealthKitCacheTests.swift in Sources */,
 				T10000000000000000000045 /* AdvancedPaceEstimatorTests.swift in Sources */,
+				T10000000000000000000047 /* InsightEngineTests.swift in Sources */,
 				T10000000000000000000046 /* MealCutoutPreferencesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -137,6 +137,15 @@ enum EaseFormatters {
         String(format: String(localized: "format.healthyWeightRange"), locale: .current, low, high)
     }
 
+    static func signedKg(_ value: Double) -> String {
+        let sign = value > 0 ? "+" : ""
+        return String(
+            format: String(localized: "format.signedKg"),
+            locale: .current,
+            "\(sign)\(oneDecimal(value))"
+        )
+    }
+
     static func signedKgPerDay(_ value: Double) -> String {
         let sign = value > 0 ? "+" : ""
         return String(
