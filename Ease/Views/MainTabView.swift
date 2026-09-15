@@ -153,11 +153,7 @@ private struct SleepSheetHost: View {
             focusHours: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.previousNightSleepHours,
             targetHours: profile?.sleepTargetHours ?? 8.0,
             isPlaceholder: !viewModel.hasLoadedHealth,
-            insight: insightReport(
-                viewModel: viewModel,
-                records: records,
-                logs: logs
-            ).sleepNote
+            insight: insightReport.sleepNote
         )
         .easeSheetPresentation()
     }
