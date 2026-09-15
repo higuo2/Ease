@@ -71,8 +71,7 @@ struct MainTabView: View {
         .sheet(isPresented: $viewModel.isLogPresented) {
             LogSheetView(
                 date: viewModel.editingDate,
-                editingLogID: viewModel.editingLogID,
-                mode: viewModel.logMode
+                editingLogID: viewModel.editingLogID
             )
             .easeSheetPresentation()
         }
@@ -141,8 +140,6 @@ struct MainTabView: View {
             logs: Array(weightLogs),
             weightHour: profile?.weightReminderHour ?? NotificationSchedulePolicy.weightHour,
             weightMinute: profile?.weightReminderMinute ?? NotificationSchedulePolicy.weightMinute,
-            dietHour: profile?.dietReminderHour ?? NotificationSchedulePolicy.dietHour,
-            dietMinute: profile?.dietReminderMinute ?? NotificationSchedulePolicy.dietMinute,
             forceHealth: forceHealth
         )
     }
@@ -153,9 +150,7 @@ struct MainTabView: View {
             records: Array(records),
             logs: Array(weightLogs),
             weightHour: profile?.weightReminderHour ?? NotificationSchedulePolicy.weightHour,
-            weightMinute: profile?.weightReminderMinute ?? NotificationSchedulePolicy.weightMinute,
-            dietHour: profile?.dietReminderHour ?? NotificationSchedulePolicy.dietHour,
-            dietMinute: profile?.dietReminderMinute ?? NotificationSchedulePolicy.dietMinute
+            weightMinute: profile?.weightReminderMinute ?? NotificationSchedulePolicy.weightMinute
         )
     }
 }

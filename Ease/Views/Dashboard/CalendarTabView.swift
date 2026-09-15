@@ -129,7 +129,6 @@ struct CalendarTabView: View {
             guard let weight, let prevWeight else { return nil }
             return MeasurementBounds.roundedToTenth(weight - prevWeight)
         }()
-        let diet = records.first { $0.dayKey == CalendarDay.dayKey(from: day) }?.dietStatus
 
         return Button {
             guard !isFuture else { return }
@@ -167,11 +166,6 @@ struct CalendarTabView: View {
                         .lineLimit(isAccessibilityType ? 2 : 1)
                         .minimumScaleFactor(0.7)
                         .multilineTextAlignment(.center)
-                } else if let diet {
-                    Circle()
-                        .fill(EasePalette.dietTint(diet))
-                        .frame(width: 5, height: 5)
-                        .padding(.top, 2)
                 } else {
                     Text(" ")
                         .font(.system(size: 9))
@@ -223,18 +217,6 @@ struct CalendarTabView: View {
                     spacing: EaseLayout.gridGap
                 ) {
                     netChangeStat
-                    iconStat(
-                        title: "calendar.stat.cleanDays",
-                        value: daysCount(monthStats.cleanDays),
-                        systemImage: "leaf.fill",
-                        tint: EasePalette.dietClean
-                    )
-                    iconStat(
-                        title: "calendar.stat.bestStreak",
-                        value: daysCount(monthStats.bestCleanStreak),
-                        systemImage: "flame.fill",
-                        tint: EasePalette.accentWarm
-                    )
                     compactStat("calendar.stat.checkins", "\(monthStats.checkinDays)")
                     compactStat("calendar.stat.lossDays", "\(monthStats.lossDays)")
                     compactStat("calendar.stat.gainDays", "\(monthStats.gainDays)")
@@ -259,31 +241,6 @@ struct CalendarTabView: View {
             } else {
                 Text("—")
                     .font(.subheadline.bold())
-                    .foregroundStyle(EasePalette.primaryText)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func iconStat(
-        title: LocalizedStringKey,
-        value: String,
-        systemImage: String,
-        tint: Color
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            HStack(spacing: 5) {
-                Image(systemName: systemImage)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(tint)
-                Text(value)
-                    .font(.subheadline.bold())
-                    .monospacedDigit()
                     .foregroundStyle(EasePalette.primaryText)
             }
         }
@@ -335,14 +292,6 @@ struct CalendarTabView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-
-    private func daysCount(_ value: Int) -> String {
-        String(
-            format: String(localized: "calendar.stat.daysCount"),
-            locale: .current,
-            value
-        )
-    }
 }
 
 private struct DaySheetItem: Identifiable {
@@ -357,8 +306,6 @@ struct MonthWeightStats {
     var averageDelta: Double?
     var monthDelta: Double?
     var averageWeight: Double?
-    var cleanDays: Int
-    var bestCleanStreak: Int
 
     static func make(
         records: [DailyRecord],
@@ -375,22 +322,8 @@ struct MonthWeightStats {
         var weights: [Double] = []
         var firstWeight: Double?
         var lastWeight: Double?
-        var cleanDays = 0
-        var bestCleanStreak = 0
-        var currentCleanStreak = 0
-
-        let recordsByDay = Dictionary(grouping: records, by: \.dayKey).compactMapValues(\.first)
 
         for day in days {
-            let key = CalendarDay.dayKey(from: day, calendar: calendar)
-            if recordsByDay[key]?.dietStatus == .clean {
-                cleanDays += 1
-                currentCleanStreak += 1
-                bestCleanStreak = max(bestCleanStreak, currentCleanStreak)
-            } else {
-                currentCleanStreak = 0
-            }
-
             guard let weight = WeightMetrics.weightOnDay(records: records, logs: logs, on: day, calendar: calendar) else {
                 continue
             }
@@ -426,9 +359,7 @@ struct MonthWeightStats {
             gainDays: gain,
             averageDelta: average,
             monthDelta: monthDelta,
-            averageWeight: averageWeight,
-            cleanDays: cleanDays,
-            bestCleanStreak: bestCleanStreak
+            averageWeight: averageWeight
         )
     }
 }

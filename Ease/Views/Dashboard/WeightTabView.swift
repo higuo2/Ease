@@ -54,7 +54,7 @@ struct WeightTabView: View {
         profile?.homeModules ?? HomeModule.defaults
     }
     private var unusedModules: [HomeModule] {
-        HomeModule.allCases.filter { !homeModules.contains($0) }
+        HomeModule.selectable.filter { !homeModules.contains($0) }
     }
     private var weightRows: [DailyWeightRow] {
         DailyWeightRow.build(records: records, logs: logs)
@@ -76,11 +76,10 @@ struct WeightTabView: View {
                                 paceLine: paceLine
                             )
                         }
-                        HomeModuleGrid(
+                            HomeModuleGrid(
                             modules: homeModules,
                             bmi: snapshot.bmi,
                             bmiCategoryKey: snapshot.bmiVerdict.titleKey,
-                            dietStatus: selectedRecord?.dietStatus,
                             sleepHours: selectedHealth?.previousNightSleepHours,
                             isPeriodDay: selectedHealth?.isMenstrual == true
                                 || selectedRecord?.variableTags.contains(.period) == true,
@@ -91,9 +90,6 @@ struct WeightTabView: View {
                             },
                             onOpenWeight: {
                                 viewModel.openWeightEntry(for: selectedDate)
-                            },
-                            onOpenDiet: {
-                                viewModel.openDietEntry(for: selectedDate)
                             },
                             onOpenSleep: { viewModel.isSleepPresented = true },
                             onOpenPeriod: { viewModel.isCyclePresented = true },

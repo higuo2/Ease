@@ -11,7 +11,12 @@ enum HomeModule: String, CaseIterable, Identifiable, Sendable {
 
     var id: String { rawValue }
 
-    static let defaults: [HomeModule] = [.bmi, .measurements, .weight, .diet]
+    static let defaults: [HomeModule] = [.bmi, .measurements, .weight]
+
+    /// Modules the user can still turn on. `diet` stays in the enum for stored raw strings.
+    static var selectable: [HomeModule] {
+        allCases.filter { $0 != .diet }
+    }
 
     var titleKey: String {
         switch self {
@@ -56,7 +61,7 @@ enum HomeModule: String, CaseIterable, Identifiable, Sendable {
             .filter { !$0.isEmpty }
         var seen = Set<HomeModule>()
         let parsed: [HomeModule] = tokens.compactMap { token in
-            guard let module = HomeModule(rawValue: token), seen.insert(module).inserted else { return nil }
+            guard let module = HomeModule(rawValue: token), module != .diet, seen.insert(module).inserted else { return nil }
             return module
         }
         return parsed.isEmpty ? defaults : parsed
@@ -65,7 +70,7 @@ enum HomeModule: String, CaseIterable, Identifiable, Sendable {
     static func encode(_ modules: [HomeModule]) -> String {
         var seen = Set<HomeModule>()
         return modules
-            .filter { seen.insert($0).inserted }
+            .filter { $0 != .diet && seen.insert($0).inserted }
             .map(\.rawValue)
             .joined(separator: ",")
     }

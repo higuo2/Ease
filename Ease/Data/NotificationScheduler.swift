@@ -6,8 +6,6 @@ import SwiftData
 enum NotificationSchedulePolicy {
     static let weightHour = 8
     static let weightMinute = 0
-    static let dietHour = 22
-    static let dietMinute = 30
     static let horizonDays = 7
 
     /// Weight reminder fires at the profile wall-clock time (default 08:00).
@@ -54,43 +52,6 @@ enum NotificationSchedulePolicy {
         )
     }
 
-    /// Diet reminder fires at the profile wall-clock time (default 22:30).
-    static func shouldScheduleDietReminder(
-        on day: Date,
-        now: Date,
-        hasDietStatusToday: Bool,
-        hour: Int = dietHour,
-        minute: Int = dietMinute,
-        calendar: Calendar
-    ) -> Bool {
-        shouldSchedule(
-            on: day,
-            now: now,
-            hour: MeasurementBounds.clampedHour(hour),
-            minute: MeasurementBounds.clampedMinute(minute),
-            skipTodayIfAlreadyLogged: hasDietStatusToday,
-            calendar: calendar
-        )
-    }
-
-    static func shouldScheduleDietReminder(
-        on day: Date,
-        now: Date,
-        todayRecord: DailyRecord?,
-        hour: Int = dietHour,
-        minute: Int = dietMinute,
-        calendar: Calendar
-    ) -> Bool {
-        shouldScheduleDietReminder(
-            on: day,
-            now: now,
-            hasDietStatusToday: todayRecord?.dietStatus != nil,
-            hour: hour,
-            minute: minute,
-            calendar: calendar
-        )
-    }
-
     static func shouldSchedule(
         on day: Date,
         now: Date,
@@ -130,28 +91,24 @@ enum NotificationScheduler {
         let health = await HealthKitReader.load(days: 1)
         await refresh(
             enabled: enabled,
-            todayRecord: today,
             hasWeightToday: hasWeight,
             healthToday: health[CalendarDay.dayKey(from: .now)],
             weightHour: profile?.weightReminderHour ?? NotificationSchedulePolicy.weightHour,
-            weightMinute: profile?.weightReminderMinute ?? NotificationSchedulePolicy.weightMinute,
-            dietHour: profile?.dietReminderHour ?? NotificationSchedulePolicy.dietHour,
-            dietMinute: profile?.dietReminderMinute ?? NotificationSchedulePolicy.dietMinute
+            weightMinute: profile?.weightReminderMinute ?? NotificationSchedulePolicy.weightMinute
         )
     }
 
     static func refresh(
         enabled: Bool,
-        todayRecord: DailyRecord?,
+        todayRecord: DailyRecord? = nil,
         hasWeightToday: Bool = false,
         healthToday: HealthDaySnapshot?,
         weightHour: Int = NotificationSchedulePolicy.weightHour,
         weightMinute: Int = NotificationSchedulePolicy.weightMinute,
-        dietHour: Int = NotificationSchedulePolicy.dietHour,
-        dietMinute: Int = NotificationSchedulePolicy.dietMinute,
         now: Date = .now,
         calendar: Calendar = .current
     ) async {
+        _ = todayRecord
         let center = UNUserNotificationCenter.current()
         await removePending(center: center)
 
@@ -164,8 +121,6 @@ enum NotificationScheduler {
         let today = CalendarDay.startOfDay(now, calendar: calendar)
         let clampedWeightHour = MeasurementBounds.clampedHour(weightHour)
         let clampedWeightMinute = MeasurementBounds.clampedMinute(weightMinute)
-        let clampedDietHour = MeasurementBounds.clampedHour(dietHour)
-        let clampedDietMinute = MeasurementBounds.clampedMinute(dietMinute)
         for offset in 0..<NotificationSchedulePolicy.horizonDays {
             guard let day = calendar.date(byAdding: .day, value: offset, to: today) else { continue }
             if NotificationSchedulePolicy.shouldScheduleWeightReminder(
@@ -187,36 +142,11 @@ enum NotificationScheduler {
                     calendar: calendar
                 )
             }
-            if NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: day,
-                now: now,
-                hasDietStatusToday: todayRecord?.dietStatus != nil,
-                hour: clampedDietHour,
-                minute: clampedDietMinute,
-                calendar: calendar
-            ) {
-                await schedule(
-                    center: center,
-                    prefix: dietPrefix,
-                    day: day,
-                    hour: clampedDietHour,
-                    minute: clampedDietMinute,
-                    body: dietBody(health: offset == 0 ? healthToday : nil),
-                    now: now,
-                    calendar: calendar
-                )
-            }
         }
     }
 
     private static func weightBody(health: HealthDaySnapshot?) -> String {
         var parts = [String(localized: "notify.weight")]
-        appendContext(&parts, health: health)
-        return parts.joined(separator: " ")
-    }
-
-    private static func dietBody(health: HealthDaySnapshot?) -> String {
-        var parts = [String(localized: "notify.diet")]
         appendContext(&parts, health: health)
         return parts.joined(separator: " ")
     }

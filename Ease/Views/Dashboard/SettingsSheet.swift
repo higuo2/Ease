@@ -23,7 +23,6 @@ struct SettingsSheet: View {
     @State private var sex: BiologicalSex
     @State private var notificationsEnabled: Bool
     @State private var weightReminderDate: Date
-    @State private var dietReminderDate: Date
     @State private var showDeleteConfirm = false
     @State private var showDeleteConfirmAgain = false
     @State private var showImportInfo = false
@@ -38,7 +37,6 @@ struct SettingsSheet: View {
     @State private var historyTarget: MetricHistoryTarget?
     @State private var isAddingMetric = false
     @State private var isWeightReminderExpanded = false
-    @State private var isDietReminderExpanded = false
     @FocusState private var focusedField: Field?
 
     init(
@@ -59,10 +57,6 @@ struct SettingsSheet: View {
         _weightReminderDate = State(initialValue: Self.clockDate(
             hour: profile.weightReminderHour,
             minute: profile.weightReminderMinute
-        ))
-        _dietReminderDate = State(initialValue: Self.clockDate(
-            hour: profile.dietReminderHour,
-            minute: profile.dietReminderMinute
         ))
     }
 
@@ -154,16 +148,7 @@ struct SettingsSheet: View {
                 Task { await persistNotifications(enabled) }
             }
             .onChange(of: isWeightReminderExpanded) { _, expanded in
-                if expanded {
-                    isDietReminderExpanded = false
-                } else {
-                    persistReminders()
-                }
-            }
-            .onChange(of: isDietReminderExpanded) { _, expanded in
-                if expanded {
-                    isWeightReminderExpanded = false
-                } else {
+                if !expanded {
                     persistReminders()
                 }
             }
@@ -286,24 +271,6 @@ struct SettingsSheet: View {
                 }
             }
 
-            DisclosureGroup(isExpanded: $isDietReminderExpanded) {
-                DatePicker(
-                    "",
-                    selection: $dietReminderDate,
-                    displayedComponents: .hourAndMinute
-                )
-                .datePickerStyle(.wheel)
-                .labelsHidden()
-                .frame(maxWidth: .infinity)
-            } label: {
-                HStack {
-                    Text("settings.dietReminder")
-                    Spacer()
-                    Text(dietReminderDate, format: .dateTime.hour().minute())
-                        .font(.body.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                }
-            }
         } header: {
             Text("settings.section.reminders")
         }
@@ -311,7 +278,7 @@ struct SettingsSheet: View {
 
     private var modulesSection: some View {
         Section {
-            ForEach(HomeModule.allCases) { module in
+            ForEach(HomeModule.selectable) { module in
                 Toggle(isOn: moduleBinding(module)) {
                     Label {
                         Text(LocalizedStringKey(module.titleKey))
@@ -501,13 +468,10 @@ struct SettingsSheet: View {
 
     private func persistReminders() {
         let weightParts = Calendar.current.dateComponents([.hour, .minute], from: weightReminderDate)
-        let dietParts = Calendar.current.dateComponents([.hour, .minute], from: dietReminderDate)
         do {
             try repository.update(
                 weightReminderHour: weightParts.hour,
-                weightReminderMinute: weightParts.minute,
-                dietReminderHour: dietParts.hour,
-                dietReminderMinute: dietParts.minute
+                weightReminderMinute: weightParts.minute
             )
             errorKey = nil
         } catch {

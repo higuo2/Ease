@@ -5,16 +5,11 @@ struct HealthCardsView: View {
     let health: HealthDaySnapshot?
     var onOpenSleep: () -> Void
     var onOpenCycle: () -> Void
-    var onEditJournal: (() -> Void)? = nil
-    var onDeleteJournal: (() -> Void)? = nil
 
     private var sleepHours: Double? { health?.previousNightSleepHours }
     private var energyKcal: Double? { health?.activeEnergyKcal }
     private var isPeriodDay: Bool {
         health?.isMenstrual == true || record?.variableTags.contains(.period) == true
-    }
-    private var journalTags: [VariableTag] {
-        (record?.variableTags ?? []).filter { $0 != .period }
     }
 
     var body: some View {
@@ -56,46 +51,6 @@ struct HealthCardsView: View {
                     }
                 }
             }
-            dietStrip
-        }
-    }
-
-    private var dietStrip: some View {
-        let card = EaseCard(
-            accessibilityLabel: dietAccessibilityLabel,
-            accessibilityHint: onEditJournal == nil ? nil : "a11y.record.hint",
-            combinesChildren: true
-        ) {
-            HStack(alignment: .top, spacing: 16) {
-                if let diet = record?.dietStatus {
-                    labeledIcon(systemName: diet.systemImage, labelKey: diet.titleKey)
-                } else {
-                    labeledIcon(systemName: "circle.dashed", labelKey: "today.dietPending")
-                }
-                ForEach(journalTags) { tag in
-                    labeledIcon(tag)
-                }
-                Spacer(minLength: 0)
-            }
-        }
-
-        return Group {
-            if let onEditJournal {
-                card.easeRecordContextMenu(
-                    onEdit: onEditJournal,
-                    onDelete: record == nil ? nil : onDeleteJournal
-                )
-            } else {
-                card
-            }
-        }
-    }
-
-    private var dietAccessibilityLabel: LocalizedStringKey {
-        if let diet = record?.dietStatus {
-            LocalizedStringKey(diet.titleKey)
-        } else {
-            "today.dietPending"
         }
     }
 
@@ -141,38 +96,5 @@ struct HealthCardsView: View {
         } else {
             card
         }
-    }
-
-    private func labeledIcon(_ tag: VariableTag) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: tag.systemImage)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(EasePalette.primaryText)
-                .accessibilityHidden(true)
-            tag.titleText
-                .font(.caption)
-                .foregroundStyle(EasePalette.secondaryText)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(minWidth: 44)
-        .accessibilityElement(children: .combine)
-    }
-
-    private func labeledIcon(systemName: String, labelKey: String) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: systemName)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(EasePalette.primaryText)
-                .accessibilityHidden(true)
-            Text(LocalizedStringKey(labelKey))
-                .font(.caption)
-                .foregroundStyle(EasePalette.secondaryText)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(minWidth: 44)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(LocalizedStringKey(labelKey)))
     }
 }

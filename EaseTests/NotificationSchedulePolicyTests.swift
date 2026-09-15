@@ -62,52 +62,8 @@ final class NotificationSchedulePolicyTests: EaseStoreTestCase {
         )
     }
 
-    func test_饮食提醒_当天已打卡_跳过今天2230() throws {
-        let now = calendar.testDate(2026, 8, 20, hour: 10)
-        let record = DailyRecord(date: calendar.testDate(2026, 8, 20), calendar: calendar)
-        record.dietStatus = .clean
-        context.insert(record)
-        try context.save()
-
-        XCTAssertFalse(
-            NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: calendar.testDate(2026, 8, 20),
-                now: now,
-                todayRecord: record,
-                calendar: calendar
-            )
-        )
-        XCTAssertTrue(
-            NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: calendar.testDate(2026, 8, 21),
-                now: now,
-                todayRecord: record,
-                calendar: calendar
-            )
-        )
-    }
-
-    func test_饮食提醒_2230已过_推迟到次日() {
-        let now = calendar.testDate(2026, 8, 20, hour: 23, minute: 0)
-        XCTAssertFalse(
-            NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: calendar.testDate(2026, 8, 20),
-                now: now,
-                hasDietStatusToday: false,
-                calendar: calendar
-            )
-        )
-        XCTAssertTrue(
-            NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: calendar.testDate(2026, 8, 21),
-                now: now,
-                hasDietStatusToday: false,
-                calendar: calendar
-            )
-        )
-    }
-
-    func test_体重和饮食互不影响() {
+    func test_饮食提醒已停用_当天无饮食不调度饮食() {
+        // Diet reminders are no longer scheduled. Weight reminder is independent.
         let now = calendar.testDate(2026, 8, 20, hour: 10)
         let today = calendar.testDate(2026, 8, 20)
         XCTAssertFalse(
@@ -115,14 +71,6 @@ final class NotificationSchedulePolicyTests: EaseStoreTestCase {
                 on: today,
                 now: now,
                 hasWeightToday: true,
-                calendar: calendar
-            )
-        )
-        XCTAssertTrue(
-            NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: today,
-                now: now,
-                hasDietStatusToday: false,
                 calendar: calendar
             )
         )
@@ -176,54 +124,6 @@ final class NotificationSchedulePolicyTests: EaseStoreTestCase {
         )
     }
 
-    func test_体重饮食同一分钟_仍各自独立判断() {
-        let now = calendar.testDate(2026, 8, 20, hour: 7, minute: 0)
-        XCTAssertTrue(
-            NotificationSchedulePolicy.shouldScheduleWeightReminder(
-                on: calendar.testDate(2026, 8, 20),
-                now: now,
-                hasWeightToday: false,
-                hour: 8,
-                minute: 0,
-                calendar: calendar
-            )
-        )
-        XCTAssertTrue(
-            NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: calendar.testDate(2026, 8, 20),
-                now: now,
-                hasDietStatusToday: false,
-                hour: 8,
-                minute: 0,
-                calendar: calendar
-            )
-        )
-    }
-
-    func test_自定义饮食时刻_2100已过推迟到次日() {
-        let now = calendar.testDate(2026, 8, 20, hour: 21, minute: 5)
-        XCTAssertFalse(
-            NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: calendar.testDate(2026, 8, 20),
-                now: now,
-                hasDietStatusToday: false,
-                hour: 21,
-                minute: 0,
-                calendar: calendar
-            )
-        )
-        XCTAssertTrue(
-            NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: calendar.testDate(2026, 8, 21),
-                now: now,
-                hasDietStatusToday: false,
-                hour: 21,
-                minute: 0,
-                calendar: calendar
-            )
-        )
-    }
-
     func test_自定义时刻仍尊重当天已打卡() {
         let now = calendar.testDate(2026, 8, 20, hour: 7)
         XCTAssertFalse(
@@ -233,16 +133,6 @@ final class NotificationSchedulePolicyTests: EaseStoreTestCase {
                 hasWeightToday: true,
                 hour: 9,
                 minute: 30,
-                calendar: calendar
-            )
-        )
-        XCTAssertFalse(
-            NotificationSchedulePolicy.shouldScheduleDietReminder(
-                on: calendar.testDate(2026, 8, 20),
-                now: now,
-                hasDietStatusToday: true,
-                hour: 21,
-                minute: 0,
                 calendar: calendar
             )
         )

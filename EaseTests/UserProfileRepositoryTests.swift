@@ -161,7 +161,10 @@ final class UserProfileRepositoryTests: EaseStoreTestCase {
             HomeModule.decode("bmi,weight,bmi,sleep"),
             [.bmi, .weight, .sleep]
         )
-        XCTAssertEqual(HomeModule.encode([.sleep, .sleep, .diet]), "sleep,diet")
+        XCTAssertEqual(HomeModule.decode("bmi,diet,weight"), [.bmi, .weight])
+        XCTAssertEqual(HomeModule.encode([.sleep, .sleep, .weight]), "sleep,weight")
+        XCTAssertEqual(HomeModule.encode([.sleep, .diet]), "sleep")
+        XCTAssertFalse(HomeModule.selectable.contains(.diet))
     }
 
     func test_update_生日与性别可写入也可清空() throws {

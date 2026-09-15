@@ -28,15 +28,6 @@ enum ChartRange: Int, CaseIterable, Identifiable {
     }
 }
 
-enum LogSheetMode: Equatable {
-    /// Weight + body fat (+ OCR). No diet.
-    case weight
-    /// Diet + tags + note. No weight.
-    case diet
-}
-
-/// Home-card gray line. Nil when nothing is enabled.
-/// Enabled with no log that day → entry copy. Enabled with logs → readings only.
 enum DashboardMetricsLine {
     static func text(
         enabled: [MetricDefinition],
@@ -96,7 +87,6 @@ final class DashboardViewModel {
     var metricFocusKey: String?
     var editingDate = Date.now
     var editingLogID: UUID?
-    var logMode: LogSheetMode = .weight
     var healthByDay: [String: HealthDaySnapshot] = [:]
     var sleepHistory = SleepHistory.empty
     var cycleHistory = CycleHistory.empty
@@ -104,25 +94,19 @@ final class DashboardViewModel {
     var hasLoadedHealth = false
     private var healthFetchedAt: Date?
 
-    func openLog(for date: Date, mode: LogSheetMode = .weight) {
+    func openLog(for date: Date) {
         editingDate = CalendarDay.startOfDay(date)
         editingLogID = nil
-        logMode = mode
         isLogPresented = true
     }
 
     func openWeightEntry(for date: Date) {
-        openLog(for: date, mode: .weight)
-    }
-
-    func openDietEntry(for date: Date) {
-        openLog(for: date, mode: .diet)
+        openLog(for: date)
     }
 
     func openWeightLog(_ log: WeightLog) {
         editingDate = CalendarDay.startOfDay(log.timestamp)
         editingLogID = log.id
-        logMode = .weight
         isLogPresented = true
     }
 
@@ -142,8 +126,6 @@ final class DashboardViewModel {
         logs: [WeightLog],
         weightHour: Int = NotificationSchedulePolicy.weightHour,
         weightMinute: Int = NotificationSchedulePolicy.weightMinute,
-        dietHour: Int = NotificationSchedulePolicy.dietHour,
-        dietMinute: Int = NotificationSchedulePolicy.dietMinute,
         forceHealth: Bool = false
     ) async {
         let now = Date.now
@@ -161,9 +143,7 @@ final class DashboardViewModel {
             records: records,
             logs: logs,
             weightHour: weightHour,
-            weightMinute: weightMinute,
-            dietHour: dietHour,
-            dietMinute: dietMinute
+            weightMinute: weightMinute
         )
     }
 
@@ -172,9 +152,7 @@ final class DashboardViewModel {
         records: [DailyRecord],
         logs: [WeightLog],
         weightHour: Int = NotificationSchedulePolicy.weightHour,
-        weightMinute: Int = NotificationSchedulePolicy.weightMinute,
-        dietHour: Int = NotificationSchedulePolicy.dietHour,
-        dietMinute: Int = NotificationSchedulePolicy.dietMinute
+        weightMinute: Int = NotificationSchedulePolicy.weightMinute
     ) async {
         let todayKey = CalendarDay.dayKey(from: .now)
         await NotificationScheduler.refresh(
@@ -183,9 +161,7 @@ final class DashboardViewModel {
             hasWeightToday: WeightMetrics.hasWeight(records: records, logs: logs, on: .now),
             healthToday: healthByDay[todayKey],
             weightHour: weightHour,
-            weightMinute: weightMinute,
-            dietHour: dietHour,
-            dietMinute: dietMinute
+            weightMinute: weightMinute
         )
     }
 }

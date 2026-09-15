@@ -13,10 +13,10 @@
     * 经期预测仅为本地启发式展示，禁止写成医疗结论或「Apple 官方预测」。
 * **本期范围 (v1.1)**：一天多次体重 (`WeightLog`)、4-Tab 根导航、睡眠/经期详情 Sheet。
 * **本期范围 (v1.2)**：Ease CSV 再导入、扩展指标（围度）、达标日估算（含趋势页高级估算）、自定义提醒时刻、可配置首页模块。规格见 §8。
-* **仍不做**：桌面 Widget（含锁屏/主屏一键体重或从 Widget 拍照）、体重+体脂双轴图、Dark Mode、第三方格式导入（MyFitnessPal 等）、为扩展指标单独做催打卡通知、卡路里合计、饮水追踪、「一键同步 HealthKit」。自定义标签只在饮食 Sheet / 日历日明细里添加，不在设置做标签管理页。
+* **仍不做**：桌面 Widget（含锁屏/主屏一键体重或从 Widget 拍照）、体重+体脂双轴图、Dark Mode、第三方格式导入（MyFitnessPal 等）、为扩展指标单独做催打卡通知、卡路里合计、饮水追踪、「一键同步 HealthKit」。**不再提供饮食/标签/备注/餐图录入**（schema 与 CSV 列保留）。
 
 ## 2. 信息架构与页面流转 (Information Architecture)
-采用 **4-Tab 根导航**。全 App 界面：体重 Tab、趋势 Tab、日历 Tab、**设置 Tab**；叠加体重/饮食录入 Sheet、围度 Sheet、体重历史 Sheet、BMI / 睡眠 / 经期 / 活动消耗详情 Sheet；另加首次启动的 Onboarding。
+采用 **4-Tab 根导航**。全 App 界面：体重 Tab、趋势 Tab、日历 Tab、**设置 Tab**；叠加体重录入 Sheet、围度 Sheet、体重历史 Sheet、BMI / 睡眠 / 经期 / 活动消耗详情 Sheet；另加首次启动的 Onboarding。
 
 「当天」默认今天；日历选中日可驱动明细。不可选未来日期。视觉参数以 `AGENT.md` 为准（背景 `#F7F8F9`、卡片白/`#F2F3F5`、圆角 16–20、珊瑚强调色）。**无**体重 Tab 右上角齿轮、**无**右下角 FAB。
 
@@ -25,8 +25,8 @@
 1. **导航**：标题 `Ease`（无 trailing 设置按钮；设置在第四 Tab）。
 2. **Hero**：居中巨幅当前体重（所选日最新 `WeightLog`，否则全局最新；仍无则不可用态、不算进度）。下方一行周增减小字（如 `▼1.8 kg 本周`）。
 3. **阶段目标卡片**：浅灰圆角卡 — 线性进度条、起始体重、目标体重；可选一行 **基础 pace ETA**（§8.3.A）。进度公式不变：`(start - display) / (start - target)`，clamp `0...1`；达 100% 后冷淡展示目标，无庆祝。当前体重大于初始 → 0%。**不再使用紫色进度环。**
-4. **可配置莫兰迪方块**：默认 BMI（数字 + 灰色区间文案）、围度、体重、饮食。用户可追加睡眠、经期、活动消耗；虚线「添加」打开模块编辑。点 BMI → BMI 详情 Sheet（分段条、CN/WHO、输入格、理想体重区间；公式/免责在 info）；点体重 → 体重 Sheet；点饮食 → 饮食 Sheet；点围度 → 围度 Sheet（录入 + 历史列表，**无围度趋势图**）；点睡眠 / 经期 / 消耗 → 对应详情 Sheet。**不做饮水。**
-5. **体重列表 (Weight log)**：默认只展示**近 30 天**；按日展示早（太阳）/ 晚（月亮）、相对昨日涨跌、备注。点行编辑该日最新 `WeightLog`（或补录）。点 **All** 打开独立「体重历史」Sheet（全部日期，同一行样式），不在本页原地展开。
+4. **可配置莫兰迪方块**：默认 BMI（数字 + 灰色区间文案）、围度、体重。用户可追加睡眠、经期、活动消耗；虚线「添加」打开模块编辑。点 BMI → BMI 详情 Sheet；点体重 → 体重 Sheet；点围度 → 围度 Sheet；点睡眠 / 经期 / 消耗 → 对应详情 Sheet。**无饮食格。不做饮水。**
+5. **体重列表 (Weight log)**：默认只展示**近 30 天**；按日展示早（太阳）/ 晚（月亮）、相对昨日涨跌。点行编辑该日最新 `WeightLog`（或补录）。点 **All** 打开独立「体重历史」Sheet（全部日期，同一行样式），不在本页原地展开。
 
 ### 2.2 趋势 Tab（Trend）
 1. 顶部 segmented 胶囊：`7天 | 30天 | 90天 | 全部`（只改 X 可见范围）。
@@ -34,33 +34,31 @@
 3. 2×3 数据卡：最高、最低、平均、体重变化、距离目标、记录天数。
 4. **高级估算卡**（§8.3.B）：在基础体重斜率上，用近期睡眠、活动消耗、经期日做**轻度乘数修正**，主行展示**软性旬区间**（如「10 月中旬」），不要把剩余天数做成倒计时主数字。数据不足则隐藏整卡数字区，不写「无法预测」。非医疗建议；不与阶段卡基础 pace 混写成一句。
 
-交互：预览不改数据；点已有日可编辑该日体重。删体重不得删当日饮食/标签/备注。
+交互：预览不改数据；点已有日可编辑该日体重。删体重不得删当日 `DailyRecord` 遗留字段。
 
 ### 2.3 日历 Tab（Calendar）
 1. 7 列月历；每格：日号 + 当日体重 + 涨跌幅（`▼0.2` / `▲0.2`）。
 2. **周均 / 月均**体重卡：周均 = 当前选中日所在自然周内有记录日的平均；月均 = 当前浏览月内有记录日的平均。
 3. 月度统计横栏（5 列）：打卡天数、减重天数、增重天数、日均变化、本月变化。
-4. 选中日后底部明细：早晚体重、日间波动（同日晚−早）、餐次横滑、饮食/标签芯片与备注。**禁止**卡路里合计或宏量营养素。跨日的夜间代谢（前晚−今早）不在此硬塞。月份「清淡天数」只计 `clean`，不计 `fasting`。
+4. 选中日后底部明细：早晚体重、日间波动（同日晚−早）。无餐图、无饮食芯片、无标签、无备注。月份 Overview 只计打卡 / 减重 / 增重与均重，**不再统计清淡天数**。
 
 ### 2.4 设置 Tab（Settings）
-第四 Tab（非 Sheet）。无 Done/Close；档案与开关即时保存。可改：身高、生日、生理性别、初始体重、目标体重、**睡眠目标时长**（默认 8.0 h，精度 0.5 h，范围 4–12 h）、首页模块开关、通知总开关与提醒时刻、导出 / 导入 CSV、扩展指标启用与自定义、清除全部数据。改初始/目标后阶段进度立刻重算。不提供语言切换、单位切换、设置里的标签管理页。
+第四 Tab（非 Sheet）。无 Done/Close；档案与开关即时保存。可改：身高、生日、生理性别、初始体重、目标体重、**睡眠目标时长**（默认 8.0 h，精度 0.5 h，范围 4–12 h）、首页模块开关、通知总开关与**体重**提醒时刻、导出 / 导入 CSV、扩展指标启用与自定义、清除全部数据。改初始/目标后阶段进度立刻重算。无饮食提醒、无标签管理页。
 
 * 次级入口：设置内可打开睡眠 / 经期详情（与首页方块同一套 Sheet）。
 * **清除全部数据**：须**两次确认**（先确认对话框「继续」，再 alert 最终清除）；清除后回到 Onboarding。
 
 ### 2.5 录入表单 (Log Sheets)
-体重与饮食拆成两个独立半屏 Modal（不再合成一表）。
+仅 **体重 Sheet**（半屏 Modal）。可展开图形日历改日期（默认所选日 / 今天；不可未来）→ 体重 + 行内相册识图 → 体脂（可选）→ Save。新增 = **insert `WeightLog`**。编辑已有条可改或 Delete 该条。今天用当前时刻；补过去的日子用当天 08:00。
 
-**体重 Sheet**：可展开图形日历改日期（默认所选日 / 今天；不可未来）→ 体重 + 行内相册识图 → 体脂（可选）→ Save。新增 = **insert `WeightLog`**。编辑已有条可改或 Delete 该条。今天用当前时刻；补过去的日子用当天 08:00。
+**无饮食 Sheet。** 应用不再写入 `dietStatus` / `tags` / `note` / 餐图字段；旧值保留在 SwiftData 中，CSV 仍可导出/导入这些列。
 
-**饮食 Sheet**：可展开日历改日期 → 饮食四选一（Clean / Normal / Cheat / Fasting）→ 餐次横滑（早餐、午餐、下午茶、晚餐、夜宵 + 自定义）→ 标签（预设 + `custom.*`）→ 备注 → 底部固定 Save。写入当天 `DailyRecord`（字段级 upsert）。可 Delete 当日日记（不动体重）。**禁止**卡路里、高蛋白、低碳水。
-
-围度不在上述 Sheet，也不参与体重/饮食校验。
+围度不在体重 Sheet，也不参与体重校验。
 
 ### 2.6 围度 Sheet (Metric Sheet)
 独立半屏 Modal。**主入口**：体重 Tab 围度方块。**次入口**：设置里某指标的 History。内部：日期 → 已启用指标数字行 → Save → 下方该指标**历史列表**（v1.2 不做围度趋势图；体重趋势只在 Trend Tab）。
 
-保存规则：至少一行有效值；空行不写；任一行越界/无法解析则**整次零写入**并标红。不要求体重、不写 `DailyRecord`、不触发饮食/体重提醒。今天用当前时刻，补过去的日子用当天 08:00。删一条历史只删该次 `MetricLog`。
+保存规则：至少一行有效值；空行不写；任一行越界/无法解析则**整次零写入**并标红。不要求体重、不写 `DailyRecord`、不触发体重提醒。今天用当前时刻，补过去的日子用当天 08:00。删一条历史只删该次 `MetricLog`。
 
 ### 2.7 启航 (Onboarding)
 2～3 步，不把权限和数据挤在一屏：
@@ -94,7 +92,7 @@
 ## 3. 数据模型与业务规则 (Data Rules - SwiftData)
 
 ### 3.1 两条模型，职责分开
-* **`DailyRecord`**：每个本地日历日至多一条。**读写职责**覆盖 `dietStatus`、`tags`、`note`、三餐文件名、`extraMealsJSON`。
+* **`DailyRecord`**：每个本地日历日至多一条。Schema 仍含 `dietStatus`、`tags`、`note`、三餐文件名、`extraMealsJSON`（CloudKit）。**UI 不再读写这些字段**；CSV 导入仍可写入。
 * **`WeightLog`**：一次称重一条。允许同一日历日多条。无 Unique Constraint（CloudKit / SwiftData 限制）。运行时体重/体脂的唯一真相源。
 
 **CloudKit 平滑过渡（强制）：**
@@ -108,15 +106,15 @@
 * `date`: Date（按本地日历日唯一，忽略时分秒；实现可用 `dayKey`）
 * `weight`: Double? — **legacy，Schema 保留，v1.1 起只读不写**
 * `bodyFat`: Double? — **legacy，Schema 保留，v1.1 起只读不写**
-* `dietStatus`: Enum?（Clean / Normal / Cheat / Fasting，每日至多一个）
-* `tags`: [String]（预设 `period` / `travel` / `bowel` / `swollen` / `alcohol` / `lateNight`；自定义必须 `custom.` 前缀。UI：`drop.fill` / `airplane` / `wind` / `humidity.fill` / `wineglass` / `moon.fill`；`bowel` 文案 Cleared / 通畅。可多选）
-* `note`: String?
-* `breakfastPhotoFileName` / `lunchPhotoFileName` / `dinnerPhotoFileName`: String? — 三餐 JPEG 文件名（Documents）。配套 legacy `*PhotoData` 永不删除。
-* `extraMealsJSON`: String? — 下午茶、夜宵、自定义餐次。JSON 数组 `{ "id", "title?", "fileName" }`；预设 extra id 为 `afternoonTea` / `lateNight`；自定义 `custom.<uuid>`。早餐/午餐/晚餐永不写入此字段。解码失败视为空数组，不使整条记录失败。不要为餐次加 CloudKit `@Relationship`。
-* 餐图抠图（本地 Vision）：原图 JPEG 为真相源；抠图是 Documents 里 `{stem}-cutout.png` 派生缓存。展示偏好在 `UserDefaults`（全局默认开 + 按文件名覆盖），不进 SwiftData / CloudKit。
+* `dietStatus`: Enum?（Clean / Normal / Cheat / Fasting）— **schema 保留，UI 不写入**
+* `tags`: [String] — **schema 保留，UI 不写入**
+* `note`: String? — **schema 保留，UI 不写入**
+* `breakfastPhotoFileName` / `lunchPhotoFileName` / `dinnerPhotoFileName`: String? — schema 保留。配套 legacy `*PhotoData` 永不删除。
+* `extraMealsJSON`: String? — schema 保留。解码失败视为空数组。
+* 餐图抠图 sidecar 可能仍存在于旧设备 Documents；UI 不再生成。`resetAll` 仍清理。
 * `updatedAt`: Date（同一 `dayKey` 两条冲突时保留较新者）
 
-字段级 Upsert 仅适用于本模型：同一天再次保存饮食/标签/备注时，只更新本次改过的字段。未改的保持原值。允许「只打饮食、不记体重」。
+字段级 Upsert 仍适用于本模型（CSV 导入）。UI 不再创建「只打饮食、不记体重」的路径。
 
 ### 3.3 `WeightLog`
 * `id`: UUID（本地插入时生成；CloudKit 物化需要默认值）
@@ -130,8 +128,8 @@
 ### 3.4 `UserProfile` 增补
 * 保留：`heightCm`、`startWeight`、`targetWeight`、`notificationsEnabled`、`hasCompletedOnboarding`、`updatedAt`
 * v1.1 新增：`sleepTargetHours`（默认 8.0，精度 0.5，范围 4–12）、`hasMigratedWeightLogs`（默认 `false`）
-* v1.2 新增：`weightReminderHour` / `weightReminderMinute`（默认 8 / 0）、`dietReminderHour` / `dietReminderMinute`（默认 22 / 30）。只存整数，**不存 TimeZone / UTC 偏移**。语义永远是**当前设备本地墙钟**（0–23 / 0–59）。详见 §8.4。
-* v1.2 新增：`homeModulesRaw`（逗号分隔模块 key；空则默认 `bmi,measurements,weight,diet`）。合法 key：`bmi` / `measurements` / `weight` / `diet` / `sleep` / `period` / `energy`。
+* v1.2 新增：`weightReminderHour` / `weightReminderMinute`（默认 8 / 0）、`dietReminderHour` / `dietReminderMinute`（默认 22 / 30，**schema 保留，UI 不再调度饮食提醒**）。只存整数，**不存 TimeZone / UTC 偏移**。语义永远是**当前设备本地墙钟**（0–23 / 0–59）。详见 §8.4。
+* v1.2 新增：`homeModulesRaw`（逗号分隔模块 key；空则默认 `bmi,measurements,weight`）。合法 key：`bmi` / `measurements` / `weight` / `diet`（解码时丢弃） / `sleep` / `period` / `energy`。
 * 新增：`birthDate`（`Date?`，默认 `nil`）、`sexRaw`（`unspecified` / `female` / `male`，默认 `unspecified`）。生日不能是未来、年龄不超过 120。不进 CSV。启航不追问；设置里补。性别仅档案展示，不改变 BMI 公式或成人切点。
 
 ### 3.5 展示与均线（定义不得混用）
@@ -176,10 +174,9 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 ## 6. 状态感知提醒机制 (Context-Aware Notifications)
 本地通知（`UNUserNotificationCenter`），不是远程推送。设置里一个总开关；关闭则调度全部取消。
 
-* **分项防打扰（体重与饮食互不影响）**：
+* **分项防打扰**：
     * 体重提醒文案 `今日体重待记录。` — 仅当**当天没有任何 `WeightLog`** 时发送。用 `UserProfile` 体重提醒时刻。
-    * 饮食提醒文案 `今日饮食状态待打卡。` — 仅当当天 `DailyRecord.dietStatus == nil` 时发送。用饮食提醒时刻。
-    * 两个时刻互相独立；若设成同一分钟，仍发两条，不合并。
+    * **不再发送饮食提醒**；已排队的 `ease.diet.*` 在下次 refresh 时取消。
     * 改时刻或打开总开关后，取消旧 pending 再按新时刻重排。当天该时刻已过则从次日开始。
     * 调度必须用设备**当前** `TimeZone` 组装墙钟。监听到系统时区变化（以及显著时间变化）后，取消 pending 再按新本地墙钟重排。
 * **客观事实联动**（符合条件时追加在对应那一条后面，不另发一条）：
@@ -226,7 +223,7 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 * **结果**：导入结束后用一行 secondary 文案回报写入条数；不弹成功彩蛋。
 
 ### 8.2 扩展指标（围度）
-目标：可记腰围等围度，但首页不被指标卡淹没。自定义标签在饮食 Sheet 内添加，不在设置做管理页。**不做饮水。**
+目标：可记腰围等围度，但首页不被指标卡淹没。**不做饮水。无自定义标签管理页。**
 
 * **模型（无 CloudKit `@Relationship`）**：`MetricDefinition` 与 `MetricLog` 用 `metricKey` 字符串对齐，禁止 `@Relationship`。
     * `MetricDefinition`：`key`、`kind`（`builtin` / `custom`）、`unit`（`cm` | `ml` | `count`）、`symbolName`、`displayName`、`isEnabled`、`sortOrder`、`updatedAt`。
@@ -276,7 +273,7 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 * **禁止**：与 8.3.A 合成一句；把消耗写成卡路里缺口目标；经期周期预测文案与本估算混排；大号倒计时天数。
 
 ### 8.4 自定义提醒时刻
-* 设置在通知总开关下方：`Weight reminder`、`Diet reminder` 两个 `hourAndMinute` 选择器。默认 08:00 与 22:30。
+* 设置在通知总开关下方：仅 `Weight reminder` 的 `hourAndMinute` 选择器。默认 08:00。`dietReminderHour/Minute` 留在 `UserProfile` 上，UI 不展示、调度器不使用。
 * **本地墙钟，不是绝对时刻**：`UserProfile` 只同步 hour/minute 整数。
 * **时区变化必须重排**：监听系统时区变化及显著时间变化后取消 pending 再重排。
 * 只改**何时**发，不改**是否**发。扩展指标 v1.2 **不**增加第三、第四条提醒。

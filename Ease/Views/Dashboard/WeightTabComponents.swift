@@ -98,14 +98,12 @@ struct HomeModuleGrid: View {
     let modules: [HomeModule]
     let bmi: Double?
     let bmiCategoryKey: String?
-    let dietStatus: DietStatus?
     let sleepHours: Double?
     let isPeriodDay: Bool
     let energyKcal: Double?
     let canAddMore: Bool
     let onOpenMetrics: () -> Void
     let onOpenWeight: () -> Void
-    let onOpenDiet: () -> Void
     let onOpenSleep: () -> Void
     let onOpenPeriod: () -> Void
     let onOpenEnergy: () -> Void
@@ -166,16 +164,7 @@ struct HomeModuleGrid: View {
                 tileCaption("module.tapToLog")
             }
         case .diet:
-            square(module, action: onOpenDiet) {
-                Image(systemName: dietStatus?.systemImage ?? module.symbolName)
-                    .font(.system(size: 26, weight: .regular))
-                    .foregroundStyle(EasePalette.primaryText)
-                if let dietStatus {
-                    tileCaption(LocalizedStringKey(dietStatus.titleKey))
-                } else {
-                    tileCaption("module.tapToLog")
-                }
-            }
+            EmptyView()
         case .sleep:
             square(module, action: onOpenSleep) {
                 if let sleepHours {
@@ -401,13 +390,6 @@ struct DailyWeightRowView: View {
                         .foregroundStyle(.tertiary)
                 }
             }
-            if let note = row.note, !note.isEmpty {
-                Text(note)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .multilineTextAlignment(.leading)
-            }
         }
     }
 
@@ -550,7 +532,7 @@ struct HomeModuleEditor: View {
             Text("settings.homeModules")
                 .font(.system(size: 14, weight: .regular))
                 .foregroundStyle(EasePalette.secondaryText)
-            ForEach(HomeModule.allCases) { module in
+            ForEach(HomeModule.selectable) { module in
                 Toggle(isOn: binding(for: module)) {
                     Label {
                         Text(LocalizedStringKey(module.titleKey))
