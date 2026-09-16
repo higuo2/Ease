@@ -20,6 +20,17 @@ final class CycleMetricsTests: XCTestCase {
         XCTAssertFalse(spans[0].contains(calendar.testDate(2026, 3, 4), calendar: calendar))
     }
 
+    func test_periodDayNumber_连续经期日从1起算() {
+        let history = CycleMetrics.make(
+            periodDayKeys: ["2026-03-01", "2026-03-02", "2026-03-03"],
+            endingOn: calendar.testDate(2026, 3, 10),
+            calendar: calendar
+        )
+        XCTAssertEqual(history.periodDayNumber(on: calendar.testDate(2026, 3, 1), calendar: calendar), 1)
+        XCTAssertEqual(history.periodDayNumber(on: calendar.testDate(2026, 3, 3), calendar: calendar), 3)
+        XCTAssertNil(history.periodDayNumber(on: calendar.testDate(2026, 3, 4), calendar: calendar))
+    }
+
     func test_make_少于两次start_不预测() {
         let history = CycleMetrics.make(
             periodDayKeys: ["2026-03-01", "2026-03-02", "2026-03-03"],

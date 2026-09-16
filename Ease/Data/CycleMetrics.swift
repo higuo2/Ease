@@ -41,6 +41,20 @@ struct CycleHistory: Sendable, Equatable {
     func isMenstrual(_ date: Date, calendar: Calendar = .current) -> Bool {
         periodDayKeys.contains(CalendarDay.dayKey(from: date, calendar: calendar))
     }
+
+    /// 1-based day within the current menstrual run. Nil when `date` is not a period day.
+    func periodDayNumber(on date: Date, calendar: Calendar = .current) -> Int? {
+        let day = CalendarDay.startOfDay(date, calendar: calendar)
+        guard let span = spans.first(where: { $0.contains(day, calendar: calendar) }) else {
+            return isMenstrual(day, calendar: calendar) ? 1 : nil
+        }
+        let offset = calendar.dateComponents(
+            [.day],
+            from: CalendarDay.startOfDay(span.start, calendar: calendar),
+            to: day
+        ).day ?? 0
+        return offset + 1
+    }
 }
 
 enum CycleMetrics {

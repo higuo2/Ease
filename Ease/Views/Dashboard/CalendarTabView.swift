@@ -6,7 +6,6 @@ struct CalendarTabView: View {
     let logs: [WeightLog]
 
     @State private var visibleMonth = CalendarDay.startOfMonth(.now)
-    @State private var daySheet: DaySheetItem?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var selectedDate: Date { viewModel.selectedDate }
@@ -16,6 +15,10 @@ struct CalendarTabView: View {
     private var weekdaySymbols: [String] { CalendarDay.weekdayHeaderSymbols() }
     private var gridColumns: [GridItem] {
         Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+    }
+
+    private var recordsByDay: [String: DailyRecord] {
+        Dictionary(records.map { ($0.dayKey, $0) }, uniquingKeysWith: { _, last in last })
     }
 
     var body: some View {
@@ -35,26 +38,21 @@ struct CalendarTabView: View {
                     VStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
                         monthHeader
                         calendarCard(weightIndex: weightIndex)
+                        selectedDayCard(weightIndex: weightIndex)
                         monthOverviewCard(monthStats: monthStats, weekAverageWeight: weekAverageWeight)
                     }
                     .easeTabScrollContent()
+                    .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedDayKey)
                 }
             }
             .navigationTitle("tab.calendar")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
-            .sheet(item: $daySheet) { item in
-                CalendarDayDetailSheet(
-                    date: item.date,
-                    logs: logs,
-                    onLogWeight: {
-                        daySheet = nil
-                        viewModel.openWeightEntry(for: item.date)
-                    }
-                )
-                .easeSheetPresentation()
-            }
+            .sensoryFeedback(.selection, trigger: selectedDayKey)
             .sensoryFeedback(.selection, trigger: CalendarDay.dayKey(from: visibleMonth))
+            .onChange(of: visibleMonth) { _, month in
+                alignSelection(to: month)
+            }
         }
     }
 
@@ -99,9 +97,7 @@ struct CalendarTabView: View {
         }
     }
 
-    private func calendarCard(
-        weightIndex: WeightMetrics.DayIndex
-    ) -> some View {
+    private func calendarCard(weightIndex: WeightMetrics.DayIndex) -> some View {
         EaseCard(padding: 16) {
             VStack(spacing: 12) {
                 LazyVGrid(columns: gridColumns, spacing: 4) {
@@ -129,11 +125,7 @@ struct CalendarTabView: View {
     }
 
     private var dayCellHeight: CGFloat {
-        isAccessibilityType ? 96 : 72
-    }
-
-    private var metricLineHeight: CGFloat {
-        isAccessibilityType ? 18 : 14
+        isAccessibilityType ? 92 : 64
     }
 
     private func dayCell(
@@ -144,87 +136,217 @@ struct CalendarTabView: View {
         let isSelected = CalendarDay.dayKey(from: day) == selectedDayKey
         let isToday = Calendar.current.isDateInToday(day)
         let weight = weightIndex.weight(on: day)
-        let delta = weightIndex.delta(on: day)
+        let dots = statusDots(on: day, hasWeight: weight != nil)
+        let faded = isFuture || (weight == nil && dots.isEmpty)
 
         return Button {
             guard !isFuture else { return }
-            let start = CalendarDay.startOfDay(day)
-            if isSelected {
-                daySheet = DaySheetItem(date: start)
-            } else {
-                viewModel.selectedDate = start
-            }
+            viewModel.selectedDate = CalendarDay.startOfDay(day)
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 Text("\(Calendar.current.component(.day, from: day))")
                     .font(.system(.body, design: .rounded, weight: isSelected ? .semibold : .regular))
                     .monospacedDigit()
-                    .foregroundStyle(dayNumberStyle(isFuture: isFuture, isSelected: isSelected))
+                    .foregroundStyle(dayNumberStyle(isFuture: isFuture, faded: faded, isSelected: isSelected))
                     .frame(width: 30, height: 30)
                     .background {
-                        if isSelected {
-                            Circle().fill(EasePalette.accent.opacity(0.15))
+                        if isToday && !isSelected {
+                            Circle().fill(EasePalette.accent.opacity(0.12))
                         }
                     }
                     .overlay {
-                        if isToday {
-                            Circle().stroke(EasePalette.accent, lineWidth: 1.5)
+                        if isSelected {
+                            Circle()
+                                .strokeBorder(EasePalette.accent, lineWidth: 1.5)
                         }
                     }
 
+                HStack(spacing: 3) {
+                    ForEach(Array(dots.enumerated()), id: \.offset) { _, color in
+                        Circle()
+                            .fill(color)
+                            .frame(width: 4, height: 4)
+                    }
+                }
+                .frame(height: 4)
+                .opacity(dots.isEmpty ? 0 : 1)
+
                 Group {
-                    if let weight {
+                    if let weight, !isFuture {
                         Text(EaseFormatters.oneDecimal(weight))
-                            .font(metricFont)
-                            .monospacedDigit()
-                            .foregroundStyle(.primary)
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(EasePalette.primaryText)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
                     } else {
                         Color.clear
                     }
                 }
-                .frame(height: metricLineHeight)
-
-                Group {
-                    if let delta {
-                        HStack(spacing: 0) {
-                            Text(deltaPrefix(delta))
-                                .foregroundStyle(.secondary)
-                            Text(EaseFormatters.oneDecimal(abs(delta)))
-                                .foregroundStyle(EasePalette.semanticDelta(delta))
-                        }
-                        .font(isAccessibilityType ? .caption.weight(.medium) : .caption2.weight(.medium))
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                    } else {
-                        Color.clear
-                    }
-                }
-                .frame(height: metricLineHeight)
+                .frame(height: isAccessibilityType ? 16 : 12)
             }
             .frame(maxWidth: .infinity)
             .frame(height: dayCellHeight)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(isFuture)
+        .accessibilityLabel(dayAccessibilityLabel(day, weight: weight, dots: dots, isFuture: isFuture))
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 
-    private var metricFont: Font {
-        isAccessibilityType ? .caption : .caption2
-    }
-
-    private func dayNumberStyle(isFuture: Bool, isSelected: Bool) -> AnyShapeStyle {
-        if isFuture { return AnyShapeStyle(.tertiary) }
-        if isSelected { return AnyShapeStyle(EasePalette.accent) }
+    private func dayNumberStyle(isFuture: Bool, faded: Bool, isSelected: Bool) -> AnyShapeStyle {
+        if isFuture || faded { return AnyShapeStyle(.tertiary) }
+        if isSelected { return AnyShapeStyle(EasePalette.primaryText) }
         return AnyShapeStyle(EasePalette.primaryText)
     }
 
-    private func deltaPrefix(_ delta: Double) -> String {
-        if delta < 0 { return "▼" }
-        if delta > 0 { return "▲" }
-        return ""
+    private func statusDots(on day: Date, hasWeight: Bool) -> [Color] {
+        var dots: [Color] = []
+        if hasWeight { dots.append(EasePalette.mint) }
+        if isPeriod(on: day) { dots.append(EasePalette.periodRose) }
+        if sleepHours(on: day) != nil { dots.append(EasePalette.iconSleep) }
+        return Array(dots.prefix(3))
+    }
+
+    private func dayAccessibilityLabel(
+        _ day: Date,
+        weight: Double?,
+        dots: [Color],
+        isFuture: Bool
+    ) -> String {
+        let dateText = day.formatted(.dateTime.month(.abbreviated).day())
+        if isFuture { return dateText }
+        var parts = [dateText]
+        if let weight {
+            parts.append(EaseFormatters.kg(weight))
+        }
+        if isPeriod(on: day) {
+            parts.append(String(localized: "calendar.detail.period"))
+        }
+        if sleepHours(on: day) != nil {
+            parts.append(String(localized: "calendar.detail.sleep"))
+        }
+        if dots.isEmpty && weight == nil {
+            parts.append(String(localized: "calendar.cell.empty"))
+        }
+        return parts.joined(separator: ", ")
+    }
+
+    @ViewBuilder
+    private func selectedDayCard(weightIndex: WeightMetrics.DayIndex) -> some View {
+        let weight = weightIndex.weight(on: selectedDate)
+        let sleep = sleepHours(on: selectedDate)
+        let periodDay = viewModel.cycleHistory.periodDayNumber(on: selectedDate)
+        let periodLogged = isPeriod(on: selectedDate)
+        let note = note(on: selectedDate)
+        let hasLogs = weight != nil || sleep != nil || periodLogged || note != nil
+
+        if hasLogs {
+            EaseCard(padding: 20) {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(selectedDate, format: .dateTime.weekday(.wide).month(.abbreviated).day())
+                            .font(.headline)
+                            .foregroundStyle(EasePalette.primaryText)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                        Spacer(minLength: 8)
+                        Button("common.edit") {
+                            viewModel.openWeightEntry(for: selectedDate)
+                        }
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(EasePalette.secondaryText)
+                        .buttonStyle(.borderless)
+                    }
+
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: EaseLayout.gridGap),
+                            GridItem(.flexible(), spacing: EaseLayout.gridGap)
+                        ],
+                        alignment: .leading,
+                        spacing: 12
+                    ) {
+                        detailMetric(
+                            "calendar.detail.weight",
+                            weight.map { EaseFormatters.kg($0) }
+                        )
+                        detailMetric(
+                            "calendar.detail.sleep",
+                            sleep.map(EaseFormatters.sleepDuration)
+                        )
+                        detailMetric(
+                            "calendar.detail.period",
+                            periodValue(dayNumber: periodDay, logged: periodLogged)
+                        )
+                        detailMetric(
+                            "calendar.detail.notes",
+                            note,
+                            lineLimit: 2
+                        )
+                    }
+                }
+            }
+        } else {
+            Button {
+                viewModel.openWeightEntry(for: selectedDate)
+            } label: {
+                Text(emptyCTATitle)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(EasePalette.primaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 16)
+                    .background(EasePalette.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(
+                                EasePalette.secondaryText.opacity(0.28),
+                                style: StrokeStyle(lineWidth: 1.2, dash: [6, 4])
+                            )
+                    }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var emptyCTATitle: String {
+        String(
+            format: String(localized: "calendar.cta.logData"),
+            locale: .current,
+            selectedDate.formatted(.dateTime.month(.abbreviated).day())
+        )
+    }
+
+    private func detailMetric(
+        _ title: LocalizedStringKey,
+        _ value: String?,
+        lineLimit: Int = 1
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value ?? "—")
+                .font(.subheadline.weight(.medium).monospacedDigit())
+                .foregroundStyle(EasePalette.primaryText)
+                .lineLimit(lineLimit)
+                .minimumScaleFactor(0.85)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(
+            EasePalette.recessed,
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
+    }
+
+    private func periodValue(dayNumber: Int?, logged: Bool) -> String? {
+        if let dayNumber {
+            return String(format: String(localized: "calendar.detail.periodDay"), locale: .current, dayNumber)
+        }
+        return logged ? String(localized: "calendar.detail.periodYes") : nil
     }
 
     private func monthOverviewCard(
@@ -232,32 +354,43 @@ struct CalendarTabView: View {
         weekAverageWeight: Double?
     ) -> some View {
         EaseCard(padding: 20) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 14) {
                 Text(overviewTitle)
                     .font(.headline)
                     .foregroundStyle(EasePalette.primaryText)
 
-                HStack(alignment: .firstTextBaseline, spacing: 16) {
-                    overviewHero(
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: EaseLayout.gridGap),
+                        GridItem(.flexible(), spacing: EaseLayout.gridGap)
+                    ],
+                    alignment: .leading,
+                    spacing: 12
+                ) {
+                    overviewStat(
                         "calendar.stat.monthAvg",
-                        monthStats.averageWeight.map(EaseFormatters.oneDecimal)
+                        monthStats.averageWeight.map { EaseFormatters.kg($0) }
                     )
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    netChangeHero(monthDelta: monthStats.monthDelta)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                }
-
-                Divider().overlay(EasePalette.hairline)
-
-                HStack(alignment: .top, spacing: 8) {
-                    compactStat("calendar.stat.weekAvg", kgValue(weekAverageWeight))
-                    compactStat("calendar.stat.checkins", loggedDaysValue(monthStats.checkinDays))
-                    compactStat("calendar.stat.lossDays", "\(monthStats.lossDays)")
-                    compactStat("calendar.stat.gainDays", "\(monthStats.gainDays)")
+                    overviewStat(
+                        "calendar.stat.monthDelta",
+                        netChangeText(monthStats.monthDelta),
+                        valueColor: monthStats.monthDelta.map(EasePalette.semanticDelta)
+                    )
+                    overviewStat(
+                        "calendar.stat.weekAvg",
+                        weekAverageWeight.map { EaseFormatters.kg($0) }
+                    )
+                    overviewStat(
+                        "calendar.stat.loggedDays",
+                        String(
+                            format: String(localized: "calendar.stat.loggedDays.value"),
+                            locale: .current,
+                            monthStats.checkinDays,
+                            monthStats.elapsedDays
+                        )
+                    )
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -269,86 +402,74 @@ struct CalendarTabView: View {
         )
     }
 
-    private func overviewHero(
+    private func overviewStat(
         _ title: LocalizedStringKey,
-        _ value: String?
+        _ value: String?,
+        valueColor: Color? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text(value ?? "—")
-                    .font(.title2.bold())
-                    .monospacedDigit()
-                    .foregroundStyle(EasePalette.primaryText)
-                if value != nil {
-                    Text("unit.kg")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-
-    private func netChangeHero(monthDelta: Double?) -> some View {
-        VStack(alignment: .trailing, spacing: 4) {
-            Text("calendar.stat.monthDelta")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Text(value ?? "—")
+                .font(.subheadline.weight(.semibold).monospacedDigit())
+                .foregroundStyle(valueColor ?? EasePalette.primaryText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-            if let delta = monthDelta {
-                Text(deltaPrefix(delta) + EaseFormatters.oneDecimal(abs(delta)) + "\u{00A0}" + String(localized: "unit.kg"))
-                    .font(.title2.bold())
-                    .monospacedDigit()
-                    .foregroundStyle(EasePalette.semanticDelta(delta))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            } else {
-                Text("—")
-                    .font(.title2.bold())
-                    .foregroundStyle(EasePalette.primaryText)
-            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(
+            EasePalette.recessed,
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
+    }
+
+    private func netChangeText(_ delta: Double?) -> String? {
+        guard let delta else { return nil }
+        if delta == 0 {
+            return EaseFormatters.kg(0)
+        }
+        let arrow = delta < 0 ? "▼ " : "▲ "
+        return arrow + EaseFormatters.oneDecimal(abs(delta)) + "\u{00A0}" + String(localized: "unit.kg")
+    }
+
+    private func sleepHours(on date: Date) -> Double? {
+        let key = CalendarDay.dayKey(from: date)
+        return viewModel.healthByDay[key]?.previousNightSleepHours
+            ?? viewModel.sleepHistory.hours(on: date)
+    }
+
+    private func isPeriod(on date: Date) -> Bool {
+        let key = CalendarDay.dayKey(from: date)
+        if viewModel.healthByDay[key]?.isMenstrual == true { return true }
+        if viewModel.cycleHistory.isMenstrual(date) { return true }
+        return recordsByDay[key]?.variableTags.contains(.period) == true
+    }
+
+    private func note(on date: Date) -> String? {
+        let trimmed = recordsByDay[CalendarDay.dayKey(from: date)]?.note?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let trimmed, !trimmed.isEmpty else { return nil }
+        return trimmed
+    }
+
+    private func alignSelection(to month: Date) {
+        let days = CalendarDay.daysInMonth(containing: month)
+        let selectedKey = CalendarDay.dayKey(from: selectedDate)
+        if days.contains(where: { CalendarDay.dayKey(from: $0) == selectedKey }) {
+            return
+        }
+        let fallback = days.last { !CalendarDay.isFuture($0) } ?? days.last
+        if let fallback {
+            viewModel.selectedDate = CalendarDay.startOfDay(fallback)
         }
     }
-
-    private func compactStat(_ title: LocalizedStringKey, _ value: String) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .multilineTextAlignment(.center)
-            Text(value)
-                .font(.subheadline.weight(.semibold))
-                .monospacedDigit()
-                .foregroundStyle(EasePalette.primaryText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func kgValue(_ value: Double?) -> String {
-        guard let value else { return "—" }
-        return EaseFormatters.oneDecimal(value) + "\u{00A0}" + String(localized: "unit.kg")
-    }
-
-    private func loggedDaysValue(_ days: Int) -> String {
-        String(format: String(localized: "calendar.stat.daysCount"), locale: .current, days)
-    }
-}
-
-private struct DaySheetItem: Identifiable {
-    let date: Date
-    var id: String { CalendarDay.dayKey(from: date) }
 }
 
 struct MonthWeightStats {
     var checkinDays: Int
+    var elapsedDays: Int
     var lossDays: Int
     var gainDays: Int
     var averageDelta: Double?
@@ -400,6 +521,7 @@ struct MonthWeightStats {
 
         return MonthWeightStats(
             checkinDays: checkins,
+            elapsedDays: days.count,
             lossDays: loss,
             gainDays: gain,
             averageDelta: average,
