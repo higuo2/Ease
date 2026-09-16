@@ -7,6 +7,9 @@ struct TrendTabView: View {
     let records: [DailyRecord]
     let logs: [WeightLog]
 
+    @State private var chartFocusDate: Date?
+    @State private var chartFocusNonce = 0
+
     private var snapshot: DashboardSnapshot {
         DashboardSnapshot.make(
             profile: profile,
@@ -21,36 +24,50 @@ struct TrendTabView: View {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 if hasWeighIns {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
-                            TrendChartCard(
-                                records: records,
-                                logs: logs,
-                                range: viewModel.chartRange,
-                                targetWeight: snapshot.targetWeight > 0 ? snapshot.targetWeight : nil,
-                                logSheetPresented: viewModel.isLogPresented,
-                                onSelectRange: { viewModel.chartRange = $0 },
-                                onSelectLog: { viewModel.openWeightLog($0) }
-                            )
-                            TrendStatsGrid(
-                                records: records,
-                                logs: logs,
-                                range: viewModel.chartRange,
-                                targetWeight: snapshot.targetWeight
-                            )
-                            AdvancedPaceCard(
-                                profile: profile,
-                                records: records,
-                                logs: logs,
-                                healthByDay: viewModel.healthByDay,
-                                sleepHistory: viewModel.sleepHistory,
-                                energyHistory: viewModel.energyHistory,
-                                cycleHistory: viewModel.cycleHistory,
-                                snapshot: snapshot
-                            )
-                            HealthInsightsCard(insights: insightReport.trend)
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
+                                TrendChartCard(
+                                    records: records,
+                                    logs: logs,
+                                    range: viewModel.chartRange,
+                                    targetWeight: snapshot.targetWeight > 0 ? snapshot.targetWeight : nil,
+                                    logSheetPresented: viewModel.isLogPresented,
+                                    focusDate: chartFocusDate,
+                                    focusNonce: chartFocusNonce,
+                                    onSelectRange: { viewModel.chartRange = $0 },
+                                    onSelectLog: { viewModel.openWeightLog($0) }
+                                )
+                                .id("trend.chart")
+                                TrendStatsGrid(
+                                    records: records,
+                                    logs: logs,
+                                    range: viewModel.chartRange,
+                                    targetWeight: snapshot.targetWeight,
+                                    onFocusDay: { date in
+                                        if let date {
+                                            chartFocusDate = date
+                                            chartFocusNonce += 1
+                                        }
+                                        withAnimation(.easeInOut(duration: 0.25)) {
+                                            proxy.scrollTo("trend.chart", anchor: .top)
+                                        }
+                                    }
+                                )
+                                AdvancedPaceCard(
+                                    profile: profile,
+                                    records: records,
+                                    logs: logs,
+                                    healthByDay: viewModel.healthByDay,
+                                    sleepHistory: viewModel.sleepHistory,
+                                    energyHistory: viewModel.energyHistory,
+                                    cycleHistory: viewModel.cycleHistory,
+                                    snapshot: snapshot
+                                )
+                                HealthInsightsCard(insights: insightReport.trend)
+                            }
+                            .easeTabScrollContent()
                         }
-                        .easeTabScrollContent()
                     }
                 } else {
                     EaseEmptyState(
@@ -93,6 +110,11 @@ struct AdvancedPaceCard: View {
     let energyHistory: EnergyHistory
     let cycleHistory: CycleHistory
     let snapshot: DashboardSnapshot
+    @State private var selectedFactor: FactorKind?
+
+    private enum FactorKind: Hashable {
+        case sleep, energy, period, slope
+    }
 
     private var estimate: AdvancedPaceEstimator.Result? {
         let series = HealthInsightEngine.series(
@@ -142,6 +164,7 @@ struct AdvancedPaceCard: View {
                         spacing: EaseLayout.gridGap
                     ) {
                         factorItem(
+                            kind: .sleep,
                             symbol: "moon.fill",
                             title: "trend.advanced.sleep",
                             detail: estimate.averageSleepHours.map(EaseFormatters.sleepDuration),
@@ -149,6 +172,7 @@ struct AdvancedPaceCard: View {
                             iconColor: EasePalette.iconSleep
                         )
                         factorItem(
+                            kind: .energy,
                             symbol: "bolt.fill",
                             title: "trend.advanced.energy",
                             detail: estimate.averageEnergyKcal.map { EaseFormatters.kcal($0) },
@@ -156,6 +180,7 @@ struct AdvancedPaceCard: View {
                             iconColor: EasePalette.iconEnergy
                         )
                         factorItem(
+                            kind: .period,
                             symbol: "drop.fill",
                             title: "trend.advanced.period",
                             detail: estimate.periodDaysInWindow > 0
@@ -170,6 +195,7 @@ struct AdvancedPaceCard: View {
                             iconColor: EasePalette.iconPeriod
                         )
                         factorItem(
+                            kind: .slope,
                             symbol: "chart.line.downtrend.xyaxis",
                             title: "trend.advanced.slope",
                             detail: EaseFormatters.signedKgPerDay(estimate.adjustedSlopeKg),
@@ -177,6 +203,14 @@ struct AdvancedPaceCard: View {
                             inactiveWhenNilDetail: false,
                             iconColor: EasePalette.accent
                         )
+                    }
+
+                    if let selectedFactor, let explanation = factorExplanation(selectedFactor, estimate: estimate) {
+                        Text(explanation)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 12)
                     }
 
                     Text("trend.advanced.subtitle")
@@ -192,9 +226,42 @@ struct AdvancedPaceCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .sensoryFeedback(.selection, trigger: selectedFactor)
+    }
+
+    private func factorExplanation(
+        _ kind: FactorKind,
+        estimate: AdvancedPaceEstimator.Result
+    ) -> String {
+        switch kind {
+        case .sleep:
+            if estimate.sleepFactor < 0.99 {
+                return String(localized: "trend.advanced.explain.sleep.slow")
+            }
+            if estimate.sleepFactor > 1.01 {
+                return String(localized: "trend.advanced.explain.sleep.fast")
+            }
+            return String(localized: "trend.advanced.explain.sleep.neutral")
+        case .energy:
+            if estimate.energyFactor < 0.99 {
+                return String(localized: "trend.advanced.explain.energy.slow")
+            }
+            if estimate.energyFactor > 1.01 {
+                return String(localized: "trend.advanced.explain.energy.fast")
+            }
+            return String(localized: "trend.advanced.explain.energy.neutral")
+        case .period:
+            if estimate.periodFactor < 0.99 {
+                return String(localized: "trend.advanced.explain.period.active")
+            }
+            return String(localized: "trend.advanced.explain.period.neutral")
+        case .slope:
+            return String(localized: "trend.advanced.explain.slope")
+        }
     }
 
     private func factorItem(
+        kind: FactorKind,
         symbol: String,
         title: LocalizedStringKey,
         detail: String?,
@@ -210,30 +277,43 @@ struct AdvancedPaceCard: View {
             }
             return "—"
         }()
+        let selected = selectedFactor == kind
 
-        return HStack(alignment: .top, spacing: 10) {
-            Image(systemName: symbol)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(inactive ? iconColor.opacity(0.35) : iconColor)
-                .frame(width: 18, alignment: .center)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(inactive ? EasePalette.secondaryText.opacity(0.55) : EasePalette.primaryText)
-                Text(detailText)
-                    .font(.footnote)
-                    .monospacedDigit()
-                    .foregroundStyle(inactive ? EasePalette.secondaryText.opacity(0.45) : EasePalette.secondaryText)
-                if let factor, abs(factor - 1) >= 0.02, !inactive {
-                    Text(EaseFormatters.paceFactor(factor))
-                        .font(.caption2)
+        return Button {
+            selectedFactor = selected ? nil : kind
+        } label: {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: symbol)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(inactive ? iconColor.opacity(0.35) : iconColor)
+                    .frame(width: 18, alignment: .center)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(inactive ? EasePalette.secondaryText.opacity(0.55) : EasePalette.primaryText)
+                    Text(detailText)
+                        .font(.footnote)
                         .monospacedDigit()
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(inactive ? EasePalette.secondaryText.opacity(0.45) : EasePalette.secondaryText)
+                        .contentTransition(.numericText())
+                    if let factor, abs(factor - 1) >= 0.02, !inactive {
+                        Text(EaseFormatters.paceFactor(factor))
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(.tertiary)
+                    }
                 }
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
+            .padding(8)
+            .background(
+                selected ? EasePalette.recessed : Color.clear,
+                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+            )
+            .opacity(inactive ? 0.7 : 1)
         }
-        .opacity(inactive ? 0.7 : 1)
+        .buttonStyle(.plain)
+        .accessibilityHint(Text("trend.advanced.factor.hint"))
     }
 }
 
@@ -242,6 +322,9 @@ struct TrendStatsGrid: View {
     let logs: [WeightLog]
     let range: ChartRange
     let targetWeight: Double
+    var onFocusDay: (Date?) -> Void = { _ in }
+
+    @State private var selectionTick = 0
 
     private var stats: TrendRangeStats {
         TrendRangeStats.make(records: records, logs: logs, range: range, targetWeight: targetWeight)
@@ -259,12 +342,14 @@ struct TrendStatsGrid: View {
             weightStat(
                 "trend.stats.high",
                 value: stats.high,
-                subtitle: stats.highDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) }
+                subtitle: stats.highDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) },
+                focusDate: stats.highDate
             )
             weightStat(
                 "trend.stats.low",
                 value: stats.low,
-                subtitle: stats.lowDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) }
+                subtitle: stats.lowDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) },
+                focusDate: stats.lowDate
             )
             weightStat(
                 "trend.stats.avg",
@@ -275,11 +360,13 @@ struct TrendStatsGrid: View {
                 "trend.stats.change",
                 value: stats.change,
                 signed: true,
-                valueColor: stats.change.map(EasePalette.semanticDelta)
+                valueColor: stats.change.map(EasePalette.semanticDelta),
+                focusDate: stats.lastDate
             )
             weightStat(
                 "trend.stats.toTarget",
-                value: stats.distanceToTarget
+                value: stats.distanceToTarget,
+                focusDate: stats.lastDate
             )
             statCell(
                 title: "trend.stats.days",
@@ -288,9 +375,11 @@ struct TrendStatsGrid: View {
                     ? nil
                     : String(localized: "trend.stats.days.unit"),
                 subtitle: nil,
-                valueColor: nil
+                valueColor: nil,
+                focusDate: nil
             )
         }
+        .sensoryFeedback(.selection, trigger: selectionTick)
     }
 
     private func weightStat(
@@ -298,7 +387,8 @@ struct TrendStatsGrid: View {
         value: Double?,
         signed: Bool = false,
         subtitle: String? = nil,
-        valueColor: Color? = nil
+        valueColor: Color? = nil,
+        focusDate: Date? = nil
     ) -> some View {
         let number: String? = {
             guard let value else { return nil }
@@ -314,7 +404,8 @@ struct TrendStatsGrid: View {
             number: number,
             unit: number == nil ? nil : String(localized: "unit.kg"),
             subtitle: subtitle,
-            valueColor: valueColor
+            valueColor: valueColor,
+            focusDate: focusDate
         )
     }
 
@@ -323,36 +414,48 @@ struct TrendStatsGrid: View {
         number: String?,
         unit: String?,
         subtitle: String?,
-        valueColor: Color?
+        valueColor: Color?,
+        focusDate: Date?
     ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text(number ?? "—")
-                    .font(.system(.title3, design: .rounded, weight: .semibold))
-                    .monospacedDigit()
-                    .foregroundStyle(valueColor ?? EasePalette.primaryText)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                if let unit, number != nil {
-                    Text(unit)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+        Button {
+            selectionTick += 1
+            onFocusDay(focusDate)
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .firstTextBaseline, spacing: 3) {
+                    Text(number ?? "—")
+                        .font(.system(.title3, design: .rounded, weight: .semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(valueColor ?? EasePalette.primaryText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .contentTransition(.numericText())
+                    if let unit, number != nil {
+                        Text(unit)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            if let subtitle {
-                Text(subtitle)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(14)
+            .background(
+                Color(uiColor: .secondarySystemGroupedBackground),
+                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+            )
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .buttonStyle(.plain)
+        .accessibilityHint(focusDate == nil ? Text("trend.stats.chart.hint") : Text("trend.stats.focus.hint"))
     }
 }
 
@@ -366,6 +469,7 @@ struct TrendRangeStats {
     var change: Double?
     var distanceToTarget: Double?
     var recordedDays: Int?
+    var lastDate: Date?
 
     static func make(
         records: [DailyRecord],
@@ -424,7 +528,8 @@ struct TrendRangeStats {
             averageCaption: weights.isEmpty ? nil : caption,
             change: change,
             distanceToTarget: distance,
-            recordedDays: weights.isEmpty ? nil : weights.count
+            recordedDays: weights.isEmpty ? nil : weights.count,
+            lastDate: lastPerDay.last?.date
         )
     }
 }

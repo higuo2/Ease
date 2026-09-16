@@ -5318,6 +5318,166 @@
         }
       }
     },
+    "trend.advanced.explain.energy.fast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Average active energy above the recent median slightly speeds the estimate."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "平均活动消耗高于近窗中位数时，估算会略加快。"
+          }
+        }
+      }
+    },
+    "trend.advanced.explain.energy.neutral" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active energy is near the recent median — no pace adjustment."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "活动消耗接近近窗中位数，未做速度修正。"
+          }
+        }
+      }
+    },
+    "trend.advanced.explain.energy.slow" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Average active energy below the recent median slightly slows the estimate."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "平均活动消耗低于近窗中位数时，估算会略放慢。"
+          }
+        }
+      }
+    },
+    "trend.advanced.explain.period.active" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Period days in the window slightly dampen the estimate."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "窗口内经期日会略微放慢估算。"
+          }
+        }
+      }
+    },
+    "trend.advanced.explain.period.neutral" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No period adjustment in this window."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此窗口未做经期修正。"
+          }
+        }
+      }
+    },
+    "trend.advanced.explain.sleep.fast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Average sleep above target slightly speeds the estimate."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "平均睡眠高于目标时，估算会略加快。"
+          }
+        }
+      }
+    },
+    "trend.advanced.explain.sleep.neutral" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sleep is near target — no pace adjustment."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠接近目标，未做速度修正。"
+          }
+        }
+      }
+    },
+    "trend.advanced.explain.sleep.slow" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Average sleep below target slightly slows the estimate."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "平均睡眠低于目标时，估算会略放慢。"
+          }
+        }
+      }
+    },
+    "trend.advanced.explain.slope" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight slope after sleep, energy, and period multipliers. Not a countdown."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经睡眠、消耗、经期轻度修正后的体重斜率。不是倒计时。"
+          }
+        }
+      }
+    },
+    "trend.advanced.factor.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows a one-line note about this multiplier."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示这条修正因子的一句说明。"
+          }
+        }
+      }
+    },
     "trend.advanced.factor.neutral" : {
       "localizations" : {
         "en" : {
@@ -5495,6 +5655,70 @@
         }
       }
     },
+    "trend.insights.lowEnergyWeight.definition" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Days after a previous day of active energy below the recent median, versus other days with energy data. Next-day last-per-day weight change."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前一日活动消耗低于近窗中位数的日子，对照其余有消耗数据的日子。看次日按日最后一次体重变化。"
+          }
+        }
+      }
+    },
+    "trend.insights.lowEnergyWeight.in" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Low energy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "消耗偏低"
+          }
+        }
+      }
+    },
+    "trend.insights.lowEnergyWeight.out" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其余日子"
+          }
+        }
+      }
+    },
+    "trend.insights.lowEnergyWeight.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Low active energy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "活动消耗偏低"
+          }
+        }
+      }
+    },
     "trend.insights.periodWeight" : {
       "localizations" : {
         "en" : {
@@ -5511,6 +5735,134 @@
         }
       }
     },
+    "trend.insights.periodWeight.definition" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Period days versus other days. Same-day last-per-day weight change versus the previous calendar day."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经期日对照非经期日。看当日按日最后一次体重相对前一日历日的变化。"
+          }
+        }
+      }
+    },
+    "trend.insights.periodWeight.in" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Period days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经期日"
+          }
+        }
+      }
+    },
+    "trend.insights.periodWeight.out" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其余日子"
+          }
+        }
+      }
+    },
+    "trend.insights.periodWeight.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Period days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经期日"
+          }
+        }
+      }
+    },
+    "trend.insights.row.collapsed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collapsed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已收起"
+          }
+        }
+      }
+    },
+    "trend.insights.row.expanded" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expanded"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已展开"
+          }
+        }
+      }
+    },
+    "trend.insights.row.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows how this comparison is grouped."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示对照如何分组。"
+          }
+        }
+      }
+    },
+    "trend.insights.sampleSize" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "n=%lld vs n=%lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "n=%lld 对 n=%lld"
+          }
+        }
+      }
+    },
     "trend.insights.shortSleepWeight" : {
       "localizations" : {
         "en" : {
@@ -5523,6 +5875,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "睡眠不足 6 小时的次日，体重变化平均为 %@，其余日子为 %@。"
+          }
+        }
+      }
+    },
+    "trend.insights.shortSleepWeight.definition" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nights under 6 hours versus other nights that have sleep data. Next-day last-per-day weight change."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠不足 6 小时的夜，对照其余有睡眠数据的夜。看次日按日最后一次体重变化。"
+          }
+        }
+      }
+    },
+    "trend.insights.shortSleepWeight.in" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Short sleep"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠偏短"
+          }
+        }
+      }
+    },
+    "trend.insights.shortSleepWeight.out" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other nights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其余夜"
+          }
+        }
+      }
+    },
+    "trend.insights.shortSleepWeight.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sleep after short nights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠偏短的次日"
           }
         }
       }
@@ -5555,6 +5971,102 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@的夜晚平均睡眠 %@，其余夜为 %@。"
+          }
+        }
+      }
+    },
+    "trend.insights.weekdaySleep.definition" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sleep on %@ nights versus other nights. The night belongs to the following morning."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@的夜晚对照其余夜。夜归属次日早晨。"
+          }
+        }
+      }
+    },
+    "trend.insights.weekdaySleep.in" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ nights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@的夜晚"
+          }
+        }
+      }
+    },
+    "trend.insights.weekdaySleep.out" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other nights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其余夜"
+          }
+        }
+      }
+    },
+    "trend.insights.weekdaySleep.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekday sleep pattern"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "星期睡眠模式"
+          }
+        }
+      }
+    },
+    "trend.insights.window" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last %lld days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "近 %lld 天"
+          }
+        }
+      }
+    },
+    "trend.insights.window.detail" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Based on the last %lld calendar days with enough samples."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基于近 %lld 个日历日中样本足够的对照。"
           }
         }
       }
@@ -5623,6 +6135,22 @@
         }
       }
     },
+    "trend.stats.chart.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrolls to the chart."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "滚动到图表。"
+          }
+        }
+      }
+    },
     "trend.stats.days" : {
       "localizations" : {
         "en" : {
@@ -5668,6 +6196,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%d 天"
+          }
+        }
+      }
+    },
+    "trend.stats.focus.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highlights this day on the chart."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在图表上标出这一天。"
           }
         }
       }

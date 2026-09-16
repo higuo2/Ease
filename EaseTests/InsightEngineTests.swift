@@ -214,6 +214,31 @@ final class InsightEngineTests: XCTestCase {
         XCTAssertTrue(series.periodDayKeys.contains(key))
     }
 
+    func test_展示字段_短睡眠含样本数与标题键() {
+        let start = calendar.testDate(2026, 7, 1)
+        let built = shortSleepWeights(from: start, days: 30)
+        let report = HealthInsightEngine.evaluate(
+            samples: built.samples,
+            series: .init(
+                sleepHoursByDay: built.sleep,
+                energyKcalByDay: [:],
+                periodDayKeys: []
+            ),
+            now: built.samples.last!.date,
+            calendar: calendar
+        )
+        let insight = report.first(of: .shortSleepWeight)
+        guard let insight else {
+            return XCTFail("expected shortSleepWeight")
+        }
+        XCTAssertEqual(insight.titleKey, "trend.insights.shortSleepWeight.title")
+        XCTAssertTrue(insight.comparesWeight)
+        let samples = insight.sampleSizeText(locale: Locale(identifier: "en"))
+        XCTAssertTrue(samples.contains("\(insight.inCount)"))
+        XCTAssertTrue(samples.contains("\(insight.outCount)"))
+        XCTAssertTrue(insight.accessibilitySummary(locale: Locale(identifier: "en"), calendar: calendar).contains("\(insight.inCount)"))
+    }
+
     private func consecutiveWeights(
         from start: Date,
         count: Int,

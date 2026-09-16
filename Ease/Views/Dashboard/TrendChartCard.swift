@@ -19,6 +19,8 @@ struct TrendChartCard: View {
     let range: ChartRange
     var targetWeight: Double? = nil
     var logSheetPresented: Bool = false
+    var focusDate: Date? = nil
+    var focusNonce: Int = 0
     let onSelectRange: (ChartRange) -> Void
     let onSelectLog: (WeightLog) -> Void
 
@@ -122,6 +124,10 @@ struct TrendChartCard: View {
         .onChange(of: range) { _, _ in
             clearPreview()
         }
+        .onChange(of: focusNonce) { _, _ in
+            pinFocusIfPossible()
+        }
+        .sensoryFeedback(.selection, trigger: range)
     }
 
     private var rangePicker: some View {
@@ -334,6 +340,21 @@ struct TrendChartCard: View {
         preview = nil
         scrubDayKey = ""
         isScrubbing = false
+    }
+
+    private func pinFocusIfPossible() {
+        guard let focusDate else { return }
+        let key = CalendarDay.dayKey(from: focusDate)
+        guard let point = dailyPoints.first(where: { CalendarDay.dayKey(from: $0.date) == key }) else {
+            return
+        }
+        applyPreview(
+            ChartDayPreview(
+                date: point.date,
+                weight: point.weight,
+                movingAverage: WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: point.date)
+            )
+        )
     }
 
     private func plotPoint(
