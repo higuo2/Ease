@@ -109,6 +109,7 @@ struct SettingsSheet: View {
             }
             .listStyle(.insetGrouped)
             .listSectionSpacing(12)
+            .headerProminence(.standard)
             .scrollContentBackground(.hidden)
             .scrollDismissesKeyboard(.interactively)
             .background { EasePalette.background.ignoresSafeArea() }
@@ -745,24 +746,36 @@ private struct SettingsMetricToggleRow: View {
     }
 }
 
-/// Settings section title: same leading edge, type, and vertical rhythm for every block.
+/// Settings section title: same 17pt semibold on every block.
+/// Uses a concrete system font so inset-grouped `List` cannot remap `.headline`
+/// into the default tiny uppercase caption.
 private struct SettingsSectionHeader: View {
     let title: LocalizedStringKey
     var trailingText: String? = nil
 
+    private static let titleFont = Font.system(size: 17, weight: .semibold)
+    private static let metaFont = Font.system(size: 15, weight: .regular)
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
-                .font(.headline.weight(.semibold))
+                .font(Self.titleFont)
+                .fontWeight(.semibold)
                 .foregroundStyle(EasePalette.primaryText)
+                .textCase(nil)
+                .lineLimit(1)
             Spacer(minLength: 8)
             if let trailingText {
                 Text(trailingText)
-                    .font(.subheadline)
+                    .font(Self.metaFont)
+                    .fontWeight(.regular)
                     .foregroundStyle(EasePalette.secondaryText)
+                    .textCase(nil)
                     .monospacedDigit()
+                    .lineLimit(1)
             }
         }
+        .font(Self.titleFont)
         .textCase(nil)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 20)

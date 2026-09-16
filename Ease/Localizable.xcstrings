@@ -5751,6 +5751,7 @@
       }
     },
     "trend.insights.lowEnergyWeight" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5767,6 +5768,7 @@
       }
     },
     "trend.insights.lowEnergyWeight.definition" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5832,6 +5834,7 @@
       }
     },
     "trend.insights.lowEnergyWeight.title.down" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5848,6 +5851,7 @@
       }
     },
     "trend.insights.lowEnergyWeight.title.up" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5864,6 +5868,7 @@
       }
     },
     "trend.insights.periodWeight" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5880,6 +5885,7 @@
       }
     },
     "trend.insights.periodWeight.definition" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5945,6 +5951,7 @@
       }
     },
     "trend.insights.periodWeight.title.down" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5961,6 +5968,7 @@
       }
     },
     "trend.insights.periodWeight.title.up" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6042,6 +6050,7 @@
       }
     },
     "trend.insights.sampleSize.days" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6058,6 +6067,7 @@
       }
     },
     "trend.insights.sampleSize.nights" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6074,6 +6084,7 @@
       }
     },
     "trend.insights.shortSleepWeight" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6090,6 +6101,7 @@
       }
     },
     "trend.insights.shortSleepWeight.definition" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6155,6 +6167,7 @@
       }
     },
     "trend.insights.shortSleepWeight.title.down" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6171,6 +6184,7 @@
       }
     },
     "trend.insights.shortSleepWeight.title.up" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6203,6 +6217,7 @@
       }
     },
     "trend.insights.weekdaySleep" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6219,6 +6234,7 @@
       }
     },
     "trend.insights.weekdaySleep.definition" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6267,6 +6283,7 @@
       }
     },
     "trend.insights.weekdaySleep.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
