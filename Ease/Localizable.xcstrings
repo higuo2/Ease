@@ -924,6 +924,22 @@
         }
       }
     },
+    "calendar.nextMonth" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下个月"
+          }
+        }
+      }
+    },
     "calendar.note.placeholder" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -953,6 +969,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@概览"
+          }
+        }
+      }
+    },
+    "calendar.previousMonth" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上个月"
           }
         }
       }
@@ -4341,13 +4373,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pick ease-export.csv (weight/diet) or ease-metrics.csv (measurements). One file at a time. Headers must match exactly."
+            "value" : "Import or export Ease formatted CSV files."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择 ease-export.csv（体重/饮食）或 ease-metrics.csv（围度）。一次一个文件，表头必须完全一致。"
+            "value" : "导入或导出 Ease 格式的 CSV。"
           }
         }
       }
@@ -4745,13 +4777,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose which tiles appear on the Weight tab. Sleep, Period, and Energy open their detail sheets from those tiles."
+            "value" : "Customize Weight tab tiles"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择体重页显示的方块。睡眠、经期与消耗从对应方块进入详情。"
+            "value" : "自定义体重页方块"
           }
         }
       }

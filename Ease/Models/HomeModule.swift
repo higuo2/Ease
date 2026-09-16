@@ -42,6 +42,15 @@ enum HomeModule: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    var settingsIconTint: Color {
+        switch self {
+        case .sleep: EasePalette.iconSleep
+        case .period: EasePalette.iconPeriod
+        case .energy: EasePalette.iconEnergy
+        default: EasePalette.primaryText
+        }
+    }
+
     var fill: Color {
         switch self {
         case .bmi: EasePalette.morandiMist

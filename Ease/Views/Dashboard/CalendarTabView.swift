@@ -32,18 +32,12 @@ struct CalendarTabView: View {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
-                    VStack(spacing: EaseLayout.sectionSpacing) {
+                    VStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
+                        monthHeader
                         calendarCard(weightIndex: weightIndex)
                         monthOverviewCard(monthStats: monthStats, weekAverageWeight: weekAverageWeight)
                     }
                     .easeTabScrollContent()
-                }
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    monthHeader
-                        .padding(.horizontal, EaseLayout.screenPadding)
-                        .padding(.top, 6)
-                        .padding(.bottom, 10)
-                        .background(EasePalette.background)
                 }
             }
             .navigationTitle("tab.calendar")
@@ -72,10 +66,13 @@ struct CalendarTabView: View {
                 }
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.body.weight(.semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(EasePalette.primaryText)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text("calendar.previousMonth"))
 
             Spacer()
             Text(visibleMonth, format: .dateTime.year().month(.wide))
@@ -90,12 +87,16 @@ struct CalendarTabView: View {
                 visibleMonth = nextMonth
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.body.weight(.semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(EasePalette.primaryText)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text("calendar.nextMonth"))
+            .disabled(CalendarDay.startOfMonth(visibleMonth) >= CalendarDay.startOfMonth(.now))
+            .opacity(CalendarDay.startOfMonth(visibleMonth) >= CalendarDay.startOfMonth(.now) ? 0.35 : 1)
         }
-        .padding(.horizontal, 4)
     }
 
     private func calendarCard(

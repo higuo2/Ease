@@ -186,45 +186,55 @@ struct SettingsSheet: View {
                 text: $heightText,
                 suffix: "unit.cm",
                 placeholder: "onboarding.height.placeholder",
-                field: .height
+                field: .height,
+                symbol: "ruler"
             )
             settingsField(
                 "settings.startWeight",
                 text: $startText,
                 suffix: "unit.kg",
                 placeholder: "onboarding.weight.placeholder",
-                field: .start
+                field: .start,
+                symbol: "scalemass"
             )
             settingsField(
                 "settings.targetWeight",
                 text: $targetText,
                 suffix: "unit.kg",
                 placeholder: "onboarding.weight.placeholder",
-                field: .target
+                field: .target,
+                symbol: "flag"
             )
             birthdayRow
-            Picker("settings.sex", selection: $sex) {
-                ForEach(BiologicalSex.allCases) { option in
-                    Text(LocalizedStringKey(option.titleKey)).tag(option)
+            HStack(spacing: 12) {
+                SettingsRowIcon(systemName: "person")
+                Picker("settings.sex", selection: $sex) {
+                    ForEach(BiologicalSex.allCases) { option in
+                        Text(LocalizedStringKey(option.titleKey)).tag(option)
+                    }
                 }
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .tint(.secondary)
             }
-            .foregroundStyle(.secondary)
-            .tint(.secondary)
             settingsField(
                 "settings.sleepTarget",
                 text: $sleepTargetText,
                 suffix: "unit.hours",
                 placeholder: "settings.sleepTarget.placeholder",
-                field: .sleep
+                field: .sleep,
+                symbol: "moon.fill"
             )
         } header: {
-            Text("settings.section.personal")
+            settingsHeader("settings.section.personal")
         }
     }
 
     private var birthdayRow: some View {
-        HStack {
+        HStack(spacing: 12) {
+            SettingsRowIcon(systemName: "calendar")
             Text("settings.birthDate")
+                .font(.body)
             Spacer(minLength: 12)
             if birthDate != nil {
                 DatePicker(
@@ -272,9 +282,17 @@ struct SettingsSheet: View {
 
     private var remindersSection: some View {
         Section {
-            Toggle("settings.notifications", isOn: $notificationsEnabled)
-                .tint(Color(.systemGreen))
-                .contentShape(Rectangle())
+            Toggle(isOn: $notificationsEnabled) {
+                Label {
+                    Text("settings.notifications")
+                        .font(.body)
+                } icon: {
+                    SettingsRowIcon(systemName: "bell.fill")
+                }
+            }
+            .tint(Color(.systemGreen))
+            .contentShape(Rectangle())
+            .sensoryFeedback(.selection, trigger: notificationsEnabled)
 
             DisclosureGroup(isExpanded: $isWeightReminderExpanded) {
                 DatePicker(
@@ -286,8 +304,10 @@ struct SettingsSheet: View {
                 .labelsHidden()
                 .frame(maxWidth: .infinity)
             } label: {
-                HStack {
+                HStack(spacing: 12) {
+                    SettingsRowIcon(systemName: "clock.fill")
                     Text("settings.weightReminder")
+                        .font(.body)
                     Spacer()
                     Text(weightReminderDate, format: .dateTime.hour().minute())
                         .font(.body.monospacedDigit())
@@ -299,7 +319,7 @@ struct SettingsSheet: View {
             .animation(.easeInOut(duration: 0.2), value: notificationsEnabled)
 
         } header: {
-            Text("settings.section.reminders")
+            settingsHeader("settings.section.reminders")
         }
     }
 
@@ -309,18 +329,20 @@ struct SettingsSheet: View {
                 Toggle(isOn: moduleBinding(module)) {
                     Label {
                         Text(LocalizedStringKey(module.titleKey))
+                            .font(.body)
                     } icon: {
-                        Image(systemName: module.symbolName)
+                        SettingsRowIcon(systemName: module.symbolName, tint: module.settingsIconTint)
                     }
                 }
                 .tint(Color(.systemGreen))
                 .contentShape(Rectangle())
+                .sensoryFeedback(.selection, trigger: profile.homeModules.contains(module))
             }
         } header: {
-            Text("settings.section.modules")
+            settingsHeader("settings.section.modules")
         } footer: {
             Text("settings.section.modules.footer")
-                .font(.system(size: 12))
+                .font(.caption)
                 .foregroundStyle(.secondary)
         }
     }
@@ -338,20 +360,17 @@ struct SettingsSheet: View {
                 addMetricBlock
             } label: {
                 Text("settings.metrics.more")
+                    .font(.body)
             }
         } header: {
             HStack {
-                Text("settings.section.metrics")
+                settingsHeader("settings.section.metrics")
                 Spacer()
                 Text(enabledMetricsCountLabel)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .textCase(nil)
             }
-        } footer: {
-            Text("settings.section.metrics.footer")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
         }
     }
 
@@ -387,7 +406,12 @@ struct SettingsSheet: View {
                 Button("settings.metrics.add", action: addCustom)
                     .disabled(customName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             } label: {
-                Label("settings.metrics.add", systemImage: "plus")
+                Label {
+                    Text("settings.metrics.add")
+                        .font(.body)
+                } icon: {
+                    SettingsRowIcon(systemName: "plus")
+                }
             }
         } else {
             Text("settings.metrics.maxCustom")
@@ -399,22 +423,30 @@ struct SettingsSheet: View {
     private var dataSection: some View {
         Section {
             Button(action: exportCSV) {
-                Label("settings.export", systemImage: "square.and.arrow.up")
+                Label {
+                    Text("settings.export")
+                        .font(.body)
+                        .foregroundStyle(EasePalette.primaryText)
+                } icon: {
+                    SettingsRowIcon(systemName: "square.and.arrow.up")
+                }
             }
-            .foregroundStyle(.primary)
-            .tint(.primary)
             Button {
                 isImporterPresented = true
             } label: {
-                Label("settings.import", systemImage: "square.and.arrow.down")
+                Label {
+                    Text("settings.import")
+                        .font(.body)
+                        .foregroundStyle(EasePalette.primaryText)
+                } icon: {
+                    SettingsRowIcon(systemName: "square.and.arrow.down")
+                }
             }
-            .foregroundStyle(.primary)
-            .tint(.primary)
         } header: {
-            Text("settings.section.data")
+            settingsHeader("settings.section.data")
         } footer: {
             Text("settings.import.footer")
-                .font(.system(size: 12))
+                .font(.caption)
                 .foregroundStyle(.secondary)
         }
     }
@@ -427,25 +459,37 @@ struct SettingsSheet: View {
         }
     }
 
+    private func settingsHeader(_ title: LocalizedStringKey) -> some View {
+        Text(title)
+            .font(.headline)
+            .foregroundStyle(EasePalette.primaryText)
+            .textCase(nil)
+    }
+
     private func settingsField(
         _ title: LocalizedStringKey,
         text: Binding<String>,
         suffix: LocalizedStringKey,
         placeholder: LocalizedStringKey,
-        field: Field
+        field: Field,
+        symbol: String
     ) -> some View {
-        HStack {
+        HStack(spacing: 12) {
+            SettingsRowIcon(systemName: symbol)
             Text(title)
+                .font(.body)
             Spacer(minLength: 12)
             TextField(placeholder, text: text)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
+                .font(.body)
                 .monospacedDigit()
+                .foregroundStyle(.secondary)
                 .frame(maxWidth: 120)
                 .focused($focusedField, equals: field)
                 .onSubmit { persistMeasurements() }
             Text(suffix)
-                .font(.subheadline)
+                .font(.body)
                 .foregroundStyle(.secondary)
         }
     }
@@ -675,29 +719,30 @@ private struct SettingsMetricToggleRow: View {
     private var spec: MetricSpec { MetricCatalog.spec(for: definition) }
 
     var body: some View {
-        HStack(spacing: 0) {
-            Toggle(isOn: $isEnabled) {
-                Label {
-                    Text(verbatim: spec.resolvedTitle)
-                } icon: {
-                    Image(systemName: spec.symbolName)
-                }
-            }
-            .toggleStyle(.switch)
-            .tint(Color(.systemGreen))
-            .layoutPriority(1)
-
+        HStack(spacing: 12) {
             Button(action: onHistory) {
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-                    .frame(minWidth: 28, minHeight: 44)
-                    .contentShape(Rectangle())
+                HStack(spacing: 12) {
+                    SettingsRowIcon(systemName: spec.symbolName)
+                    Text(verbatim: spec.resolvedTitle)
+                        .font(.body)
+                        .foregroundStyle(EasePalette.primaryText)
+                    Spacer(minLength: 8)
+                }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(verbatim: spec.resolvedTitle))
+            .accessibilityHint(Text("metric.history.title"))
+
+            Toggle(isOn: $isEnabled) {
+                Text(verbatim: spec.resolvedTitle)
+            }
+            .labelsHidden()
+            .tint(Color(.systemGreen))
             .buttonStyle(.borderless)
-            .padding(.leading, 6)
-            .accessibilityLabel(Text("metric.history.title"))
+            .accessibilityLabel(Text(verbatim: spec.resolvedTitle))
         }
+        .sensoryFeedback(.selection, trigger: isEnabled)
         .onChange(of: isEnabled) { _, newValue in
             guard definition.isEnabled != newValue else { return }
             try? MetricRepository(context: modelContext).setEnabled(definition, isEnabled: newValue)
@@ -707,12 +752,23 @@ private struct SettingsMetricToggleRow: View {
                 isEnabled = newValue
             }
         }
-        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button("metric.history.title") {
-                onHistory()
-            }
-            .tint(EasePalette.primaryText)
-        }
+    }
+}
+
+private struct SettingsRowIcon: View {
+    let systemName: String
+    var tint: Color = EasePalette.primaryText
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 14, weight: .medium))
+            .foregroundStyle(tint)
+            .frame(width: 28, height: 28)
+            .background(
+                EasePalette.recessed,
+                in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+            )
+            .accessibilityHidden(true)
     }
 }
 
