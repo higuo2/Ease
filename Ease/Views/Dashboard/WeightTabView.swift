@@ -56,76 +56,89 @@ struct WeightTabView: View {
     private var unusedModules: [HomeModule] {
         HomeModule.selectable.filter { !homeModules.contains($0) }
     }
-    private var weightRows: [DailyWeightRow] {
-        DailyWeightRow.build(records: records, logs: logs)
+    private var logEntries: [WeightLogEntry] {
+        WeightLogEntry.build(records: records, logs: logs)
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
-                ScrollView {
-                    VStack(spacing: EaseLayout.sectionSpacing) {
-                        WeightHeroView(weight: snapshot.displayWeight, weekDelta: weekDelta)
-                        if snapshot.startWeight > 0, snapshot.targetWeight > 0 {
-                            StageGoalCard(
-                                progress: snapshot.progress,
-                                startWeight: snapshot.startWeight,
-                                targetWeight: snapshot.targetWeight,
-                                remainingKg: snapshot.remainingKg,
-                                paceLine: paceLine
+                List {
+                    Section {
+                        VStack(spacing: EaseLayout.sectionSpacing) {
+                            WeightHeroView(weight: snapshot.displayWeight, weekDelta: weekDelta)
+                            if snapshot.startWeight > 0, snapshot.targetWeight > 0 {
+                                StageGoalCard(
+                                    progress: snapshot.progress,
+                                    startWeight: snapshot.startWeight,
+                                    targetWeight: snapshot.targetWeight,
+                                    remainingKg: snapshot.remainingKg,
+                                    paceLine: paceLine
+                                )
+                            }
+                            HomeModuleGrid(
+                                modules: homeModules,
+                                bmi: snapshot.bmi,
+                                bmiCategoryKey: snapshot.bmiVerdict.titleKey,
+                                sleepHours: selectedHealth?.previousNightSleepHours,
+                                isPeriodDay: selectedHealth?.isMenstrual == true
+                                    || selectedRecord?.variableTags.contains(.period) == true,
+                                energyKcal: selectedHealth?.activeEnergyKcal,
+                                canAddMore: !unusedModules.isEmpty,
+                                onOpenMetrics: {
+                                    viewModel.openMetrics(on: selectedDate, key: metricsFocusKey)
+                                },
+                                onOpenWeight: {
+                                    viewModel.openWeightEntry(for: selectedDate)
+                                },
+                                onOpenSleep: { viewModel.isSleepPresented = true },
+                                onOpenPeriod: { viewModel.isCyclePresented = true },
+                                onOpenEnergy: { viewModel.isEnergyPresented = true },
+                                onOpenBMI: { viewModel.isBMIPresented = true },
+                                onAddModule: { isModuleEditorPresented = true }
                             )
                         }
-                            HomeModuleGrid(
-                            modules: homeModules,
-                            bmi: snapshot.bmi,
-                            bmiCategoryKey: snapshot.bmiVerdict.titleKey,
-                            sleepHours: selectedHealth?.previousNightSleepHours,
-                            isPeriodDay: selectedHealth?.isMenstrual == true
-                                || selectedRecord?.variableTags.contains(.period) == true,
-                            energyKcal: selectedHealth?.activeEnergyKcal,
-                            canAddMore: !unusedModules.isEmpty,
-                            onOpenMetrics: {
-                                viewModel.openMetrics(on: selectedDate, key: metricsFocusKey)
-                            },
-                            onOpenWeight: {
-                                viewModel.openWeightEntry(for: selectedDate)
-                            },
-                            onOpenSleep: { viewModel.isSleepPresented = true },
-                            onOpenPeriod: { viewModel.isCyclePresented = true },
-                            onOpenEnergy: { viewModel.isEnergyPresented = true },
-                            onOpenBMI: { viewModel.isBMIPresented = true },
-                            onAddModule: { isModuleEditorPresented = true }
-                        )
-                        DailyWeightList(
-                            rows: weightRows,
-                            onSelect: { row in
-                                openWeightRow(row)
-                            },
-                            onDelete: { row in
-                                deleteWeightRow(row)
-                            },
-                            onShowAll: { isWeightHistoryPresented = true }
-                        )
                     }
-                    .easeTabScrollContent()
+                    .listRowInsets(
+                        EdgeInsets(
+                            top: 8,
+                            leading: 0,
+                            bottom: 8,
+                            trailing: 0
+                        )
+                    )
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+
+                    WeightLogListView(
+                        entries: logEntries,
+                        onSelect: openLog(_:),
+                        onDelete: deleteLog(_:),
+                        onShowAll: { isWeightHistoryPresented = true }
+                    )
                 }
+                .listStyle(.insetGrouped)
+                .listSectionSpacing(EaseLayout.sectionSpacing)
+                .headerProminence(.standard)
+                .scrollContentBackground(.hidden)
+                .easeTabListMargins()
             }
             .navigationTitle("tab.weight")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
             .sheet(isPresented: $isWeightHistoryPresented) {
                 WeightHistorySheet(
-                    rows: weightRows,
-                    onSelect: { row in
+                    entries: logEntries,
+                    onSelect: { entry in
                         isWeightHistoryPresented = false
                         Task { @MainActor in
                             try? await Task.sleep(for: .milliseconds(350))
-                            openWeightRow(row)
+                            openLog(entry)
                         }
                     },
-                    onDelete: { row in
-                        deleteWeightRow(row)
+                    onDelete: { entry in
+                        deleteLog(entry)
                     },
                     onEmptyAction: {
                         isWeightHistoryPresented = false
@@ -169,16 +182,16 @@ struct WeightTabView: View {
         }
     }
 
-    private func openWeightRow(_ row: DailyWeightRow) {
-        if let id = row.latestLogID, let log = logs.first(where: { $0.id == id }) {
+    private func openLog(_ entry: WeightLogEntry) {
+        if let id = entry.logID, let log = logs.first(where: { $0.id == id }) {
             viewModel.openWeightLog(log)
         } else {
-            viewModel.openWeightEntry(for: row.day)
+            viewModel.openWeightEntry(for: entry.timestamp)
         }
     }
 
-    private func deleteWeightRow(_ row: DailyWeightRow) {
-        guard let id = row.latestLogID, let log = logs.first(where: { $0.id == id }) else { return }
+    private func deleteLog(_ entry: WeightLogEntry) {
+        guard let id = entry.logID, let log = logs.first(where: { $0.id == id }) else { return }
         try? WeightLogRepository(context: modelContext).delete(log)
     }
 }

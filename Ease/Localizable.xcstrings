@@ -6808,13 +6808,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All"
+            "value" : "See all"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全部"
+            "value" : "查看全部"
           }
         }
       }
@@ -6864,6 +6864,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "体重记录"
+          }
+        }
+      }
+    },
+    "weight.list.today" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天"
           }
         }
       }

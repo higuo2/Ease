@@ -2,16 +2,16 @@ import SwiftUI
 
 struct WeightHistorySheet: View {
     @Environment(\.dismiss) private var dismiss
-    let rows: [DailyWeightRow]
-    let onSelect: (DailyWeightRow) -> Void
-    var onDelete: ((DailyWeightRow) -> Void)? = nil
+    let entries: [WeightLogEntry]
+    let onSelect: (WeightLogEntry) -> Void
+    var onDelete: ((WeightLogEntry) -> Void)? = nil
     var onEmptyAction: (() -> Void)? = nil
 
     var body: some View {
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
-                if rows.isEmpty {
+                if entries.isEmpty {
                     EaseEmptyState(
                         symbol: "scalemass",
                         title: "empty.history.title",
@@ -19,30 +19,16 @@ struct WeightHistorySheet: View {
                         action: onEmptyAction
                     )
                 } else {
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                                Button {
-                                    onSelect(row)
-                                } label: {
-                                    DailyWeightRowView(row: row, style: .history)
-                                }
-                                .buttonStyle(.plain)
-                                .easeRecordContextMenu(
-                                    onEdit: { onSelect(row) },
-                                    onDelete: onDelete == nil ? nil : { onDelete?(row) }
-                                )
-                                if index < rows.count - 1 {
-                                    Divider()
-                                        .overlay(EasePalette.hairline)
-                                        .padding(.leading, 16)
-                                }
-                            }
-                        }
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                    List {
+                        WeightLogRows(
+                            entries: entries,
+                            onSelect: onSelect,
+                            onDelete: onDelete
+                        )
                     }
+                    .listStyle(.insetGrouped)
+                    .scrollContentBackground(.hidden)
+                    .easeTabListMargins()
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

@@ -80,6 +80,7 @@
 		A100000000000000000000E0 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D0 /* MainTabView.swift */; };
 		A100000000000000000000E1 /* WeightTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D1 /* WeightTabView.swift */; };
 		A100000000000000000000E2 /* WeightTabComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D2 /* WeightTabComponents.swift */; };
+		A10000000000000000000121 /* WeightLogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000120 /* WeightLogListView.swift */; };
 		A100000000000000000000E3 /* TrendTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D3 /* TrendTabView.swift */; };
 		A100000000000000000000E4 /* CalendarTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D4 /* CalendarTabView.swift */; };
 		A100000000000000000000E5 /* HistoryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D5 /* HistoryTabView.swift */; };
@@ -208,6 +209,7 @@
 		A100000000000000000000D0 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		A100000000000000000000D1 /* WeightTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightTabView.swift; sourceTree = "<group>"; };
 		A100000000000000000000D2 /* WeightTabComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightTabComponents.swift; sourceTree = "<group>"; };
+		A10000000000000000000120 /* WeightLogListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLogListView.swift; sourceTree = "<group>"; };
 		A100000000000000000000D3 /* TrendTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendTabView.swift; sourceTree = "<group>"; };
 		A100000000000000000000D4 /* CalendarTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTabView.swift; sourceTree = "<group>"; };
 		A100000000000000000000D5 /* HistoryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabView.swift; sourceTree = "<group>"; };
@@ -446,6 +448,7 @@
 				A10000000000000000000082 /* DashboardView.swift */,
 				A100000000000000000000D1 /* WeightTabView.swift */,
 				A100000000000000000000D2 /* WeightTabComponents.swift */,
+				A10000000000000000000120 /* WeightLogListView.swift */,
 				A100000000000000000000D3 /* TrendTabView.swift */,
 				A10000000000000000000118 /* AdvancedEstimateCard.swift */,
 				A10000000000000000000114 /* HealthInsightsCard.swift */,
@@ -638,6 +641,7 @@
 				A100000000000000000000E0 /* MainTabView.swift in Sources */,
 				A100000000000000000000E1 /* WeightTabView.swift in Sources */,
 				A100000000000000000000E2 /* WeightTabComponents.swift in Sources */,
+				A10000000000000000000121 /* WeightLogListView.swift in Sources */,
 				A100000000000000000000E3 /* TrendTabView.swift in Sources */,
 				A100000000000000000000E4 /* CalendarTabView.swift in Sources */,
 				A10000000000000000000109 /* DailyMomentsCard.swift in Sources */,
