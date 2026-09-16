@@ -205,8 +205,8 @@ struct AdvancedPaceCard: View {
                         )
                     }
 
-                    if let selectedFactor, let explanation = factorExplanation(selectedFactor, estimate: estimate) {
-                        Text(explanation)
+                    if let selectedFactor {
+                        Text(factorExplanation(selectedFactor, estimate: estimate))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
