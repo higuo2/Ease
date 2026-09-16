@@ -4346,13 +4346,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "One Ease CSV at a time. Headers must match."
+            "value" : "Pick ease-export.csv (weight/diet) or ease-metrics.csv (measurements). One file at a time. Headers must match exactly."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "一次导入一个 Ease CSV，表头须一致。"
+            "value" : "选择 ease-export.csv（体重/饮食）或 ease-metrics.csv（围度）。一次一个文件，表头必须完全一致。"
           }
         }
       }
@@ -4550,6 +4550,22 @@
         }
       }
     },
+    "settings.metrics.enabled_count" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d enabled"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已启用 %d 项"
+          }
+        }
+      }
+    },
     "settings.metrics.maxCustom" : {
       "localizations" : {
         "en" : {
@@ -4562,6 +4578,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自定义指标最多 8 条。"
+          }
+        }
+      }
+    },
+    "settings.metrics.more" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More metrics"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多维度"
           }
         }
       }

@@ -25,7 +25,6 @@ struct SettingsSheet: View {
     @State private var weightReminderDate: Date
     @State private var showDeleteConfirm = false
     @State private var showDeleteConfirmAgain = false
-    @State private var showImportInfo = false
     @State private var sharePayload: SharePayload?
     @State private var errorKey: String?
     @State private var importResult: String?
@@ -60,12 +59,28 @@ struct SettingsSheet: View {
         ))
     }
 
+    private static let primaryMetricKeys: Set<String> = [
+        "waist", "hip", "chest", "thigh", "underbust"
+    ]
+
     private var customCount: Int {
         metricDefinitions.filter { $0.kind == .custom }.count
     }
 
     private var activeMetrics: [MetricDefinition] {
         metricDefinitions.filter { MetricCatalog.isActiveMetricKey($0.key) }
+    }
+
+    private var primaryMetrics: [MetricDefinition] {
+        activeMetrics.filter { Self.primaryMetricKeys.contains($0.key) }
+    }
+
+    private var moreMetrics: [MetricDefinition] {
+        activeMetrics.filter { !Self.primaryMetricKeys.contains($0.key) }
+    }
+
+    private var enabledMetricsCount: Int {
+        activeMetrics.filter(\.isEnabled).count
     }
 
     var body: some View {
@@ -96,7 +111,6 @@ struct SettingsSheet: View {
             .scrollContentBackground(.hidden)
             .scrollDismissesKeyboard(.interactively)
             .background { EasePalette.background.ignoresSafeArea() }
-            .tint(EasePalette.coral)
             .easeTabListMargins()
             .navigationTitle("settings.title")
             .navigationBarTitleDisplayMode(.large)
@@ -145,6 +159,11 @@ struct SettingsSheet: View {
                 persistSex()
             }
             .onChange(of: notificationsEnabled) { _, enabled in
+                if !enabled {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isWeightReminderExpanded = false
+                    }
+                }
                 Task { await persistNotifications(enabled) }
             }
             .onChange(of: isWeightReminderExpanded) { _, expanded in
@@ -189,6 +208,8 @@ struct SettingsSheet: View {
                     Text(LocalizedStringKey(option.titleKey)).tag(option)
                 }
             }
+            .foregroundStyle(.secondary)
+            .tint(.secondary)
             settingsField(
                 "settings.sleepTarget",
                 text: $sleepTargetText,
@@ -214,6 +235,8 @@ struct SettingsSheet: View {
                 )
                 .labelsHidden()
                 .datePickerStyle(.compact)
+                .foregroundStyle(.secondary)
+                .tint(.secondary)
                 Button {
                     birthDate = nil
                 } label: {
@@ -250,6 +273,7 @@ struct SettingsSheet: View {
     private var remindersSection: some View {
         Section {
             Toggle("settings.notifications", isOn: $notificationsEnabled)
+                .tint(Color(.systemGreen))
                 .contentShape(Rectangle())
 
             DisclosureGroup(isExpanded: $isWeightReminderExpanded) {
@@ -270,6 +294,9 @@ struct SettingsSheet: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .disabled(!notificationsEnabled)
+            .opacity(notificationsEnabled ? 1 : 0.5)
+            .animation(.easeInOut(duration: 0.2), value: notificationsEnabled)
 
         } header: {
             Text("settings.section.reminders")
@@ -286,6 +313,7 @@ struct SettingsSheet: View {
                         Image(systemName: module.symbolName)
                     }
                 }
+                .tint(Color(.systemGreen))
                 .contentShape(Rectangle())
             }
         } header: {
@@ -299,40 +327,71 @@ struct SettingsSheet: View {
 
     private var metricsSection: some View {
         Section {
-            ForEach(activeMetrics, id: \.persistentModelID) { definition in
-                SettingsMetricToggleRow(definition: definition) {
-                    historyTarget = MetricHistoryTarget(definition: definition)
-                }
+            ForEach(primaryMetrics, id: \.persistentModelID) { definition in
+                metricRow(definition)
             }
 
-            if customCount < MetricCatalog.maxCustom {
-                DisclosureGroup(isExpanded: $isAddingMetric) {
-                    TextField("settings.metrics.name", text: $customName)
-                    Picker("settings.metrics.unit", selection: $customUnit) {
-                        ForEach(MetricUnit.allCases, id: \.self) { unit in
-                            Text(LocalizedStringKey(unit.titleKey)).tag(unit)
-                        }
-                    }
-                    Picker("settings.metrics.symbol", selection: $customSymbol) {
-                        ForEach(MetricCatalog.allowedSymbols, id: \.self) { symbol in
-                            Image(systemName: symbol).tag(symbol)
-                        }
-                    }
-                    Button("settings.metrics.add", action: addCustom)
-                        .disabled(customName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                } label: {
-                    Label("settings.metrics.add", systemImage: "plus")
+            DisclosureGroup {
+                ForEach(moreMetrics, id: \.persistentModelID) { definition in
+                    metricRow(definition)
                 }
-            } else {
-                Text("settings.metrics.maxCustom")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                addMetricBlock
+            } label: {
+                Text("settings.metrics.more")
             }
         } header: {
-            Text("settings.section.metrics")
+            HStack {
+                Text("settings.section.metrics")
+                Spacer()
+                Text(enabledMetricsCountLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .textCase(nil)
+            }
         } footer: {
             Text("settings.section.metrics.footer")
                 .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var enabledMetricsCountLabel: String {
+        String(
+            format: String(localized: "settings.metrics.enabled_count"),
+            locale: .current,
+            enabledMetricsCount
+        )
+    }
+
+    private func metricRow(_ definition: MetricDefinition) -> some View {
+        SettingsMetricToggleRow(definition: definition) {
+            historyTarget = MetricHistoryTarget(definition: definition)
+        }
+    }
+
+    @ViewBuilder
+    private var addMetricBlock: some View {
+        if customCount < MetricCatalog.maxCustom {
+            DisclosureGroup(isExpanded: $isAddingMetric) {
+                TextField("settings.metrics.name", text: $customName)
+                Picker("settings.metrics.unit", selection: $customUnit) {
+                    ForEach(MetricUnit.allCases, id: \.self) { unit in
+                        Text(LocalizedStringKey(unit.titleKey)).tag(unit)
+                    }
+                }
+                Picker("settings.metrics.symbol", selection: $customSymbol) {
+                    ForEach(MetricCatalog.allowedSymbols, id: \.self) { symbol in
+                        Image(systemName: symbol).tag(symbol)
+                    }
+                }
+                Button("settings.metrics.add", action: addCustom)
+                    .disabled(customName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            } label: {
+                Label("settings.metrics.add", systemImage: "plus")
+            }
+        } else {
+            Text("settings.metrics.maxCustom")
+                .font(.footnote)
                 .foregroundStyle(.secondary)
         }
     }
@@ -342,29 +401,15 @@ struct SettingsSheet: View {
             Button(action: exportCSV) {
                 Label("settings.export", systemImage: "square.and.arrow.up")
             }
+            .foregroundStyle(.primary)
+            .tint(.primary)
             Button {
                 isImporterPresented = true
             } label: {
                 Label("settings.import", systemImage: "square.and.arrow.down")
             }
-            .overlay(alignment: .trailing) {
-                Button {
-                    showImportInfo = true
-                } label: {
-                    Image(systemName: "info.circle")
-                        .foregroundStyle(EasePalette.secondaryText)
-                }
-                .buttonStyle(.borderless)
-                .accessibilityLabel(Text("settings.import.info"))
-                .popover(isPresented: $showImportInfo) {
-                    Text("settings.import.hint")
-                        .font(.system(size: 13))
-                        .foregroundStyle(EasePalette.secondaryText)
-                        .padding(16)
-                        .frame(maxWidth: 280, alignment: .leading)
-                        .presentationCompactAdaptation(.popover)
-                }
-            }
+            .foregroundStyle(.primary)
+            .tint(.primary)
         } header: {
             Text("settings.section.data")
         } footer: {
@@ -630,15 +675,29 @@ private struct SettingsMetricToggleRow: View {
     private var spec: MetricSpec { MetricCatalog.spec(for: definition) }
 
     var body: some View {
-        Toggle(isOn: $isEnabled) {
-            Label {
-                Text(verbatim: spec.resolvedTitle)
-            } icon: {
-                Image(systemName: spec.symbolName)
+        HStack(spacing: 0) {
+            Toggle(isOn: $isEnabled) {
+                Label {
+                    Text(verbatim: spec.resolvedTitle)
+                } icon: {
+                    Image(systemName: spec.symbolName)
+                }
             }
+            .toggleStyle(.switch)
+            .tint(Color(.systemGreen))
+            .layoutPriority(1)
+
+            Button(action: onHistory) {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .frame(minWidth: 28, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .padding(.leading, 6)
+            .accessibilityLabel(Text("metric.history.title"))
         }
-        .toggleStyle(.switch)
-        .contentShape(Rectangle())
         .onChange(of: isEnabled) { _, newValue in
             guard definition.isEnabled != newValue else { return }
             try? MetricRepository(context: modelContext).setEnabled(definition, isEnabled: newValue)
