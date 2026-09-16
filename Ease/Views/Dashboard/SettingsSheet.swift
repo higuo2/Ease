@@ -108,6 +108,7 @@ struct SettingsSheet: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .listSectionSpacing(12)
             .scrollContentBackground(.hidden)
             .scrollDismissesKeyboard(.interactively)
             .background { EasePalette.background.ignoresSafeArea() }
@@ -226,7 +227,7 @@ struct SettingsSheet: View {
                 symbol: "moon.fill"
             )
         } header: {
-            settingsHeader("settings.section.personal")
+            SettingsSectionHeader(title: "settings.section.personal")
         }
     }
 
@@ -319,7 +320,7 @@ struct SettingsSheet: View {
             .animation(.easeInOut(duration: 0.2), value: notificationsEnabled)
 
         } header: {
-            settingsHeader("settings.section.reminders")
+            SettingsSectionHeader(title: "settings.section.reminders")
         }
     }
 
@@ -339,7 +340,7 @@ struct SettingsSheet: View {
                 .sensoryFeedback(.selection, trigger: profile.homeModules.contains(module))
             }
         } header: {
-            settingsHeader("settings.section.modules")
+            SettingsSectionHeader(title: "settings.section.modules")
         } footer: {
             Text("settings.section.modules.footer")
                 .font(.caption)
@@ -363,14 +364,10 @@ struct SettingsSheet: View {
                     .font(.body)
             }
         } header: {
-            HStack {
-                settingsHeader("settings.section.metrics")
-                Spacer()
-                Text(enabledMetricsCountLabel)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .textCase(nil)
-            }
+            SettingsSectionHeader(
+                title: "settings.section.metrics",
+                trailingText: enabledMetricsCountLabel
+            )
         }
     }
 
@@ -443,7 +440,7 @@ struct SettingsSheet: View {
                 }
             }
         } header: {
-            settingsHeader("settings.section.data")
+            SettingsSectionHeader(title: "settings.section.data")
         } footer: {
             Text("settings.import.footer")
                 .font(.caption)
@@ -457,13 +454,6 @@ struct SettingsSheet: View {
                 showDeleteConfirm = true
             }
         }
-    }
-
-    private func settingsHeader(_ title: LocalizedStringKey) -> some View {
-        Text(title)
-            .font(.headline)
-            .foregroundStyle(EasePalette.primaryText)
-            .textCase(nil)
     }
 
     private func settingsField(
@@ -752,6 +742,31 @@ private struct SettingsMetricToggleRow: View {
                 isEnabled = newValue
             }
         }
+    }
+}
+
+/// Settings section title: same leading edge, type, and vertical rhythm for every block.
+private struct SettingsSectionHeader: View {
+    let title: LocalizedStringKey
+    var trailingText: String? = nil
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title)
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(EasePalette.primaryText)
+            Spacer(minLength: 8)
+            if let trailingText {
+                Text(trailingText)
+                    .font(.subheadline)
+                    .foregroundStyle(EasePalette.secondaryText)
+                    .monospacedDigit()
+            }
+        }
+        .textCase(nil)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 20)
+        .padding(.bottom, 6)
     }
 }
 

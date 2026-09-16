@@ -119,4 +119,22 @@ final class EaseFormattersTests: XCTestCase {
             )
         )
     }
+
+    func test_signedSleepDelta_不足一小时显示带符号分钟() {
+        XCTAssertEqual(
+            EaseFormatters.signedSleepDelta(-0.7),
+            String(format: String(localized: "format.signedSleepMinutes"), locale: .current, "-42")
+        )
+        XCTAssertEqual(
+            EaseFormatters.signedSleepDelta(0.5),
+            String(format: String(localized: "format.signedSleepMinutes"), locale: .current, "+30")
+        )
+    }
+
+    func test_signedSleepDelta_满小时显示时长() {
+        XCTAssertEqual(
+            EaseFormatters.signedSleepDelta(-1.2),
+            String(format: String(localized: "format.signedSleepDuration"), locale: .current, "-1", 12)
+        )
+    }
 }

@@ -29,17 +29,44 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
 
     var titleKey: String {
         switch kind {
-        case .shortSleepWeight: "trend.insights.shortSleepWeight.title"
-        case .periodWeight: "trend.insights.periodWeight.title"
-        case .weekdaySleep: "trend.insights.weekdaySleep.title"
-        case .lowEnergyWeight: "trend.insights.lowEnergyWeight.title"
+        case .weekdaySleep:
+            return "trend.insights.weekdaySleep.title"
+        case .shortSleepWeight:
+            return inMean >= outMean
+                ? "trend.insights.shortSleepWeight.title.up"
+                : "trend.insights.shortSleepWeight.title.down"
+        case .periodWeight:
+            return inMean >= outMean
+                ? "trend.insights.periodWeight.title.up"
+                : "trend.insights.periodWeight.title.down"
+        case .lowEnergyWeight:
+            return inMean >= outMean
+                ? "trend.insights.lowEnergyWeight.title.up"
+                : "trend.insights.lowEnergyWeight.title.down"
         }
     }
 
     var comparesWeight: Bool { kind != .weekdaySleep }
 
+    var delta: Double { inMean - outMean }
+
+    var sampleCount: Int { inCount + outCount }
+
+    func localizedHeadline(locale: Locale = .current, calendar: Calendar = .current) -> String {
+        switch kind {
+        case .weekdaySleep:
+            return String(
+                format: String(localized: String.LocalizationValue(titleKey), locale: locale),
+                locale: locale,
+                weekdayHeadlineName(locale: locale, calendar: calendar)
+            )
+        case .shortSleepWeight, .periodWeight, .lowEnergyWeight:
+            return String(localized: String.LocalizationValue(titleKey), locale: locale)
+        }
+    }
+
     func localizedTitle(locale: Locale = .current) -> String {
-        String(localized: String.LocalizationValue(titleKey), locale: locale)
+        localizedHeadline(locale: locale)
     }
 
     func inGroupLabel(locale: Locale = .current, calendar: Calendar = .current) -> String {
@@ -54,7 +81,7 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
             return String(
                 format: String(localized: "trend.insights.weekdaySleep.in", locale: locale),
                 locale: locale,
-                weekdayName(locale: locale, calendar: calendar)
+                weekdayMetricName(locale: locale, calendar: calendar)
             )
         }
     }
@@ -80,76 +107,34 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
         comparesWeight ? EaseFormatters.signedKg(outMean) : EaseFormatters.sleepDuration(outMean)
     }
 
-    func sampleSizeText(locale: Locale = .current) -> String {
-        String(
-            format: String(localized: "trend.insights.sampleSize", locale: locale),
-            locale: locale,
-            inCount,
-            outCount
-        )
+    func deltaText() -> String {
+        comparesWeight ? EaseFormatters.signedKg(delta) : EaseFormatters.signedSleepDelta(delta)
     }
 
-    func localizedDefinition(locale: Locale = .current, calendar: Calendar = .current) -> String {
-        switch kind {
-        case .shortSleepWeight:
-            return String(localized: "trend.insights.shortSleepWeight.definition", locale: locale)
-        case .periodWeight:
-            return String(localized: "trend.insights.periodWeight.definition", locale: locale)
-        case .lowEnergyWeight:
-            return String(localized: "trend.insights.lowEnergyWeight.definition", locale: locale)
-        case .weekdaySleep:
-            return String(
-                format: String(localized: "trend.insights.weekdaySleep.definition", locale: locale),
-                locale: locale,
-                weekdayName(locale: locale, calendar: calendar)
-            )
-        }
+    func sampleSizeText(locale: Locale = .current) -> String {
+        let key = comparesWeight ? "trend.insights.sampleSize.days" : "trend.insights.sampleSize.nights"
+        return String(
+            format: String(localized: String.LocalizationValue(key), locale: locale),
+            locale: locale,
+            sampleCount
+        )
     }
 
     func accessibilitySummary(locale: Locale = .current, calendar: Calendar = .current) -> String {
         [
-            localizedTitle(locale: locale),
+            localizedHeadline(locale: locale, calendar: calendar),
+            deltaText(),
             "\(inGroupLabel(locale: locale, calendar: calendar)) \(inValueText())",
             "\(outGroupLabel(locale: locale)) \(outValueText())",
             sampleSizeText(locale: locale)
         ].joined(separator: ", ")
     }
 
-    func localizedBody(locale: Locale = .current, calendar: Calendar = .current) -> String {
-        switch kind {
-        case .shortSleepWeight:
-            return String(
-                format: String(localized: "trend.insights.shortSleepWeight"),
-                locale: locale,
-                EaseFormatters.signedKg(inMean),
-                EaseFormatters.signedKg(outMean)
-            )
-        case .periodWeight:
-            return String(
-                format: String(localized: "trend.insights.periodWeight"),
-                locale: locale,
-                EaseFormatters.signedKg(inMean),
-                EaseFormatters.signedKg(outMean)
-            )
-        case .lowEnergyWeight:
-            return String(
-                format: String(localized: "trend.insights.lowEnergyWeight"),
-                locale: locale,
-                EaseFormatters.signedKg(inMean),
-                EaseFormatters.signedKg(outMean)
-            )
-        case .weekdaySleep:
-            return String(
-                format: String(localized: "trend.insights.weekdaySleep"),
-                locale: locale,
-                weekdayName(locale: locale, calendar: calendar),
-                EaseFormatters.sleepDuration(inMean),
-                EaseFormatters.sleepDuration(outMean)
-            )
-        }
-    }
-
-    func weekdayName(locale: Locale = .current, calendar: Calendar = .current) -> String {
+    func weekdayName(
+        locale: Locale = .current,
+        calendar: Calendar = .current,
+        style: Date.FormatStyle.Symbol.Weekday = .wide
+    ) -> String {
         guard let weekday else { return "" }
         var calendar = calendar
         calendar.locale = locale
@@ -157,10 +142,25 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
         for offset in 0..<7 {
             let date = CalendarDay.addingDays(offset, to: today, calendar: calendar)
             if calendar.component(.weekday, from: date) == weekday {
-                return date.formatted(Date.FormatStyle(locale: locale, calendar: calendar).weekday(.wide))
+                return date.formatted(Date.FormatStyle(locale: locale, calendar: calendar).weekday(style))
             }
         }
         return ""
+    }
+
+    func weekdayHeadlineName(locale: Locale = .current, calendar: Calendar = .current) -> String {
+        let wide = weekdayName(locale: locale, calendar: calendar, style: .wide)
+        if locale.language.languageCode?.identifier == "en" {
+            return "\(wide)s"
+        }
+        return weekdayName(locale: locale, calendar: calendar, style: .abbreviated)
+    }
+
+    func weekdayMetricName(locale: Locale = .current, calendar: Calendar = .current) -> String {
+        if locale.language.languageCode?.identifier == "zh" {
+            return weekdayName(locale: locale, calendar: calendar, style: .abbreviated)
+        }
+        return weekdayName(locale: locale, calendar: calendar, style: .wide)
     }
 }
 

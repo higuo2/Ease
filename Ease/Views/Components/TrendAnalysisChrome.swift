@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum TrendAnalysisMotion {
-    static let accordion = Animation.spring(response: 0.3, dampingFraction: 0.8)
+    static let accordion = Animation.spring(duration: 0.25)
 }
 
 struct TrendAnalysisHeader: View {

@@ -15,8 +15,11 @@ extension View {
     }
 
     /// Matching inset-grouped `List` margins on the Settings tab.
+    /// Apply the same 16pt inset to `.scrollContent` and `.automatic` so section
+    /// titles and white cards share one leading edge.
     func easeTabListMargins() -> some View {
         contentMargins(.horizontal, EaseLayout.screenPadding, for: .scrollContent)
+            .contentMargins(.horizontal, EaseLayout.screenPadding, for: .automatic)
             .contentMargins(.bottom, EaseLayout.tabBarScrollInset, for: .scrollContent)
     }
 }

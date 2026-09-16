@@ -61,6 +61,28 @@ enum EaseFormatters {
         )
     }
 
+    /// Signed sleep difference, e.g. `-42m` / `+1h 12m`.
+    static func signedSleepDelta(_ hours: Double) -> String {
+        let totalMinutes = Int((hours * 60).rounded())
+        let sign = totalMinutes > 0 ? "+" : (totalMinutes < 0 ? "-" : "")
+        let absolute = abs(totalMinutes)
+        let hourPart = absolute / 60
+        let minutePart = absolute % 60
+        if hourPart == 0 {
+            return String(
+                format: String(localized: "format.signedSleepMinutes"),
+                locale: .current,
+                "\(sign)\(minutePart)"
+            )
+        }
+        return String(
+            format: String(localized: "format.signedSleepDuration"),
+            locale: .current,
+            "\(sign)\(hourPart)",
+            minutePart
+        )
+    }
+
     /// Locale-ordered numeric date with zero-padded month/day (avoids `19/ 8/2026`).
     static func numericDate(_ date: Date) -> String {
         date.formatted(

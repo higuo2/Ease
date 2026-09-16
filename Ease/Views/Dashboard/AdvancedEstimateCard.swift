@@ -123,18 +123,17 @@ struct AdvancedEstimateCard: View {
     }
 
     private func horizonRow(_ estimate: AdvancedPaceEstimator.Result) -> some View {
-        HStack(alignment: .center, spacing: 12) {
-            TrendTintIconTile(systemName: "calendar", tint: EasePalette.accent)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("trend.advanced.horizon")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(EasePalette.primaryText)
-                Text(EaseFormatters.advancedPaceHorizon(estimate.eta))
-                    .font(.subheadline.monospacedDigit())
-                    .foregroundStyle(EasePalette.primaryText)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text("trend.advanced.horizon")
+                .font(.subheadline)
+                .foregroundStyle(EasePalette.secondaryText)
+            Spacer(minLength: 8)
+            Text(EaseFormatters.advancedPaceHorizon(estimate.eta))
+                .font(.headline.bold())
+                .foregroundStyle(EasePalette.primaryText)
+                .multilineTextAlignment(.trailing)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
         }
         .accessibilityElement(children: .combine)
     }
@@ -194,25 +193,37 @@ struct AdvancedEstimateCard: View {
                 selectedFactor = selected ? nil : kind
             }
         } label: {
-            HStack(alignment: .center, spacing: 10) {
-                TrendTintIconTile(systemName: symbol, tint: iconColor)
-                    .opacity(inactive ? 0.55 : 1)
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: symbol)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(iconColor)
+                    .frame(width: 20, height: 20)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(inactive ? EasePalette.secondaryText : EasePalette.primaryText)
+                        .font(.caption)
+                        .foregroundStyle(EasePalette.secondaryText)
+                        .lineLimit(1)
                     Text(detailText)
-                        .font(.subheadline.monospacedDigit())
+                        .font(.subheadline.weight(.semibold).monospacedDigit())
                         .foregroundStyle(inactive ? EasePalette.secondaryText : EasePalette.primaryText)
                         .contentTransition(.numericText())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                 }
                 Spacer(minLength: 0)
             }
-            .padding(8)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
             .background(
-                selected ? EasePalette.recessed : Color.clear,
-                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                EasePalette.recessed,
+                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
             )
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(selected ? EasePalette.primaryText.opacity(0.14) : Color.clear, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
         .accessibilityHint(Text("trend.advanced.factor.hint"))

@@ -2024,13 +2024,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Around %@"
+            "value" : "%@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预计 %@"
+            "value" : "%@"
           }
         }
       }
@@ -2248,7 +2248,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "early %@"
+            "value" : "Early %@"
           }
         },
         "zh-Hans" : {
@@ -2264,7 +2264,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "late %@"
+            "value" : "Late %@"
           }
         },
         "zh-Hans" : {
@@ -2280,7 +2280,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mid %@"
+            "value" : "Mid %@"
           }
         },
         "zh-Hans" : {
@@ -2335,6 +2335,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ kg"
+          }
+        }
+      }
+    },
+    "format.signedSleepDuration" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@h %02dm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@小时 %02d分钟"
+          }
+        }
+      }
+    },
+    "format.signedSleepMinutes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@m"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@分钟"
           }
         }
       }
@@ -4741,6 +4773,7 @@
       }
     },
     "settings.section.metrics.footer" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5577,13 +5610,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "At this pace"
+            "value" : "At current pace"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按近况"
+            "value" : "按当前节奏"
           }
         }
       }
@@ -5653,6 +5686,7 @@
       }
     },
     "trend.advanced.subtitle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5721,13 +5755,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "When the previous day's active energy was below the recent median, weight change averaged %@ vs %@ on other days."
+            "value" : "After quieter energy days, weight change averaged %@. Usual days %@."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "前一日活动消耗低于近窗中位数时，次日体重变化平均为 %@，其余日子为 %@。"
+            "value" : "前一日活动消耗偏低时，次日体重变化平均为 %@，平时为 %@。"
           }
         }
       }
@@ -5737,13 +5771,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Based on days after below-median energy vs other days."
+            "value" : "Days after quieter energy, compared with usual days."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "对照消耗低于中位数的次日与其余日子。"
+            "value" : "对照消耗偏低的次日与平时。"
           }
         }
       }
@@ -5769,13 +5803,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Other days"
+            "value" : "Usual"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "其余日子"
+            "value" : "平时"
           }
         }
       }
@@ -5797,18 +5831,50 @@
         }
       }
     },
-    "trend.insights.periodWeight" : {
+    "trend.insights.lowEnergyWeight.title.down" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "On period days, weight change averaged %@ vs %@ on other days."
+            "value" : "Weight down after low energy"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "经期日的体重变化平均为 %@，其余日子为 %@。"
+            "value" : "消耗偏低后体重偏低"
+          }
+        }
+      }
+    },
+    "trend.insights.lowEnergyWeight.title.up" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight up after low energy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "消耗偏低后体重偏高"
+          }
+        }
+      }
+    },
+    "trend.insights.periodWeight" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On period days, weight change averaged %@. Usual days %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经期日的体重变化平均为 %@，平时为 %@。"
           }
         }
       }
@@ -5818,13 +5884,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Based on period days vs other days."
+            "value" : "Period days compared with usual days."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "对照经期日与其余日子。"
+            "value" : "对照经期日与平时。"
           }
         }
       }
@@ -5850,13 +5916,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Other days"
+            "value" : "Usual"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "其余日子"
+            "value" : "平时"
           }
         }
       }
@@ -5874,6 +5940,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "经期日"
+          }
+        }
+      }
+    },
+    "trend.insights.periodWeight.title.down" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight down on period days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经期日体重偏低"
+          }
+        }
+      }
+    },
+    "trend.insights.periodWeight.title.up" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight up on period days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经期日体重偏高"
           }
         }
       }
@@ -5915,29 +6013,62 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Shows how this comparison is grouped."
+            "value" : "Shows the two averages behind this difference."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "显示对照如何分组。"
+            "value" : "显示这条对照的两组平均值。"
           }
         }
       }
     },
     "trend.insights.sampleSize" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "n=%lld vs n=%lld"
+            "value" : "Based on %lld and %lld samples"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "n=%lld 对 n=%lld"
+            "value" : "基于 %lld 与 %lld 个样本"
+          }
+        }
+      }
+    },
+    "trend.insights.sampleSize.days" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Based on %lld logged days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基于 %lld 天记录"
+          }
+        }
+      }
+    },
+    "trend.insights.sampleSize.nights" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Based on %lld logged nights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基于 %lld 晚记录"
           }
         }
       }
@@ -5947,13 +6078,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "After nights under 6 hours, next-day weight change averaged %@ vs %@ on other days."
+            "value" : "After short nights, next-day change averaged %@. Usual days %@."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "睡眠不足 6 小时的次日，体重变化平均为 %@，其余日子为 %@。"
+            "value" : "睡眠不足 6 小时的次日，体重变化平均为 %@，平时为 %@。"
           }
         }
       }
@@ -5963,13 +6094,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Based on nights under 6 hours vs other nights."
+            "value" : "Nights under 6 hours compared with usual nights."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "对照睡眠不足 6 小时的夜与其余夜。"
+            "value" : "对照睡眠不足 6 小时的夜与平时。"
           }
         }
       }
@@ -5979,13 +6110,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Short sleep"
+            "value" : "Short nights"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "睡眠偏短"
+            "value" : "短睡眠"
           }
         }
       }
@@ -5995,13 +6126,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Other nights"
+            "value" : "Usual"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "其余夜"
+            "value" : "平时"
           }
         }
       }
@@ -6019,6 +6150,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "睡眠偏短的次日"
+          }
+        }
+      }
+    },
+    "trend.insights.shortSleepWeight.title.down" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight down after short nights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "短睡眠后体重偏低"
+          }
+        }
+      }
+    },
+    "trend.insights.shortSleepWeight.title.up" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight up after short nights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "短睡眠后体重偏高"
           }
         }
       }
@@ -6044,13 +6207,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ nights averaged %@ of sleep vs %@ on other nights."
+            "value" : "%@ nights averaged %@ of sleep. Usual nights %@."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@的夜晚平均睡眠 %@，其余夜为 %@。"
+            "value" : "%@的夜晚平均睡眠 %@，平时为 %@。"
           }
         }
       }
@@ -6060,13 +6223,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Based on %@ night sleep vs other days."
+            "value" : "%@ night sleep compared with usual nights."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "对照%@夜的睡眠与其余日子。"
+            "value" : "对照%@夜的睡眠与平时。"
           }
         }
       }
@@ -6076,13 +6239,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ nights"
+            "value" : "%@ avg"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@的夜晚"
+            "value" : "%@平均"
           }
         }
       }
@@ -6092,30 +6255,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Other nights"
+            "value" : "Usual"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "其余夜"
+            "value" : "平时"
           }
         }
       }
     },
     "trend.insights.weekdaySleep.title" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weekday sleep pattern"
+            "value" : "Shorter sleep on %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "星期睡眠模式"
+            "value" : "%@睡眠更短"
           }
         }
       }
@@ -6137,6 +6299,7 @@
       }
     },
     "trend.insights.window.detail" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

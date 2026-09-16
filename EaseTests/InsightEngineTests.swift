@@ -87,6 +87,17 @@ final class InsightEngineTests: XCTestCase {
         XCTAssertEqual(insight.weekday, 4)
         XCTAssertEqual(insight.inMean, 5.0, accuracy: 0.001)
         XCTAssertEqual(insight.outMean, 7.5, accuracy: 0.001)
+        let english = Locale(identifier: "en")
+        let headline = insight.localizedHeadline(locale: english, calendar: calendar)
+        XCTAssertTrue(headline.hasPrefix("Shorter sleep on "))
+        XCTAssertTrue(headline.hasSuffix("s"))
+        XCTAssertFalse(headline.lowercased().contains("vs"))
+        XCTAssertEqual(insight.deltaText(), EaseFormatters.signedSleepDelta(-2.5))
+        let samples = insight.sampleSizeText(locale: english)
+        XCTAssertTrue(samples.hasPrefix("Based on "))
+        XCTAssertTrue(samples.contains("logged nights"))
+        XCTAssertFalse(samples.contains("n="))
+        XCTAssertFalse(samples.lowercased().contains("vs"))
     }
 
     func test_经期日体重变化更大() {
@@ -231,12 +242,19 @@ final class InsightEngineTests: XCTestCase {
         guard let insight else {
             return XCTFail("expected shortSleepWeight")
         }
-        XCTAssertEqual(insight.titleKey, "trend.insights.shortSleepWeight.title")
+        XCTAssertEqual(insight.titleKey, "trend.insights.shortSleepWeight.title.up")
         XCTAssertTrue(insight.comparesWeight)
-        let samples = insight.sampleSizeText(locale: Locale(identifier: "en"))
-        XCTAssertTrue(samples.contains("\(insight.inCount)"))
-        XCTAssertTrue(samples.contains("\(insight.outCount)"))
-        XCTAssertTrue(insight.accessibilitySummary(locale: Locale(identifier: "en"), calendar: calendar).contains("\(insight.inCount)"))
+        XCTAssertEqual(insight.delta, 0.6, accuracy: 0.001)
+        let english = Locale(identifier: "en")
+        let samples = insight.sampleSizeText(locale: english)
+        XCTAssertEqual(samples, "Based on \(insight.sampleCount) logged days")
+        XCTAssertFalse(samples.lowercased().contains("vs"))
+        XCTAssertFalse(samples.contains("n="))
+        let headline = insight.localizedHeadline(locale: english, calendar: calendar)
+        XCTAssertEqual(headline, "Weight up after short nights")
+        XCTAssertFalse(headline.lowercased().contains("vs"))
+        XCTAssertTrue(insight.accessibilitySummary(locale: english, calendar: calendar).contains("\(insight.sampleCount)"))
+        XCTAssertFalse(insight.outGroupLabel(locale: english).lowercased().contains("vs"))
     }
 
     private func consecutiveWeights(
