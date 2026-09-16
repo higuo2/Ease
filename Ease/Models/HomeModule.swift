@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum HomeModule: String, CaseIterable, Identifiable, Sendable {
+enum HomeModule: String, CaseIterable, Identifiable, Sendable, Equatable {
     case bmi
     case measurements
     case weight

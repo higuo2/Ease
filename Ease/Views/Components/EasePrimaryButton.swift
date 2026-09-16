@@ -31,8 +31,7 @@ struct EasePrimaryButton: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
             .frame(maxWidth: .infinity, minHeight: 54)
-            .background(fill)
-            .clipShape(Capsule())
+            .background(fill, in: Capsule())
             .animation(.easeInOut(duration: 0.2), value: isEnabled)
         }
         .buttonStyle(.plain)
@@ -99,7 +98,9 @@ struct EaseFAB: View {
                 .foregroundStyle(Color.white)
                 .frame(width: 58, height: 58)
                 .background(Color.black, in: Circle())
-                .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 4)
+                .overlay {
+                    Circle().strokeBorder(Color.black.opacity(0.04), lineWidth: 1)
+                }
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("dashboard.fab"))

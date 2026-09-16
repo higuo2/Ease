@@ -64,8 +64,7 @@ struct DayPickerHeader: View {
                             .foregroundStyle(item == mode ? Color.white : EasePalette.secondaryText)
                             .padding(.vertical, 6)
                             .padding(.horizontal, 12)
-                            .background(item == mode ? EasePalette.accent : EasePalette.track)
-                            .clipShape(Capsule())
+                            .background(item == mode ? EasePalette.accent : EasePalette.track, in: Capsule())
                     }
                     .buttonStyle(.plain)
                 }
@@ -95,10 +94,10 @@ struct DayPickerHeader: View {
         if mode == .week {
             let days = CalendarDay.weekDates(containing: cursor)
             guard let first = days.first, let last = days.last else { return "" }
-            let style = Date.FormatStyle().month(.abbreviated).day()
+            let style = EaseDateFormat.monthDay
             return "\(first.formatted(style)) – \(last.formatted(style))"
         }
-        return cursor.formatted(Date.FormatStyle().month(.wide).year())
+        return cursor.formatted(EaseDateFormat.monthYearWide)
     }
 
     private var canGoForward: Bool {

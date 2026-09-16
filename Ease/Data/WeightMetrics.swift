@@ -13,23 +13,70 @@ enum WeightMetrics {
         return MeasurementBounds.roundedToTenth(value)
     }
 
-    static func sevenDayMA(
+    static func lastWeightByDay(
         samples: [WeightSample],
-        endingOn date: Date,
         calendar: Calendar = .current
-    ) -> Double? {
-        let window = CalendarDay.datesBack(7, from: date, calendar: calendar)
-        let weightsByDay = Dictionary(
+    ) -> [String: Double] {
+        Dictionary(
             samples
                 .sorted { $0.date < $1.date }
                 .map { (CalendarDay.dayKey(from: $0.date, calendar: calendar), $0.weight) },
             uniquingKeysWith: { _, latest in latest }
         )
-        let values = window.compactMap { day in
-            weightsByDay[CalendarDay.dayKey(from: day, calendar: calendar)]
+    }
+
+    static func sevenDayMA(
+        weightsByDay: [String: Double],
+        endingOn date: Date,
+        calendar: Calendar = .current
+    ) -> Double? {
+        let window = CalendarDay.datesBack(7, from: date, calendar: calendar)
+        var sum = 0.0
+        var count = 0
+        for day in window {
+            guard let weight = weightsByDay[CalendarDay.dayKey(from: day, calendar: calendar)] else {
+                continue
+            }
+            sum += weight
+            count += 1
         }
-        guard values.count == 7 else { return nil }
-        return MeasurementBounds.roundedToTenth(values.reduce(0, +) / 7)
+        guard count == 7 else { return nil }
+        return MeasurementBounds.roundedToTenth(sum / 7)
+    }
+
+    static func sevenDayMA(
+        samples: [WeightSample],
+        endingOn date: Date,
+        calendar: Calendar = .current
+    ) -> Double? {
+        sevenDayMA(
+            weightsByDay: lastWeightByDay(samples: samples, calendar: calendar),
+            endingOn: date,
+            calendar: calendar
+        )
+    }
+
+    /// One 7-day MA per last-weigh-in day that has a full window. O(n), not O(n²).
+    static func sevenDayMovingAverages(
+        samples: [WeightSample],
+        calendar: Calendar = .current
+    ) -> [WeightSample] {
+        let last = lastPerDay(samples: samples, calendar: calendar)
+        var weightsByDay: [String: Double] = [:]
+        weightsByDay.reserveCapacity(last.count)
+        for sample in last {
+            weightsByDay[CalendarDay.dayKey(from: sample.date, calendar: calendar)] = sample.weight
+        }
+        return last.compactMap { sample in
+            guard let ma = sevenDayMA(
+                weightsByDay: weightsByDay,
+                endingOn: sample.date,
+                calendar: calendar
+            ) else {
+                return nil
+            }
+            return WeightSample(date: sample.date, weight: ma)
+        }
     }
 
     /// Last weigh-in per local calendar day, sorted by day.
@@ -99,7 +146,7 @@ enum WeightMetrics {
     }
 
     /// Last weigh-in per local day. Built once, then calendar cells only look up.
-    struct DayIndex: Sendable {
+    struct DayIndex: Sendable, Equatable {
         let lastWeightByDay: [String: Double]
 
         func weight(on date: Date, calendar: Calendar = .current) -> Double? {

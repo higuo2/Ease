@@ -75,18 +75,7 @@ enum PaceEstimator {
         samples: [WeightSample],
         calendar: Calendar
     ) -> [WeightSample] {
-        let lastPerDay = WeightMetrics.lastPerDay(samples: samples, calendar: calendar)
-        guard let first = lastPerDay.first, let last = lastPerDay.last else { return [] }
-        var day = CalendarDay.startOfDay(first.date, calendar: calendar)
-        let end = CalendarDay.startOfDay(last.date, calendar: calendar)
-        var points: [WeightSample] = []
-        while day <= end {
-            if let ma = WeightMetrics.sevenDayMA(samples: lastPerDay, endingOn: day, calendar: calendar) {
-                points.append(WeightSample(date: day, weight: ma))
-            }
-            day = CalendarDay.addingDays(1, to: day, calendar: calendar)
-        }
-        return points
+        WeightMetrics.sevenDayMovingAverages(samples: samples, calendar: calendar)
     }
 
     /// Drops `|y − median| > 3 × MAD` unless MAD is 0.

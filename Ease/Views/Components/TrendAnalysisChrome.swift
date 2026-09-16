@@ -38,7 +38,7 @@ struct TrendTintIconTile: View {
         Image(systemName: systemName)
             .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(tint)
-            .frame(width: 32, height: 32)
+            .frame(width: 28, height: 28)
             .background(
                 tint.opacity(0.12),
                 in: RoundedRectangle(cornerRadius: 8, style: .continuous)

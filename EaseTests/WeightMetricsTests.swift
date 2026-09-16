@@ -110,6 +110,23 @@ final class WeightMetricsTests: EaseStoreTestCase {
         )
     }
 
+    func test_sevenDayMovingAverages_与逐点计算一致且跳过不满窗口() {
+        let samples = (0..<10).map { offset in
+            WeightSample(
+                date: calendar.testDate(2026, 8, 11 + offset, hour: 8),
+                weight: 70.0 + Double(offset)
+            )
+        }
+        let series = WeightMetrics.sevenDayMovingAverages(samples: samples, calendar: calendar)
+        XCTAssertEqual(series.count, 4)
+        for sample in series {
+            XCTAssertEqual(
+                sample.weight,
+                WeightMetrics.sevenDayMA(samples: samples, endingOn: sample.date, calendar: calendar)
+            )
+        }
+    }
+
     func test_samples_该日已有WeightLog_忽略legacy_DailyRecord_weight() throws {
         let day = calendar.testDate(2026, 8, 10)
         let record = DailyRecord(date: day, calendar: calendar)

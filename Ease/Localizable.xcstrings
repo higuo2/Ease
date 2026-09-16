@@ -614,22 +614,6 @@
         }
       }
     },
-    "calendar.cta.logData" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+ Log data for %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+ 记录 %@"
-          }
-        }
-      }
-    },
     "calendar.cell.empty" : {
       "localizations" : {
         "en" : {
@@ -642,6 +626,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无记录"
+          }
+        }
+      }
+    },
+    "calendar.cta.logData" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+ Log data for %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+ 记录 %@"
           }
         }
       }
@@ -1152,6 +1152,7 @@
       }
     },
     "calendar.stat.checkins" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1185,6 +1186,7 @@
       }
     },
     "calendar.stat.daysCount" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1201,6 +1203,7 @@
       }
     },
     "calendar.stat.gainDays" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1249,6 +1252,7 @@
       }
     },
     "calendar.stat.lossDays" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

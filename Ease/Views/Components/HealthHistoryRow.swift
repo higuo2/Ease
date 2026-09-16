@@ -9,9 +9,7 @@ struct HealthHistoryRow: View {
 
     init(date: Date, value: String, leadingWidth: CGFloat = 118) {
         self.leadingWidth = leadingWidth
-        self.leading = date.formatted(
-            Date.FormatStyle().weekday(.abbreviated).day().month(.abbreviated)
-        )
+        self.leading = date.formatted(EaseDateFormat.weekdayAbbrDayMonth)
         self.trailing = value
     }
 

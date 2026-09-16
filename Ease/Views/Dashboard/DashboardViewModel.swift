@@ -105,8 +105,12 @@ final class DashboardViewModel {
     }
 
     func openWeightLog(_ log: WeightLog) {
-        editingDate = CalendarDay.startOfDay(log.timestamp)
-        editingLogID = log.id
+        openWeightLog(id: log.id, timestamp: log.timestamp)
+    }
+
+    func openWeightLog(id: UUID, timestamp: Date) {
+        editingDate = CalendarDay.startOfDay(timestamp)
+        editingLogID = id
         isLogPresented = true
     }
 

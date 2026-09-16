@@ -28,7 +28,6 @@ struct MealPhotoThumbnail: View {
                     .resizable()
                     .scaledToFit()
                     .padding(8)
-                    .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
             } else if let original {
                 Image(uiImage: original)
                     .resizable()

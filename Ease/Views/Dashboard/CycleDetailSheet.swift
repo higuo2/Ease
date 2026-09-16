@@ -173,7 +173,7 @@ struct CycleDetailSheet: View {
     }
 
     private func spanLabel(_ span: CycleSpan) -> String {
-        let style = Date.FormatStyle().month(.abbreviated).day()
+        let style = EaseDateFormat.monthDay
         if Calendar.current.isDate(span.start, inSameDayAs: span.end) {
             return span.start.formatted(style)
         }

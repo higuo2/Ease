@@ -6,57 +6,95 @@ struct CalendarTabView: View {
     let logs: [WeightLog]
 
     @State private var visibleMonth = CalendarDay.startOfMonth(.now)
+    @State private var snapshot: CalendarMonthSnapshot?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    private var selectedDate: Date { viewModel.selectedDate }
-    private var selectedDayKey: String { CalendarDay.dayKey(from: selectedDate) }
-    private var monthDays: [Date] { CalendarDay.daysInMonth(containing: visibleMonth) }
-    private var leadingEmpty: Int { CalendarDay.leadingEmptyDays(inMonthContaining: visibleMonth) }
-    private var weekdaySymbols: [String] { CalendarDay.weekdayHeaderSymbols() }
-    private var gridColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
-    }
-
-    private var recordsByDay: [String: DailyRecord] {
-        Dictionary(records.map { ($0.dayKey, $0) }, uniquingKeysWith: { _, last in last })
-    }
-
     var body: some View {
-        let weightIndex = WeightMetrics.DayIndex.make(records: records, logs: logs)
-        let monthStats = MonthWeightStats.make(
-            weightIndex: weightIndex,
-            monthContaining: visibleMonth
-        )
-        let weekAverageWeight = WeekWeightStats.averageWeight(
-            weightIndex: weightIndex,
-            weekContaining: selectedDate
-        )
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
-                    VStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
-                        monthHeader
-                        calendarCard(weightIndex: weightIndex)
-                        selectedDayCard(weightIndex: weightIndex)
-                        monthOverviewCard(monthStats: monthStats, weekAverageWeight: weekAverageWeight)
+                    LazyVStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
+                        CalendarMonthHeader(visibleMonth: $visibleMonth)
+                        if let snapshot {
+                            CalendarMonthGrid(
+                                viewModel: viewModel,
+                                snapshot: snapshot,
+                                cellHeight: dayCellHeight,
+                                isAccessibilityType: isAccessibilityType
+                            )
+                            CalendarSelectedDayCard(viewModel: viewModel, snapshot: snapshot)
+                            CalendarMonthOverview(viewModel: viewModel, snapshot: snapshot)
+                        }
                     }
                     .easeTabScrollContent()
-                    .animation(.spring(response: 0.25, dampingFraction: 0.8), value: selectedDayKey)
                 }
             }
             .navigationTitle("tab.calendar")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
-            .sensoryFeedback(.selection, trigger: selectedDayKey)
             .sensoryFeedback(.selection, trigger: CalendarDay.dayKey(from: visibleMonth))
             .onChange(of: visibleMonth) { _, month in
                 alignSelection(to: month)
             }
+            .onChange(of: monthComputeID, initial: true) { _, _ in
+                snapshot = CalendarMonthSnapshot.make(
+                    records: records,
+                    logs: logs,
+                    visibleMonth: visibleMonth,
+                    healthByDay: viewModel.healthByDay,
+                    sleepHistory: viewModel.sleepHistory,
+                    cycleHistory: viewModel.cycleHistory
+                )
+            }
         }
     }
 
-    private var monthHeader: some View {
+    private var isAccessibilityType: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var dayCellHeight: CGFloat {
+        isAccessibilityType ? 92 : 64
+    }
+
+    /// Inputs that rebuild month stats / dots. Intentionally omits `selectedDate`.
+    private var monthComputeID: String {
+        let lastLog = logs.last.map {
+            "\($0.id.uuidString)-\($0.weight)-\($0.timestamp.timeIntervalSinceReferenceDate)"
+        } ?? "0"
+        let lastRecord = records.last.map {
+            "\($0.dayKey)-\($0.weight ?? -1)-\($0.note ?? "")-\($0.variableTags)"
+        } ?? "0"
+        return [
+            CalendarDay.dayKey(from: visibleMonth),
+            "\(records.count)",
+            "\(logs.count)",
+            "\(viewModel.healthByDay.count)",
+            "\(viewModel.sleepHistory.nights.count)",
+            "\(viewModel.cycleHistory.periodDayKeys.count)",
+            lastLog,
+            lastRecord
+        ].joined(separator: "|")
+    }
+
+    private func alignSelection(to month: Date) {
+        let days = CalendarDay.daysInMonth(containing: month)
+        let selectedKey = CalendarDay.dayKey(from: viewModel.selectedDate)
+        if days.contains(where: { CalendarDay.dayKey(from: $0) == selectedKey }) {
+            return
+        }
+        let fallback = days.last { !CalendarDay.isFuture($0) } ?? days.last
+        if let fallback {
+            viewModel.selectedDate = CalendarDay.startOfDay(fallback)
+        }
+    }
+}
+
+private struct CalendarMonthHeader: View {
+    @Binding var visibleMonth: Date
+
+    var body: some View {
         HStack {
             Button {
                 if let previous = Calendar.current.date(byAdding: .month, value: -1, to: visibleMonth) {
@@ -73,7 +111,7 @@ struct CalendarTabView: View {
             .accessibilityLabel(Text("calendar.previousMonth"))
 
             Spacer()
-            Text(visibleMonth, format: .dateTime.year().month(.wide))
+            Text(visibleMonth, format: EaseDateFormat.yearMonthWide)
                 .font(.headline)
                 .foregroundStyle(EasePalette.primaryText)
             Spacer()
@@ -96,12 +134,24 @@ struct CalendarTabView: View {
             .opacity(CalendarDay.startOfMonth(visibleMonth) >= CalendarDay.startOfMonth(.now) ? 0.35 : 1)
         }
     }
+}
 
-    private func calendarCard(weightIndex: WeightMetrics.DayIndex) -> some View {
+private struct CalendarMonthGrid: View {
+    @Bindable var viewModel: DashboardViewModel
+    let snapshot: CalendarMonthSnapshot
+    let cellHeight: CGFloat
+    let isAccessibilityType: Bool
+
+    private var gridColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+    }
+
+    var body: some View {
+        let selectedKey = CalendarDay.dayKey(from: viewModel.selectedDate)
         EaseCard(padding: 16) {
             VStack(spacing: 12) {
                 LazyVGrid(columns: gridColumns, spacing: 4) {
-                    ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
+                    ForEach(Array(snapshot.weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                         Text(symbol)
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
@@ -109,48 +159,55 @@ struct CalendarTabView: View {
                     }
                 }
                 LazyVGrid(columns: gridColumns, spacing: 8) {
-                    ForEach(0..<leadingEmpty, id: \.self) { _ in
-                        Color.clear.frame(height: dayCellHeight)
+                    ForEach(0..<snapshot.leadingEmpty, id: \.self) { _ in
+                        Color.clear.frame(height: cellHeight)
                     }
-                    ForEach(monthDays, id: \.self) { day in
-                        dayCell(day, weightIndex: weightIndex)
+                    ForEach(snapshot.days) { day in
+                        CalendarDayCell(
+                            day: day,
+                            isSelected: day.dayKey == selectedKey,
+                            height: cellHeight,
+                            isAccessibilityType: isAccessibilityType,
+                            onSelect: {
+                                viewModel.selectedDate = day.date
+                            }
+                        )
                     }
                 }
             }
         }
+        .sensoryFeedback(.selection, trigger: selectedKey)
+    }
+}
+
+private struct CalendarDayCell: View, Equatable {
+    let day: CalendarDaySnapshot
+    let isSelected: Bool
+    let height: CGFloat
+    let isAccessibilityType: Bool
+    let onSelect: () -> Void
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.day == rhs.day
+            && lhs.isSelected == rhs.isSelected
+            && lhs.height == rhs.height
+            && lhs.isAccessibilityType == rhs.isAccessibilityType
     }
 
-    private var isAccessibilityType: Bool {
-        dynamicTypeSize.isAccessibilitySize
-    }
-
-    private var dayCellHeight: CGFloat {
-        isAccessibilityType ? 92 : 64
-    }
-
-    private func dayCell(
-        _ day: Date,
-        weightIndex: WeightMetrics.DayIndex
-    ) -> some View {
-        let isFuture = CalendarDay.isFuture(day)
-        let isSelected = CalendarDay.dayKey(from: day) == selectedDayKey
-        let isToday = Calendar.current.isDateInToday(day)
-        let weight = weightIndex.weight(on: day)
-        let dots = statusDots(on: day, hasWeight: weight != nil)
-        let faded = isFuture || (weight == nil && dots.isEmpty)
-
-        return Button {
-            guard !isFuture else { return }
-            viewModel.selectedDate = CalendarDay.startOfDay(day)
+    var body: some View {
+        let faded = day.isFuture || (day.weight == nil && day.marks.isEmpty)
+        Button {
+            guard !day.isFuture else { return }
+            onSelect()
         } label: {
             VStack(spacing: 3) {
-                Text("\(Calendar.current.component(.day, from: day))")
+                Text("\(day.dayNumber)")
                     .font(.system(.body, design: .rounded, weight: isSelected ? .semibold : .regular))
                     .monospacedDigit()
-                    .foregroundStyle(dayNumberStyle(isFuture: isFuture, faded: faded, isSelected: isSelected))
+                    .foregroundStyle(dayNumberStyle(faded: faded))
                     .frame(width: 30, height: 30)
                     .background {
-                        if isToday && !isSelected {
+                        if day.isToday && !isSelected {
                             Circle().fill(EasePalette.accent.opacity(0.12))
                         }
                     }
@@ -162,17 +219,21 @@ struct CalendarTabView: View {
                     }
 
                 HStack(spacing: 3) {
-                    ForEach(Array(dots.enumerated()), id: \.offset) { _, color in
-                        Circle()
-                            .fill(color)
-                            .frame(width: 4, height: 4)
+                    if day.marks.contains(.weight) {
+                        Circle().fill(EasePalette.mint).frame(width: 4, height: 4)
+                    }
+                    if day.marks.contains(.period) {
+                        Circle().fill(EasePalette.periodRose).frame(width: 4, height: 4)
+                    }
+                    if day.marks.contains(.sleep) {
+                        Circle().fill(EasePalette.iconSleep).frame(width: 4, height: 4)
                     }
                 }
                 .frame(height: 4)
-                .opacity(dots.isEmpty ? 0 : 1)
+                .opacity(day.marks.isEmpty ? 0 : 1)
 
                 Group {
-                    if let weight, !isFuture {
+                    if let weight = day.weight, !day.isFuture {
                         Text(EaseFormatters.oneDecimal(weight))
                             .font(.caption2.monospacedDigit())
                             .foregroundStyle(EasePalette.primaryText)
@@ -185,74 +246,42 @@ struct CalendarTabView: View {
                 .frame(height: isAccessibilityType ? 16 : 12)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: dayCellHeight)
+            .frame(height: height)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(isFuture)
-        .accessibilityLabel(dayAccessibilityLabel(day, weight: weight, dots: dots, isFuture: isFuture))
+        .disabled(day.isFuture)
+        .accessibilityLabel(day.accessibilityLabel)
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
+        .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isSelected)
     }
 
-    private func dayNumberStyle(isFuture: Bool, faded: Bool, isSelected: Bool) -> AnyShapeStyle {
-        if isFuture || faded { return AnyShapeStyle(.tertiary) }
-        if isSelected { return AnyShapeStyle(EasePalette.primaryText) }
+    private func dayNumberStyle(faded: Bool) -> AnyShapeStyle {
+        if day.isFuture || faded { return AnyShapeStyle(.tertiary) }
         return AnyShapeStyle(EasePalette.primaryText)
     }
+}
 
-    private func statusDots(on day: Date, hasWeight: Bool) -> [Color] {
-        var dots: [Color] = []
-        if hasWeight { dots.append(EasePalette.mint) }
-        if isPeriod(on: day) { dots.append(EasePalette.periodRose) }
-        if sleepHours(on: day) != nil { dots.append(EasePalette.iconSleep) }
-        return Array(dots.prefix(3))
-    }
+private struct CalendarSelectedDayCard: View {
+    @Bindable var viewModel: DashboardViewModel
+    let snapshot: CalendarMonthSnapshot
 
-    private func dayAccessibilityLabel(
-        _ day: Date,
-        weight: Double?,
-        dots: [Color],
-        isFuture: Bool
-    ) -> String {
-        let dateText = day.formatted(.dateTime.month(.abbreviated).day())
-        if isFuture { return dateText }
-        var parts = [dateText]
-        if let weight {
-            parts.append(EaseFormatters.kg(weight))
-        }
-        if isPeriod(on: day) {
-            parts.append(String(localized: "calendar.detail.period"))
-        }
-        if sleepHours(on: day) != nil {
-            parts.append(String(localized: "calendar.detail.sleep"))
-        }
-        if dots.isEmpty && weight == nil {
-            parts.append(String(localized: "calendar.cell.empty"))
-        }
-        return parts.joined(separator: ", ")
-    }
+    var body: some View {
+        let selected = snapshot.day(for: viewModel.selectedDate)
+        let hasLogs = selected.map(\.hasLogs) ?? false
 
-    @ViewBuilder
-    private func selectedDayCard(weightIndex: WeightMetrics.DayIndex) -> some View {
-        let weight = weightIndex.weight(on: selectedDate)
-        let sleep = sleepHours(on: selectedDate)
-        let periodDay = viewModel.cycleHistory.periodDayNumber(on: selectedDate)
-        let periodLogged = isPeriod(on: selectedDate)
-        let note = note(on: selectedDate)
-        let hasLogs = weight != nil || sleep != nil || periodLogged || note != nil
-
-        if hasLogs {
+        if let selected, hasLogs {
             EaseCard(padding: 20) {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text(selectedDate, format: .dateTime.weekday(.wide).month(.abbreviated).day())
+                        Text(selected.date, format: EaseDateFormat.weekdayMonthDay)
                             .font(.headline)
                             .foregroundStyle(EasePalette.primaryText)
                             .lineLimit(1)
                             .minimumScaleFactor(0.85)
                         Spacer(minLength: 8)
                         Button("common.edit") {
-                            viewModel.openWeightEntry(for: selectedDate)
+                            viewModel.openWeightEntry(for: selected.date)
                         }
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(EasePalette.secondaryText)
@@ -269,19 +298,19 @@ struct CalendarTabView: View {
                     ) {
                         detailMetric(
                             "calendar.detail.weight",
-                            weight.map { EaseFormatters.kg($0) }
+                            selected.weight.map { EaseFormatters.kg($0) }
                         )
                         detailMetric(
                             "calendar.detail.sleep",
-                            sleep.map(EaseFormatters.sleepDuration)
+                            selected.sleepHours.map(EaseFormatters.sleepDuration)
                         )
                         detailMetric(
                             "calendar.detail.period",
-                            periodValue(dayNumber: periodDay, logged: periodLogged)
+                            periodValue(dayNumber: selected.periodDayNumber, logged: selected.marks.contains(.period))
                         )
                         detailMetric(
                             "calendar.detail.notes",
-                            note,
+                            selected.note,
                             lineLimit: 2
                         )
                     }
@@ -289,7 +318,7 @@ struct CalendarTabView: View {
             }
         } else {
             Button {
-                viewModel.openWeightEntry(for: selectedDate)
+                viewModel.openWeightEntry(for: viewModel.selectedDate)
             } label: {
                 Text(emptyCTATitle)
                     .font(.subheadline.weight(.medium))
@@ -314,7 +343,7 @@ struct CalendarTabView: View {
         String(
             format: String(localized: "calendar.cta.logData"),
             locale: .current,
-            selectedDate.formatted(.dateTime.month(.abbreviated).day())
+            viewModel.selectedDate.formatted(EaseDateFormat.monthDay)
         )
     }
 
@@ -348,11 +377,17 @@ struct CalendarTabView: View {
         }
         return logged ? String(localized: "calendar.detail.periodYes") : nil
     }
+}
 
-    private func monthOverviewCard(
-        monthStats: MonthWeightStats,
-        weekAverageWeight: Double?
-    ) -> some View {
+private struct CalendarMonthOverview: View {
+    @Bindable var viewModel: DashboardViewModel
+    let snapshot: CalendarMonthSnapshot
+
+    var body: some View {
+        let weekAverageWeight = WeekWeightStats.averageWeight(
+            weightIndex: WeightMetrics.DayIndex(lastWeightByDay: snapshot.lastWeightByDay),
+            weekContaining: viewModel.selectedDate
+        )
         EaseCard(padding: 20) {
             VStack(alignment: .leading, spacing: 14) {
                 Text(overviewTitle)
@@ -369,12 +404,12 @@ struct CalendarTabView: View {
                 ) {
                     overviewStat(
                         "calendar.stat.monthAvg",
-                        monthStats.averageWeight.map { EaseFormatters.kg($0) }
+                        snapshot.stats.averageWeight.map { EaseFormatters.kg($0) }
                     )
                     overviewStat(
                         "calendar.stat.monthDelta",
-                        netChangeText(monthStats.monthDelta),
-                        valueColor: monthStats.monthDelta.map(EasePalette.semanticDelta)
+                        netChangeText(snapshot.stats.monthDelta),
+                        valueColor: snapshot.stats.monthDelta.map(EasePalette.semanticDelta)
                     )
                     overviewStat(
                         "calendar.stat.weekAvg",
@@ -385,8 +420,8 @@ struct CalendarTabView: View {
                         String(
                             format: String(localized: "calendar.stat.loggedDays.value"),
                             locale: .current,
-                            monthStats.checkinDays,
-                            monthStats.elapsedDays
+                            snapshot.stats.checkinDays,
+                            snapshot.stats.elapsedDays
                         )
                     )
                 }
@@ -398,7 +433,7 @@ struct CalendarTabView: View {
         String(
             format: String(localized: "calendar.overview.title"),
             locale: .current,
-            visibleMonth.formatted(.dateTime.month(.wide))
+            snapshot.month.formatted(EaseDateFormat.monthWide)
         )
     }
 
@@ -433,41 +468,157 @@ struct CalendarTabView: View {
         let arrow = delta < 0 ? "▼ " : "▲ "
         return arrow + EaseFormatters.oneDecimal(abs(delta)) + "\u{00A0}" + String(localized: "unit.kg")
     }
+}
 
-    private func sleepHours(on date: Date) -> Double? {
-        let key = CalendarDay.dayKey(from: date)
-        return viewModel.healthByDay[key]?.previousNightSleepHours
-            ?? viewModel.sleepHistory.hours(on: date)
-    }
+struct CalendarDayMarks: OptionSet, Equatable, Sendable {
+    let rawValue: UInt8
 
-    private func isPeriod(on date: Date) -> Bool {
-        let key = CalendarDay.dayKey(from: date)
-        if viewModel.healthByDay[key]?.isMenstrual == true { return true }
-        if viewModel.cycleHistory.isMenstrual(date) { return true }
-        return recordsByDay[key]?.variableTags.contains(.period) == true
-    }
+    static let weight = CalendarDayMarks(rawValue: 1 << 0)
+    static let period = CalendarDayMarks(rawValue: 1 << 1)
+    static let sleep = CalendarDayMarks(rawValue: 1 << 2)
+}
 
-    private func note(on date: Date) -> String? {
-        let trimmed = recordsByDay[CalendarDay.dayKey(from: date)]?.note?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let trimmed, !trimmed.isEmpty else { return nil }
-        return trimmed
-    }
+struct CalendarDaySnapshot: Equatable, Identifiable, Sendable {
+    var id: String { dayKey }
+    var dayKey: String
+    var date: Date
+    var dayNumber: Int
+    var weight: Double?
+    var sleepHours: Double?
+    var marks: CalendarDayMarks
+    var note: String?
+    var periodDayNumber: Int?
+    var isFuture: Bool
+    var isToday: Bool
+    var accessibilityLabel: String
 
-    private func alignSelection(to month: Date) {
-        let days = CalendarDay.daysInMonth(containing: month)
-        let selectedKey = CalendarDay.dayKey(from: selectedDate)
-        if days.contains(where: { CalendarDay.dayKey(from: $0) == selectedKey }) {
-            return
-        }
-        let fallback = days.last { !CalendarDay.isFuture($0) } ?? days.last
-        if let fallback {
-            viewModel.selectedDate = CalendarDay.startOfDay(fallback)
-        }
+    var hasLogs: Bool {
+        weight != nil || sleepHours != nil || marks.contains(.period) || note != nil
     }
 }
 
-struct MonthWeightStats {
+struct CalendarMonthSnapshot: Equatable, Sendable {
+    var month: Date
+    var weekdaySymbols: [String]
+    var leadingEmpty: Int
+    var days: [CalendarDaySnapshot]
+    var stats: MonthWeightStats
+    var lastWeightByDay: [String: Double]
+
+    func day(for date: Date, calendar: Calendar = .current) -> CalendarDaySnapshot? {
+        let key = CalendarDay.dayKey(from: date, calendar: calendar)
+        return days.first { $0.dayKey == key }
+    }
+
+    static func make(
+        records: [DailyRecord],
+        logs: [WeightLog],
+        visibleMonth: Date,
+        healthByDay: [String: HealthDaySnapshot],
+        sleepHistory: SleepHistory,
+        cycleHistory: CycleHistory,
+        calendar: Calendar = .current,
+        now: Date = .now
+    ) -> CalendarMonthSnapshot {
+        let weightIndex = WeightMetrics.DayIndex.make(records: records, logs: logs, calendar: calendar)
+        let recordsByDay = WeightMetrics.recordsByDayKey(records)
+        let monthDays = CalendarDay.daysInMonth(containing: visibleMonth, calendar: calendar)
+        let days: [CalendarDaySnapshot] = monthDays.map { day in
+            makeDay(
+                day,
+                weightIndex: weightIndex,
+                recordsByDay: recordsByDay,
+                healthByDay: healthByDay,
+                sleepHistory: sleepHistory,
+                cycleHistory: cycleHistory,
+                calendar: calendar,
+                now: now
+            )
+        }
+        return CalendarMonthSnapshot(
+            month: CalendarDay.startOfMonth(visibleMonth, calendar: calendar),
+            weekdaySymbols: CalendarDay.weekdayHeaderSymbols(calendar: calendar),
+            leadingEmpty: CalendarDay.leadingEmptyDays(inMonthContaining: visibleMonth, calendar: calendar),
+            days: days,
+            stats: MonthWeightStats.make(weightIndex: weightIndex, monthContaining: visibleMonth, calendar: calendar),
+            lastWeightByDay: weightIndex.lastWeightByDay
+        )
+    }
+
+    private static func makeDay(
+        _ day: Date,
+        weightIndex: WeightMetrics.DayIndex,
+        recordsByDay: [String: DailyRecord],
+        healthByDay: [String: HealthDaySnapshot],
+        sleepHistory: SleepHistory,
+        cycleHistory: CycleHistory,
+        calendar: Calendar,
+        now: Date
+    ) -> CalendarDaySnapshot {
+        let key = CalendarDay.dayKey(from: day, calendar: calendar)
+        let isFuture = CalendarDay.isFuture(day, calendar: calendar)
+        let weight = weightIndex.weight(on: day, calendar: calendar)
+        let sleep = healthByDay[key]?.previousNightSleepHours ?? sleepHistory.hours(on: day, calendar: calendar)
+        var marks: CalendarDayMarks = []
+        if weight != nil { marks.insert(.weight) }
+        let periodLogged = healthByDay[key]?.isMenstrual == true
+            || cycleHistory.isMenstrual(day, calendar: calendar)
+            || recordsByDay[key]?.variableTags.contains(.period) == true
+        if periodLogged { marks.insert(.period) }
+        if sleep != nil { marks.insert(.sleep) }
+        let note = recordsByDay[key]?.note?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedNote = (note?.isEmpty == false) ? note : nil
+        return CalendarDaySnapshot(
+            dayKey: key,
+            date: CalendarDay.startOfDay(day, calendar: calendar),
+            dayNumber: calendar.component(.day, from: day),
+            weight: weight,
+            sleepHours: sleep,
+            marks: marks,
+            note: trimmedNote,
+            periodDayNumber: cycleHistory.periodDayNumber(on: day, calendar: calendar),
+            isFuture: isFuture,
+            isToday: calendar.isDate(day, inSameDayAs: now),
+            accessibilityLabel: accessibilityLabel(
+                day: day,
+                weight: weight,
+                period: periodLogged,
+                sleep: sleep != nil,
+                isFuture: isFuture,
+                empty: marks.isEmpty && weight == nil
+            )
+        )
+    }
+
+    private static func accessibilityLabel(
+        day: Date,
+        weight: Double?,
+        period: Bool,
+        sleep: Bool,
+        isFuture: Bool,
+        empty: Bool
+    ) -> String {
+        let dateText = day.formatted(EaseDateFormat.monthDay)
+        if isFuture { return dateText }
+        var parts = [dateText]
+        if let weight {
+            parts.append(EaseFormatters.kg(weight))
+        }
+        if period {
+            parts.append(String(localized: "calendar.detail.period"))
+        }
+        if sleep {
+            parts.append(String(localized: "calendar.detail.sleep"))
+        }
+        if empty {
+            parts.append(String(localized: "calendar.cell.empty"))
+        }
+        return parts.joined(separator: ", ")
+    }
+}
+
+struct MonthWeightStats: Equatable, Sendable {
     var checkinDays: Int
     var elapsedDays: Int
     var lossDays: Int

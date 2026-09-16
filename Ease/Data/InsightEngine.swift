@@ -142,7 +142,12 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
         for offset in 0..<7 {
             let date = CalendarDay.addingDays(offset, to: today, calendar: calendar)
             if calendar.component(.weekday, from: date) == weekday {
-                return date.formatted(Date.FormatStyle(locale: locale, calendar: calendar).weekday(style))
+                var format = style == .abbreviated
+                    ? EaseDateFormat.weekdayAbbreviated
+                    : EaseDateFormat.weekdayWide
+                format.locale = locale
+                format.calendar = calendar
+                return date.formatted(format)
             }
         }
         return ""

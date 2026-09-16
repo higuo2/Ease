@@ -311,7 +311,7 @@ struct SettingsSheet: View {
                     Text("settings.weightReminder")
                         .font(.body)
                     Spacer()
-                    Text(weightReminderDate, format: .dateTime.hour().minute())
+                    Text(weightReminderDate, format: EaseDateFormat.hourMinute)
                         .font(.body.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
@@ -328,17 +328,10 @@ struct SettingsSheet: View {
     private var modulesSection: some View {
         Section {
             ForEach(HomeModule.selectable) { module in
-                Toggle(isOn: moduleBinding(module)) {
-                    Label {
-                        Text(LocalizedStringKey(module.titleKey))
-                            .font(.body)
-                    } icon: {
-                        SettingsRowIcon(systemName: module.symbolName, tint: module.settingsIconTint)
-                    }
-                }
-                .tint(Color(.systemGreen))
-                .contentShape(Rectangle())
-                .sensoryFeedback(.selection, trigger: profile.homeModules.contains(module))
+                SettingsModuleToggleRow(
+                    module: module,
+                    isOn: moduleBinding(module)
+                )
             }
         } header: {
             SettingsSectionHeader(title: "settings.section.modules")
@@ -695,6 +688,29 @@ struct SettingsSheet: View {
     }
 }
 
+private struct SettingsModuleToggleRow: View, Equatable {
+    let module: HomeModule
+    @Binding var isOn: Bool
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.module == rhs.module && lhs.isOn == rhs.isOn
+    }
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            Label {
+                Text(LocalizedStringKey(module.titleKey))
+                    .font(.body)
+            } icon: {
+                SettingsRowIcon(systemName: module.symbolName, tint: module.settingsIconTint)
+            }
+        }
+        .tint(Color(.systemGreen))
+        .contentShape(Rectangle())
+        .sensoryFeedback(.selection, trigger: isOn)
+    }
+}
+
 private struct SettingsMetricToggleRow: View {
     @Environment(\.modelContext) private var modelContext
     let definition: MetricDefinition
@@ -783,7 +799,7 @@ private struct SettingsSectionHeader: View {
     }
 }
 
-private struct SettingsRowIcon: View {
+private struct SettingsRowIcon: View, Equatable {
     let systemName: String
     var tint: Color = EasePalette.primaryText
 

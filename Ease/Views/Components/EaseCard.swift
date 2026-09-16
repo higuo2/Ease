@@ -28,12 +28,15 @@ struct EaseCard<Content: View>: View {
     }
 
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         let card = content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
-            .background(fill)
-            .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .background(fill, in: shape)
+            .overlay {
+                shape.strokeBorder(Color.black.opacity(0.04), lineWidth: 1)
+            }
 
         Group {
             if combinesChildren {

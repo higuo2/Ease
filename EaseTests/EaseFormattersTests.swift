@@ -105,7 +105,7 @@ final class EaseFormattersTests: XCTestCase {
         monthStart.month = 10
         monthStart.day = 1
         let monthName = (calendar.date(from: monthStart) ?? now)
-            .formatted(Date.FormatStyle().month(.wide))
+            .formatted(EaseDateFormat.monthWide)
         XCTAssertEqual(
             EaseFormatters.advancedPaceHorizon(
                 calendar.testDate(2026, 10, 15),

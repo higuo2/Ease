@@ -1,5 +1,26 @@
 import Foundation
 
+/// Cached `FormatStyle` values so views never allocate formatters in `body`.
+enum EaseDateFormat {
+    static let monthDay = Date.FormatStyle().month(.abbreviated).day()
+    static let monthDayNumeric = Date.FormatStyle().month(.defaultDigits).day()
+    static let monthWide = Date.FormatStyle().month(.wide)
+    static let yearMonthWide = Date.FormatStyle().year().month(.wide)
+    static let monthYearWide = Date.FormatStyle().month(.wide).year()
+    static let weekdayMonthDay = Date.FormatStyle().weekday(.wide).month(.abbreviated).day()
+    static let numericDate = Date.FormatStyle()
+        .year(.defaultDigits)
+        .month(.twoDigits)
+        .day(.twoDigits)
+    static let weekdayAbbrDayMonth = Date.FormatStyle()
+        .weekday(.abbreviated)
+        .day()
+        .month(.abbreviated)
+    static let weekdayWide = Date.FormatStyle().weekday(.wide)
+    static let weekdayAbbreviated = Date.FormatStyle().weekday(.abbreviated)
+    static let hourMinute = Date.FormatStyle().hour().minute()
+}
+
 enum EaseFormatters {
     static func oneDecimal(_ value: Double) -> String {
         String(format: "%.1f", locale: .current, value)
@@ -46,7 +67,7 @@ enum EaseFormatters {
     }
 
     static func cycleNext(_ date: Date) -> String {
-        let stamp = date.formatted(Date.FormatStyle().month(.abbreviated).day())
+        let stamp = date.formatted(EaseDateFormat.monthDay)
         return String(format: String(localized: "cycle.next"), locale: .current, stamp)
     }
 
@@ -85,12 +106,7 @@ enum EaseFormatters {
 
     /// Locale-ordered numeric date with zero-padded month/day (avoids `19/ 8/2026`).
     static func numericDate(_ date: Date) -> String {
-        date.formatted(
-            Date.FormatStyle()
-                .year(.defaultDigits)
-                .month(.twoDigits)
-                .day(.twoDigits)
-        )
+        date.formatted(EaseDateFormat.numericDate)
     }
 
     static func paceETA(_ date: Date, now: Date = .now, calendar: Calendar = .current) -> String {
@@ -128,11 +144,7 @@ enum EaseFormatters {
         components.day = 1
         let monthDate = calendar.date(from: components) ?? eta
         let sameYear = calendar.component(.year, from: now) == year
-        let monthName = monthDate.formatted(
-            sameYear
-                ? Date.FormatStyle().month(.wide)
-                : Date.FormatStyle().year(.defaultDigits).month(.wide)
-        )
+        let monthName = monthDate.formatted(sameYear ? EaseDateFormat.monthWide : EaseDateFormat.yearMonthWide)
         switch part {
         case .early:
             return String(format: String(localized: "format.paceMonth.early"), locale: .current, monthName)

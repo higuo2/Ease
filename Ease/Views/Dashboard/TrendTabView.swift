@@ -9,15 +9,11 @@ struct TrendTabView: View {
 
     @State private var chartFocusDate: Date?
     @State private var chartFocusNonce = 0
-
-    private var snapshot: DashboardSnapshot {
-        DashboardSnapshot.make(
-            profile: profile,
-            records: records,
-            logs: logs,
-            now: viewModel.selectedDate
-        )
-    }
+    @State private var chartModel: TrendChartModel?
+    @State private var rangeStats: TrendRangeStats?
+    @State private var snapshot: DashboardSnapshot?
+    @State private var estimate: AdvancedPaceEstimator.Result?
+    @State private var insights: [HealthInsight] = []
 
     var body: some View {
         NavigationStack {
@@ -26,45 +22,40 @@ struct TrendTabView: View {
                 if hasWeighIns {
                     ScrollViewReader { proxy in
                         ScrollView {
-                            VStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
-                                TrendChartCard(
-                                    records: records,
-                                    logs: logs,
-                                    range: viewModel.chartRange,
-                                    targetWeight: snapshot.targetWeight > 0 ? snapshot.targetWeight : nil,
-                                    logSheetPresented: viewModel.isLogPresented,
-                                    focusDate: chartFocusDate,
-                                    focusNonce: chartFocusNonce,
-                                    onSelectRange: { viewModel.chartRange = $0 },
-                                    onSelectLog: { viewModel.openWeightLog($0) }
-                                )
-                                .id("trend.chart")
-                                TrendStatsGrid(
-                                    records: records,
-                                    logs: logs,
-                                    range: viewModel.chartRange,
-                                    targetWeight: snapshot.targetWeight,
-                                    onFocusDay: { date in
-                                        if let date {
-                                            chartFocusDate = date
-                                            chartFocusNonce += 1
+                            LazyVStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
+                                if let chartModel {
+                                    TrendChartCard(
+                                        model: chartModel,
+                                        targetWeight: snapshot.flatMap { $0.targetWeight > 0 ? $0.targetWeight : nil },
+                                        logSheetPresented: viewModel.isLogPresented,
+                                        focusDate: chartFocusDate,
+                                        focusNonce: chartFocusNonce,
+                                        onSelectRange: { viewModel.chartRange = $0 },
+                                        onSelectLog: { id, timestamp in
+                                            viewModel.openWeightLog(id: id, timestamp: timestamp)
                                         }
-                                        withAnimation(.easeInOut(duration: 0.25)) {
-                                            proxy.scrollTo("trend.chart", anchor: .top)
+                                    )
+                                    .id("trend.chart")
+                                }
+                                if let rangeStats {
+                                    TrendStatsGrid(
+                                        stats: rangeStats,
+                                        onFocusDay: { date in
+                                            if let date {
+                                                chartFocusDate = date
+                                                chartFocusNonce += 1
+                                            }
+                                            withAnimation(.easeInOut(duration: 0.25)) {
+                                                proxy.scrollTo("trend.chart", anchor: .top)
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                                 AdvancedEstimateCard(
-                                    profile: profile,
-                                    records: records,
-                                    logs: logs,
-                                    healthByDay: viewModel.healthByDay,
-                                    sleepHistory: viewModel.sleepHistory,
-                                    energyHistory: viewModel.energyHistory,
-                                    cycleHistory: viewModel.cycleHistory,
-                                    snapshot: snapshot
+                                    snapshot: snapshot,
+                                    estimate: estimate
                                 )
-                                HealthInsightsCard(insights: insightReport.trend)
+                                HealthInsightsCard(insights: insights)
                             }
                             .easeTabScrollContent()
                         }
@@ -82,36 +73,105 @@ struct TrendTabView: View {
             .navigationTitle("tab.trend")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
+            .onChange(of: chartComputeID, initial: true) { _, _ in
+                refreshChart()
+            }
+            .onChange(of: analysisComputeID, initial: true) { _, _ in
+                refreshAnalysis()
+            }
         }
     }
 
     private var hasWeighIns: Bool {
-        !WeightMetrics.samples(from: records, logs: logs).isEmpty
+        !logs.isEmpty || records.contains { $0.weight != nil }
     }
 
-    private var insightReport: HealthInsightReport {
-        HealthInsightEngine.report(
+    /// Chart series + range stats. Omits health insights and selected-day snapshot.
+    private var chartComputeID: String {
+        let logStamp = logs.last.map {
+            "\($0.id.uuidString)-\($0.weight)-\($0.timestamp.timeIntervalSinceReferenceDate)"
+        } ?? "0"
+        let recordStamp = records.last.map {
+            "\($0.dayKey)-\($0.weight ?? -1)-\($0.updatedAt.timeIntervalSinceReferenceDate)"
+        } ?? "0"
+        return "\(records.count)|\(logs.count)|\(viewModel.chartRange.rawValue)|\(profile?.targetWeight ?? 0)|\(logStamp)|\(recordStamp)"
+    }
+
+    /// Insights / advanced estimate. Omits chart range so chips don't rebuild analysis.
+    private var analysisComputeID: String {
+        let logStamp = logs.last.map { "\($0.id.uuidString)-\($0.weight)" } ?? "0"
+        return [
+            "\(records.count)",
+            "\(logs.count)",
+            "\(viewModel.healthByDay.count)",
+            "\(viewModel.sleepHistory.nights.count)",
+            "\(viewModel.energyHistory.days.count)",
+            "\(viewModel.cycleHistory.periodDayKeys.count)",
+            "\(profile?.sleepTargetHours ?? 8)",
+            "\(profile?.targetWeight ?? 0)",
+            "\(profile?.startWeight ?? 0)",
+            CalendarDay.dayKey(from: viewModel.selectedDate),
+            logStamp
+        ].joined(separator: "|")
+    }
+
+    private func refreshChart() {
+        let model = TrendChartModel.make(
             records: records,
             logs: logs,
+            range: viewModel.chartRange,
+            targetWeight: profile?.targetWeight
+        )
+        chartModel = model
+        rangeStats = TrendRangeStats.make(
+            daily: model.daily,
+            range: model.range,
+            targetWeight: profile?.targetWeight ?? 0
+        )
+    }
+
+    private func refreshAnalysis() {
+        let nextSnapshot = DashboardSnapshot.make(
+            profile: profile,
+            records: records,
+            logs: logs,
+            now: viewModel.selectedDate
+        )
+        snapshot = nextSnapshot
+        let samples = WeightMetrics.samples(from: records, logs: logs)
+        let series = HealthInsightEngine.series(
             healthByDay: viewModel.healthByDay,
             sleepHistory: viewModel.sleepHistory,
             energyHistory: viewModel.energyHistory,
             cycleHistory: viewModel.cycleHistory
         )
+        insights = HealthInsightEngine.evaluate(
+            samples: samples,
+            series: series
+        ).trend
+        estimate = AdvancedPaceEstimator.estimate(
+            samples: samples,
+            targetWeight: nextSnapshot.targetWeight,
+            displayWeight: nextSnapshot.displayWeight,
+            progress: nextSnapshot.progress,
+            context: .init(
+                sleepHoursByDay: series.sleepHoursByDay,
+                energyKcalByDay: series.energyKcalByDay,
+                periodDayKeys: series.periodDayKeys,
+                sleepTargetHours: profile?.sleepTargetHours ?? 8.0
+            )
+        )
     }
 }
 
-struct TrendStatsGrid: View {
-    let records: [DailyRecord]
-    let logs: [WeightLog]
-    let range: ChartRange
-    let targetWeight: Double
+struct TrendStatsGrid: View, Equatable {
+    let stats: TrendRangeStats
     var onFocusDay: (Date?) -> Void = { _ in }
 
     @State private var selectionTick = 0
 
-    private var stats: TrendRangeStats {
-        TrendRangeStats.make(records: records, logs: logs, range: range, targetWeight: targetWeight)
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.stats == rhs.stats
     }
 
     var body: some View {
@@ -126,13 +186,13 @@ struct TrendStatsGrid: View {
             weightStat(
                 "trend.stats.high",
                 value: stats.high,
-                subtitle: stats.highDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) },
+                subtitle: stats.highDate.map { $0.formatted(EaseDateFormat.monthDayNumeric) },
                 focusDate: stats.highDate
             )
             weightStat(
                 "trend.stats.low",
                 value: stats.low,
-                subtitle: stats.lowDate.map { $0.formatted(.dateTime.month(.defaultDigits).day()) },
+                subtitle: stats.lowDate.map { $0.formatted(EaseDateFormat.monthDayNumeric) },
                 focusDate: stats.lowDate
             )
             weightStat(
@@ -243,7 +303,7 @@ struct TrendStatsGrid: View {
     }
 }
 
-struct TrendRangeStats {
+struct TrendRangeStats: Equatable, Sendable {
     var high: Double?
     var highDate: Date?
     var low: Double?
@@ -256,43 +316,24 @@ struct TrendRangeStats {
     var lastDate: Date?
 
     static func make(
-        records: [DailyRecord],
-        logs: [WeightLog],
+        daily: [TrendChartPoint],
         range: ChartRange,
-        targetWeight: Double,
-        now: Date = .now,
-        calendar: Calendar = .current
+        targetWeight: Double
     ) -> TrendRangeStats {
-        let end = CalendarDay.startOfDay(now, calendar: calendar)
-        let start: Date
-        if let count = range.dayCount {
-            start = CalendarDay.addingDays(-(count - 1), to: end, calendar: calendar)
-        } else {
-            let samples = WeightMetrics.samples(from: records, logs: logs, calendar: calendar)
-            start = samples.map(\.date).min().map { CalendarDay.startOfDay($0, calendar: calendar) } ?? end
-        }
-        let lastPerDay = WeightMetrics.lastPerDay(
-            samples: WeightMetrics.samples(from: records, logs: logs, calendar: calendar),
-            calendar: calendar
-        )
-        .filter {
-            let day = CalendarDay.startOfDay($0.date, calendar: calendar)
-            return day >= start && day <= end
-        }
-        let highSample = lastPerDay.max(by: { $0.weight < $1.weight })
-        let lowSample = lastPerDay.min(by: { $0.weight < $1.weight })
-        let weights = lastPerDay.map(\.weight)
+        let highSample = daily.max(by: { $0.weight < $1.weight })
+        let lowSample = daily.min(by: { $0.weight < $1.weight })
+        let weights = daily.map(\.weight)
         let average = weights.isEmpty
             ? nil
             : MeasurementBounds.roundedToTenth(weights.reduce(0, +) / Double(weights.count))
         let change: Double?
-        if let first = lastPerDay.first?.weight, let last = lastPerDay.last?.weight {
+        if let first = daily.first?.weight, let last = daily.last?.weight {
             change = MeasurementBounds.roundedToTenth(last - first)
         } else {
             change = nil
         }
         let distance: Double?
-        if let last = lastPerDay.last?.weight, targetWeight > 0 {
+        if let last = daily.last?.weight, targetWeight > 0 {
             distance = MeasurementBounds.roundedToTenth(abs(last - targetWeight))
         } else {
             distance = nil
@@ -313,7 +354,7 @@ struct TrendRangeStats {
             change: change,
             distanceToTarget: distance,
             recordedDays: weights.isEmpty ? nil : weights.count,
-            lastDate: lastPerDay.last?.date
+            lastDate: daily.last?.date
         )
     }
 }

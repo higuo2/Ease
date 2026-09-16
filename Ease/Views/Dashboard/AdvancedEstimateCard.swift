@@ -1,39 +1,19 @@
 import SwiftUI
 
-struct AdvancedEstimateCard: View {
-    let profile: UserProfile?
-    let records: [DailyRecord]
-    let logs: [WeightLog]
-    let healthByDay: [String: HealthDaySnapshot]
-    let sleepHistory: SleepHistory
-    let energyHistory: EnergyHistory
-    let cycleHistory: CycleHistory
-    let snapshot: DashboardSnapshot
+struct AdvancedEstimateCard: View, Equatable {
+    let snapshot: DashboardSnapshot?
+    let estimate: AdvancedPaceEstimator.Result?
     @State private var selectedFactor: FactorKind?
 
     private enum FactorKind: Hashable {
         case sleep, energy, period, slope
     }
 
-    private var estimate: AdvancedPaceEstimator.Result? {
-        let series = HealthInsightEngine.series(
-            healthByDay: healthByDay,
-            sleepHistory: sleepHistory,
-            energyHistory: energyHistory,
-            cycleHistory: cycleHistory
-        )
-        return AdvancedPaceEstimator.estimate(
-            samples: WeightMetrics.samples(from: records, logs: logs),
-            targetWeight: snapshot.targetWeight,
-            displayWeight: snapshot.displayWeight,
-            progress: snapshot.progress,
-            context: .init(
-                sleepHoursByDay: series.sleepHoursByDay,
-                energyKcalByDay: series.energyKcalByDay,
-                periodDayKeys: series.periodDayKeys,
-                sleepTargetHours: profile?.sleepTargetHours ?? 8.0
-            )
-        )
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.estimate == rhs.estimate
+            && lhs.snapshot?.targetWeight == rhs.snapshot?.targetWeight
+            && lhs.snapshot?.displayWeight == rhs.snapshot?.displayWeight
+            && lhs.snapshot?.progress == rhs.snapshot?.progress
     }
 
     var body: some View {

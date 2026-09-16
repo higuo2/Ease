@@ -1,10 +1,14 @@
 import SwiftUI
 
-struct HealthInsightsCard: View {
+struct HealthInsightsCard: View, Equatable {
     let insights: [HealthInsight]
     var calendar: Calendar = .current
 
     @State private var expandedID: String?
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.insights == rhs.insights
+    }
 
     var body: some View {
         if !insights.isEmpty {

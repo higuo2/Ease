@@ -1,112 +1,174 @@
 import SwiftUI
 import Charts
 
+struct TrendLogPoint: Equatable, Sendable, Identifiable {
+    var id: UUID
+    var timestamp: Date
+    var weight: Double
+}
+
+struct TrendChartPoint: Equatable, Sendable, Identifiable {
+    var id: String
+    var date: Date
+    var weight: Double
+}
+
+struct TrendMAPoint: Equatable, Sendable, Identifiable {
+    var id: Date { date }
+    var date: Date
+    var value: Double
+}
+
+struct TrendChartModel: Equatable, Sendable {
+    var range: ChartRange
+    var rangeStart: Date
+    var rangeEnd: Date
+    var points: [TrendChartPoint]
+    var daily: [TrendChartPoint]
+    var movingAverage: [TrendMAPoint]
+    var yDomain: ClosedRange<Double>
+    var logsByDay: [String: [TrendLogPoint]]
+    var maByDay: [String: Double]
+
+    var xDomain: ClosedRange<Date> {
+        rangeStart...CalendarDay.endOfDay(rangeEnd)
+    }
+
+    var isEmpty: Bool { points.isEmpty }
+
+    func dailyPoint(on date: Date, calendar: Calendar = .current) -> TrendChartPoint? {
+        let key = CalendarDay.dayKey(from: date, calendar: calendar)
+        return daily.first { CalendarDay.dayKey(from: $0.date, calendar: calendar) == key }
+    }
+
+    func nearestLog(to date: Date, calendar: Calendar = .current) -> TrendLogPoint? {
+        let key = CalendarDay.dayKey(from: date, calendar: calendar)
+        guard let onDay = logsByDay[key], !onDay.isEmpty else { return nil }
+        return onDay.min { lhs, rhs in
+            abs(lhs.timestamp.timeIntervalSince(date)) < abs(rhs.timestamp.timeIntervalSince(date))
+        }
+    }
+
+    static func make(
+        records: [DailyRecord],
+        logs: [WeightLog],
+        range: ChartRange,
+        targetWeight: Double?,
+        now: Date = .now,
+        calendar: Calendar = .current
+    ) -> TrendChartModel {
+        let rangeEnd = CalendarDay.startOfDay(now, calendar: calendar)
+        let samples = WeightMetrics.samples(from: records, logs: logs, calendar: calendar)
+        let rangeStart: Date
+        if let count = range.dayCount {
+            rangeStart = CalendarDay.addingDays(-(count - 1), to: rangeEnd, calendar: calendar)
+        } else {
+            rangeStart = samples.map(\.date).min().map { CalendarDay.startOfDay($0, calendar: calendar) } ?? rangeEnd
+        }
+        let endExclusive = CalendarDay.endOfDay(rangeEnd, calendar: calendar)
+
+        var logPoints: [TrendLogPoint] = []
+        logPoints.reserveCapacity(logs.count)
+        var logsByDay: [String: [TrendLogPoint]] = [:]
+        for log in logs {
+            let point = TrendLogPoint(id: log.id, timestamp: log.timestamp, weight: log.weight)
+            logPoints.append(point)
+            let key = CalendarDay.dayKey(from: log.timestamp, calendar: calendar)
+            logsByDay[key, default: []].append(point)
+        }
+        for key in logsByDay.keys {
+            logsByDay[key]?.sort { $0.timestamp < $1.timestamp }
+        }
+
+        let daysWithLogs = Set(logsByDay.keys)
+        var points: [TrendChartPoint] = []
+        points.reserveCapacity(logs.count + records.count)
+        for log in logs where log.timestamp >= rangeStart && log.timestamp < endExclusive {
+            points.append(TrendChartPoint(id: log.id.uuidString, date: log.timestamp, weight: log.weight))
+        }
+        for record in records {
+            guard let weight = record.weight, !daysWithLogs.contains(record.dayKey) else { continue }
+            let day = CalendarDay.startOfDay(record.date, calendar: calendar)
+            guard day >= rangeStart && day <= rangeEnd else { continue }
+            points.append(TrendChartPoint(id: "legacy-\(record.dayKey)", date: record.date, weight: weight))
+        }
+        points.sort { $0.date < $1.date }
+
+        let daily = Dictionary(
+            points.map { (CalendarDay.dayKey(from: $0.date, calendar: calendar), $0) },
+            uniquingKeysWith: { lhs, rhs in lhs.date < rhs.date ? rhs : lhs }
+        )
+        .values
+        .sorted { $0.date < $1.date }
+
+        let movingAverages = WeightMetrics.sevenDayMovingAverages(samples: samples, calendar: calendar)
+        var maByDay: [String: Double] = [:]
+        maByDay.reserveCapacity(movingAverages.count)
+        var movingAverage: [TrendMAPoint] = []
+        movingAverage.reserveCapacity(daily.count)
+        for sample in movingAverages {
+            let key = CalendarDay.dayKey(from: sample.date, calendar: calendar)
+            maByDay[key] = sample.weight
+        }
+        for point in daily {
+            let key = CalendarDay.dayKey(from: point.date, calendar: calendar)
+            if let ma = maByDay[key] {
+                movingAverage.append(TrendMAPoint(date: point.date, value: ma))
+            }
+        }
+
+        var values = points.map(\.weight) + movingAverage.map(\.value)
+        if let targetWeight { values.append(targetWeight) }
+        let minV = values.min() ?? 0
+        let maxV = values.max() ?? 0
+        let padding = max((maxV - minV) * 0.12, 0.8)
+
+        return TrendChartModel(
+            range: range,
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd,
+            points: points,
+            daily: daily,
+            movingAverage: movingAverage,
+            yDomain: (minV - padding)...(maxV + padding),
+            logsByDay: logsByDay,
+            maByDay: maByDay
+        )
+    }
+}
+
 private struct ChartDayPreview: Equatable {
     var date: Date
     var weight: Double
     var movingAverage: Double?
 }
 
-private struct ChartWeightPoint: Identifiable {
-    var id: String
-    var date: Date
-    var weight: Double
-}
-
-struct TrendChartCard: View {
-    let records: [DailyRecord]
-    let logs: [WeightLog]
-    let range: ChartRange
+struct TrendChartCard: View, Equatable {
+    let model: TrendChartModel
     var targetWeight: Double? = nil
     var logSheetPresented: Bool = false
     var focusDate: Date? = nil
     var focusNonce: Int = 0
     let onSelectRange: (ChartRange) -> Void
-    let onSelectLog: (WeightLog) -> Void
+    let onSelectLog: (UUID, Date) -> Void
 
     @State private var preview: ChartDayPreview?
     @State private var scrubDayKey = ""
     @State private var isScrubbing = false
 
-    /// Single Y encoding so weight, MA, target, and selection share one scale.
-    private static let yWeight = "chart.axis.weight"
-    private static let xDate = "chart.axis.date"
-
-    private var rangeEnd: Date {
-        CalendarDay.startOfDay(.now)
-    }
-
-    private var rangeStart: Date {
-        if let count = range.dayCount {
-            return Calendar.current.date(
-                byAdding: .day,
-                value: -(count - 1),
-                to: rangeEnd
-            ) ?? rangeEnd
-        }
-        let samples = WeightMetrics.samples(from: records, logs: logs)
-        return samples.map(\.date).min().map { CalendarDay.startOfDay($0) } ?? rangeEnd
-    }
-
-    private var xDomain: ClosedRange<Date> {
-        rangeStart...CalendarDay.endOfDay(rangeEnd)
-    }
-
-    private var logsInRange: [WeightLog] {
-        let end = CalendarDay.endOfDay(rangeEnd)
-        return logs.filter { $0.timestamp >= rangeStart && $0.timestamp < end }
-    }
-
-    private var recordsInRange: [DailyRecord] {
-        records.filter { $0.date >= rangeStart && $0.date <= rangeEnd }
-    }
-
-    /// Every weigh-in in range.
-    private var chartWeightPoints: [ChartWeightPoint] {
-        let fromLogs = logsInRange.map {
-            ChartWeightPoint(id: $0.id.uuidString, date: $0.timestamp, weight: $0.weight)
-        }
-        let daysWithLogs = Set(logsInRange.map { CalendarDay.dayKey(from: $0.timestamp) })
-        let fromLegacy = recordsInRange.compactMap { record -> ChartWeightPoint? in
-            guard let weight = record.weight, !daysWithLogs.contains(record.dayKey) else { return nil }
-            return ChartWeightPoint(id: "legacy-\(record.dayKey)", date: record.date, weight: weight)
-        }
-        return (fromLogs + fromLegacy).sorted { $0.date < $1.date }
-    }
-
-    /// Last weigh-in per calendar day — the readable trend line.
-    private var dailyPoints: [ChartWeightPoint] {
-        Dictionary(
-            chartWeightPoints.map { (CalendarDay.dayKey(from: $0.date), $0) },
-            uniquingKeysWith: { lhs, rhs in lhs.date < rhs.date ? rhs : lhs }
-        )
-        .values
-        .sorted { $0.date < $1.date }
-    }
-
-    private var movingAveragePoints: [(date: Date, value: Double)] {
-        dailyPoints.compactMap { point in
-            guard let ma = WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: point.date) else {
-                return nil
-            }
-            return (point.date, ma)
-        }
-    }
-
-    private var weightYDomain: ClosedRange<Double> {
-        var values = chartWeightPoints.map(\.weight) + movingAveragePoints.map(\.value)
-        if let targetWeight { values.append(targetWeight) }
-        let minV = values.min() ?? 0
-        let maxV = values.max() ?? 0
-        let padding = max((maxV - minV) * 0.12, 0.8)
-        return (minV - padding)...(maxV + padding)
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.model == rhs.model
+            && lhs.targetWeight == rhs.targetWeight
+            && lhs.logSheetPresented == rhs.logSheetPresented
+            && lhs.focusDate == rhs.focusDate
+            && lhs.focusNonce == rhs.focusNonce
     }
 
     var body: some View {
         EaseCard {
             VStack(alignment: .leading, spacing: 16) {
-                rangePicker
-                if chartWeightPoints.isEmpty {
+                TrendRangePicker(range: model.range, onSelectRange: onSelectRange)
+                if model.isEmpty {
                     Text("dashboard.chart.empty")
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(EasePalette.secondaryText)
@@ -121,34 +183,13 @@ struct TrendChartCard: View {
                 clearPreview()
             }
         }
-        .onChange(of: range) { _, _ in
+        .onChange(of: model.range) { _, _ in
             clearPreview()
         }
         .onChange(of: focusNonce) { _, _ in
             pinFocusIfPossible()
         }
-        .sensoryFeedback(.selection, trigger: range)
-    }
-
-    private var rangePicker: some View {
-        HStack(spacing: 4) {
-            ForEach(ChartRange.allCases) { item in
-                Button {
-                    onSelectRange(item)
-                } label: {
-                    Text(LocalizedStringKey(item.titleKey))
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(item == range ? Color.white : EasePalette.secondaryText)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(item == range ? Color.black : Color.clear)
-                        .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(4)
-        .background(EasePalette.recessed, in: Capsule())
+        .sensoryFeedback(.selection, trigger: model.range)
     }
 
     private var weightChart: some View {
@@ -164,8 +205,8 @@ struct TrendChartCard: View {
                     }
             }
 
-            if dailyPoints.count >= 2 {
-                ForEach(dailyPoints) { point in
+            if model.daily.count >= 2 {
+                ForEach(model.daily) { point in
                     LineMark(
                         x: .value(Self.xDate, point.date),
                         y: .value(Self.yWeight, point.weight)
@@ -176,7 +217,7 @@ struct TrendChartCard: View {
                 }
             }
 
-            ForEach(dailyPoints) { point in
+            ForEach(model.daily) { point in
                 PointMark(
                     x: .value(Self.xDate, point.date),
                     y: .value(Self.yWeight, point.weight)
@@ -185,7 +226,7 @@ struct TrendChartCard: View {
                 .symbolSize(48)
             }
 
-            ForEach(movingAveragePoints, id: \.date) { point in
+            ForEach(model.movingAverage) { point in
                 LineMark(
                     x: .value(Self.xDate, point.date),
                     y: .value(Self.yWeight, point.value)
@@ -194,27 +235,16 @@ struct TrendChartCard: View {
                 .interpolationMethod(.catmullRom)
                 .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
             }
-
-            if let preview {
-                RuleMark(x: .value(Self.xDate, preview.date))
-                    .foregroundStyle(EasePalette.primaryText.opacity(0.18))
-                PointMark(
-                    x: .value(Self.xDate, preview.date),
-                    y: .value(Self.yWeight, preview.weight)
-                )
-                .foregroundStyle(EasePalette.coralDeep)
-                .symbolSize(70)
-            }
         }
-        .chartXScale(domain: xDomain)
-        .chartYScale(domain: weightYDomain)
+        .chartXScale(domain: model.xDomain)
+        .chartYScale(domain: model.yDomain)
         .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 6)) { value in
                 AxisGridLine()
                     .foregroundStyle(EasePalette.track)
                 AxisValueLabel {
                     if let date = value.as(Date.self) {
-                        Text(date, format: .dateTime.month(.defaultDigits).day())
+                        Text(date, format: EaseDateFormat.monthDayNumeric)
                             .font(.system(size: 11, weight: .regular))
                             .foregroundStyle(EasePalette.secondaryText)
                     }
@@ -234,19 +264,20 @@ struct TrendChartCard: View {
                 }
             }
         }
-        .frame(height: 260)
         .chartOverlay { proxy in
             GeometryReader { geometry in
                 interactionLayer(proxy: proxy, geometry: geometry)
             }
         }
+        .frame(height: 260)
+        .drawingGroup(opaque: false)
         .sensoryFeedback(.selection, trigger: scrubDayKey)
     }
 
     private func tooltip(date: Date, weight: Double, movingAverage: Double?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 8) {
-                Text(date, format: .dateTime.month(.defaultDigits).day())
+                Text(date, format: EaseDateFormat.monthDayNumeric)
                 Text(EaseFormatters.kg(weight))
                     .monospacedDigit()
             }
@@ -277,6 +308,16 @@ struct TrendChartCard: View {
                 .highPriorityGesture(scrubAndTapGesture(proxy: proxy, geometry: geometry))
 
             if let preview, let point = previewPoint {
+                Capsule()
+                    .fill(EasePalette.primaryText.opacity(0.18))
+                    .frame(width: 1.5, height: geometry.size.height)
+                    .position(x: point.x, y: geometry.size.height / 2)
+                    .allowsHitTesting(false)
+                Circle()
+                    .fill(EasePalette.coralDeep)
+                    .frame(width: 10, height: 10)
+                    .position(point)
+                    .allowsHitTesting(false)
                 tooltip(
                     date: preview.date,
                     weight: preview.weight,
@@ -316,9 +357,9 @@ struct TrendChartCard: View {
             clearPreview()
             return
         }
-        if let log = nearestLog(to: next.date) {
+        if let log = model.nearestLog(to: next.date) {
             clearPreview()
-            onSelectLog(log)
+            onSelectLog(log.id, log.timestamp)
         } else {
             applyPreview(next)
         }
@@ -343,16 +384,12 @@ struct TrendChartCard: View {
     }
 
     private func pinFocusIfPossible() {
-        guard let focusDate else { return }
-        let key = CalendarDay.dayKey(from: focusDate)
-        guard let point = dailyPoints.first(where: { CalendarDay.dayKey(from: $0.date) == key }) else {
-            return
-        }
+        guard let focusDate, let point = model.dailyPoint(on: focusDate) else { return }
         applyPreview(
             ChartDayPreview(
                 date: point.date,
                 weight: point.weight,
-                movingAverage: WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: point.date)
+                movingAverage: model.maByDay[CalendarDay.dayKey(from: point.date)]
             )
         )
     }
@@ -384,29 +421,49 @@ struct TrendChartCard: View {
         }
         guard let date: Date = proxy.value(atX: x) else { return nil }
         let day = CalendarDay.startOfDay(date)
-        guard day >= rangeStart && day <= rangeEnd else { return nil }
+        guard day >= model.rangeStart && day <= model.rangeEnd else { return nil }
         return date
     }
 
     private func makePreview(at location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> ChartDayPreview? {
         guard let date = dateAt(location, proxy: proxy, geometry: geometry) else { return nil }
-        let key = CalendarDay.dayKey(from: date)
-        guard let point = dailyPoints.first(where: { CalendarDay.dayKey(from: $0.date) == key }) else {
-            return nil
-        }
+        guard let point = model.dailyPoint(on: date) else { return nil }
         return ChartDayPreview(
             date: point.date,
             weight: point.weight,
-            movingAverage: WeightMetrics.sevenDayMA(records: records, logs: logs, endingOn: point.date)
+            movingAverage: model.maByDay[CalendarDay.dayKey(from: point.date)]
         )
     }
 
-    private func nearestLog(to date: Date) -> WeightLog? {
-        let key = CalendarDay.dayKey(from: date)
-        let onDay = logsInRange.filter { CalendarDay.dayKey(from: $0.timestamp) == key }
-        guard !onDay.isEmpty else { return nil }
-        return onDay.min { lhs, rhs in
-            abs(lhs.timestamp.timeIntervalSince(date)) < abs(rhs.timestamp.timeIntervalSince(date))
+    private static let yWeight = "chart.axis.weight"
+    private static let xDate = "chart.axis.date"
+}
+
+private struct TrendRangePicker: View, Equatable {
+    let range: ChartRange
+    let onSelectRange: (ChartRange) -> Void
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.range == rhs.range
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(ChartRange.allCases) { item in
+                Button {
+                    onSelectRange(item)
+                } label: {
+                    Text(LocalizedStringKey(item.titleKey))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(item == range ? Color.white : EasePalette.secondaryText)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(item == range ? Color.black : Color.clear, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
         }
+        .padding(4)
+        .background(EasePalette.recessed, in: Capsule())
     }
 }
