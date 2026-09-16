@@ -33,11 +33,17 @@ struct CalendarTabView: View {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: EaseLayout.sectionSpacing) {
-                        monthHeader
                         calendarCard(weightIndex: weightIndex)
                         monthOverviewCard(monthStats: monthStats, weekAverageWeight: weekAverageWeight)
                     }
                     .easeTabScrollContent()
+                }
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    monthHeader
+                        .padding(.horizontal, EaseLayout.screenPadding)
+                        .padding(.top, 6)
+                        .padding(.bottom, 10)
+                        .background(EasePalette.background)
                 }
             }
             .navigationTitle("tab.calendar")
@@ -100,14 +106,14 @@ struct CalendarTabView: View {
                 LazyVGrid(columns: gridColumns, spacing: 4) {
                     ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                         Text(symbol)
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity)
                     }
                 }
                 LazyVGrid(columns: gridColumns, spacing: 8) {
                     ForEach(0..<leadingEmpty, id: \.self) { _ in
-                        Color.clear.frame(minHeight: isAccessibilityType ? 88 : 64)
+                        Color.clear.frame(height: dayCellHeight)
                     }
                     ForEach(monthDays, id: \.self) { day in
                         dayCell(day, weightIndex: weightIndex)
@@ -121,12 +127,21 @@ struct CalendarTabView: View {
         dynamicTypeSize.isAccessibilitySize
     }
 
+    private var dayCellHeight: CGFloat {
+        isAccessibilityType ? 96 : 72
+    }
+
+    private var metricLineHeight: CGFloat {
+        isAccessibilityType ? 18 : 14
+    }
+
     private func dayCell(
         _ day: Date,
         weightIndex: WeightMetrics.DayIndex
     ) -> some View {
         let isFuture = CalendarDay.isFuture(day)
         let isSelected = CalendarDay.dayKey(from: day) == selectedDayKey
+        let isToday = Calendar.current.isDateInToday(day)
         let weight = weightIndex.weight(on: day)
         let delta = weightIndex.delta(on: day)
 
@@ -139,46 +154,70 @@ struct CalendarTabView: View {
                 viewModel.selectedDate = start
             }
         } label: {
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 Text("\(Calendar.current.component(.day, from: day))")
                     .font(.system(.body, design: .rounded, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(isSelected ? Color.white : (isFuture ? Color.secondary : EasePalette.primaryText))
+                    .monospacedDigit()
+                    .foregroundStyle(dayNumberStyle(isFuture: isFuture, isSelected: isSelected))
                     .frame(width: 30, height: 30)
                     .background {
                         if isSelected {
-                            Circle().fill(EasePalette.accent)
+                            Circle().fill(EasePalette.accent.opacity(0.15))
                         }
                     }
-                if let weight {
-                    Text(EaseFormatters.oneDecimal(weight))
-                        .font(isAccessibilityType ? .caption : .caption2)
-                        .monospacedDigit()
-                        .foregroundStyle(isSelected ? EasePalette.primaryText : .secondary)
-                        .lineLimit(isAccessibilityType ? 2 : 1)
-                        .minimumScaleFactor(0.7)
-                        .multilineTextAlignment(.center)
-                } else {
-                    Text(" ")
-                        .font(.caption2)
+                    .overlay {
+                        if isToday {
+                            Circle().stroke(EasePalette.accent, lineWidth: 1.5)
+                        }
+                    }
+
+                Group {
+                    if let weight {
+                        Text(EaseFormatters.oneDecimal(weight))
+                            .font(metricFont)
+                            .monospacedDigit()
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    } else {
+                        Color.clear
+                    }
                 }
-                if let delta {
-                    Text(deltaPrefix(delta) + EaseFormatters.oneDecimal(abs(delta)))
-                        .font(isAccessibilityType ? .caption.weight(.medium) : .system(size: 9, weight: .medium))
+                .frame(height: metricLineHeight)
+
+                Group {
+                    if let delta {
+                        HStack(spacing: 0) {
+                            Text(deltaPrefix(delta))
+                                .foregroundStyle(.secondary)
+                            Text(EaseFormatters.oneDecimal(abs(delta)))
+                                .foregroundStyle(EasePalette.semanticDelta(delta))
+                        }
+                        .font(isAccessibilityType ? .caption.weight(.medium) : .caption2.weight(.medium))
                         .monospacedDigit()
-                        .foregroundStyle(EasePalette.semanticDelta(delta))
-                        .lineLimit(isAccessibilityType ? 2 : 1)
+                        .lineLimit(1)
                         .minimumScaleFactor(0.7)
-                        .multilineTextAlignment(.center)
-                } else {
-                    Text(" ")
-                        .font(.system(size: 9))
+                    } else {
+                        Color.clear
+                    }
                 }
+                .frame(height: metricLineHeight)
             }
-            .frame(maxWidth: .infinity, minHeight: isAccessibilityType ? 88 : 64)
-            .opacity(isFuture ? 0.3 : 1)
+            .frame(maxWidth: .infinity)
+            .frame(height: dayCellHeight)
         }
         .buttonStyle(.plain)
         .disabled(isFuture)
+    }
+
+    private var metricFont: Font {
+        isAccessibilityType ? .caption : .caption2
+    }
+
+    private func dayNumberStyle(isFuture: Bool, isSelected: Bool) -> AnyShapeStyle {
+        if isFuture { return AnyShapeStyle(.tertiary) }
+        if isSelected { return AnyShapeStyle(EasePalette.accent) }
+        return AnyShapeStyle(EasePalette.primaryText)
     }
 
     private func deltaPrefix(_ delta: Double) -> String {
@@ -197,60 +236,28 @@ struct CalendarTabView: View {
                     .font(.headline)
                     .foregroundStyle(EasePalette.primaryText)
 
-                HStack(alignment: .firstTextBaseline, spacing: 24) {
+                HStack(alignment: .firstTextBaseline, spacing: 16) {
                     overviewHero(
                         "calendar.stat.monthAvg",
-                        monthStats.averageWeight.map(EaseFormatters.oneDecimal),
-                        emphasize: true
+                        monthStats.averageWeight.map(EaseFormatters.oneDecimal)
                     )
-                    overviewHero(
-                        "calendar.stat.weekAvg",
-                        weekAverageWeight.map(EaseFormatters.oneDecimal),
-                        emphasize: false
-                    )
-                    Spacer(minLength: 0)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    netChangeHero(monthDelta: monthStats.monthDelta)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                 }
 
                 Divider().overlay(EasePalette.hairline)
 
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(), spacing: EaseLayout.gridGap),
-                        GridItem(.flexible(), spacing: EaseLayout.gridGap),
-                        GridItem(.flexible(), spacing: EaseLayout.gridGap)
-                    ],
-                    alignment: .leading,
-                    spacing: EaseLayout.gridGap
-                ) {
-                    netChangeStat(monthDelta: monthStats.monthDelta)
-                    compactStat("calendar.stat.checkins", "\(monthStats.checkinDays)")
+                HStack(alignment: .top, spacing: 8) {
+                    compactStat("calendar.stat.weekAvg", kgValue(weekAverageWeight))
+                    compactStat("calendar.stat.checkins", loggedDaysValue(monthStats.checkinDays))
                     compactStat("calendar.stat.lossDays", "\(monthStats.lossDays)")
                     compactStat("calendar.stat.gainDays", "\(monthStats.gainDays)")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-    }
-
-    private func netChangeStat(monthDelta: Double?) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("calendar.stat.monthDelta")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            if let delta = monthDelta {
-                Text(deltaPrefix(delta) + EaseFormatters.oneDecimal(abs(delta)) + " kg")
-                    .font(.subheadline.bold())
-                    .monospacedDigit()
-                    .foregroundStyle(EasePalette.semanticDelta(delta))
-            } else {
-                Text("—")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(EasePalette.primaryText)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var overviewTitle: String {
@@ -263,8 +270,7 @@ struct CalendarTabView: View {
 
     private func overviewHero(
         _ title: LocalizedStringKey,
-        _ value: String?,
-        emphasize: Bool
+        _ value: String?
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -272,7 +278,7 @@ struct CalendarTabView: View {
                 .foregroundStyle(.secondary)
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text(value ?? "—")
-                    .font(emphasize ? .title2.bold() : .title3.weight(.semibold))
+                    .font(.title2.bold())
                     .monospacedDigit()
                     .foregroundStyle(EasePalette.primaryText)
                 if value != nil {
@@ -284,19 +290,54 @@ struct CalendarTabView: View {
         }
     }
 
-    private func compactStat(_ title: LocalizedStringKey, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
+    private func netChangeHero(monthDelta: Double?) -> some View {
+        VStack(alignment: .trailing, spacing: 4) {
+            Text("calendar.stat.monthDelta")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
+            if let delta = monthDelta {
+                Text(deltaPrefix(delta) + EaseFormatters.oneDecimal(abs(delta)) + "\u{00A0}" + String(localized: "unit.kg"))
+                    .font(.title2.bold())
+                    .monospacedDigit()
+                    .foregroundStyle(EasePalette.semanticDelta(delta))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            } else {
+                Text("—")
+                    .font(.title2.bold())
+                    .foregroundStyle(EasePalette.primaryText)
+            }
+        }
+    }
+
+    private func compactStat(_ title: LocalizedStringKey, _ value: String) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .multilineTextAlignment(.center)
             Text(value)
-                .font(.subheadline.bold())
+                .font(.subheadline.weight(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(EasePalette.primaryText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
+    }
+
+    private func kgValue(_ value: Double?) -> String {
+        guard let value else { return "—" }
+        return EaseFormatters.oneDecimal(value) + "\u{00A0}" + String(localized: "unit.kg")
+    }
+
+    private func loggedDaysValue(_ days: Int) -> String {
+        String(format: String(localized: "calendar.stat.daysCount"), locale: .current, days)
     }
 }
 
