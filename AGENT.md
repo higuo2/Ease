@@ -24,7 +24,7 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
 ## 1. Aesthetic: Milk & Card Minimalist（奶油极简）
 Core feel: generous whitespace, soft hierarchy via fill color (not borders/shadows), low-saturation milk/gray card surfaces, high-contrast rounded display numbers, and quiet coral / mint accents for direction feedback.
 
-- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles (no Diet); segmented trend ranges; black chart tooltip (date + last-per-day weight + optional 7-day MA); month calendar with dual-line day cells; weight-history sheet; BMI detail sheet (gray band capsule, quiet Morandi range bar, CN/WHO picker); quiet sleep/period/energy detail tints inside their sheets only; quiet Patterns card on Trend (health × weight associations, hide when empty).
+- **ALLOW**: 4-Tab root (Weight / Trend / Calendar / **Settings**); large hero weight number; stage-goal card with linear progress; customizable Morandi home tiles (no Diet); segmented trend ranges; black chart tooltip (date + last-per-day weight + optional 7-day MA); month calendar with date + weight + delta cells and a 2+4 Overview card; weight-history sheet; BMI detail sheet (gray band capsule, quiet Morandi range bar, CN/WHO picker); quiet sleep/period/energy detail tints inside their sheets only; quiet Patterns card on Trend (health × weight associations, hide when empty); quiet system Settings (no coral list tint).
 - **ABSOLUTELY FORBIDDEN**:
     - NO calorie counting, NO macros (carbs/protein/fats), NO calorie goal ring. **No diet check-in UI.** Active Energy may show HK kcal as a fact only.
     - NO streak flames, celebration animations, or goal-reached confetti (including “import succeeded” and “you will hit your goal”).
@@ -43,7 +43,7 @@ Core feel: generous whitespace, soft hierarchy via fill color (not borders/shado
 - **Card Surface (recessed / nested)**: `#F2F3F5` or `#F5F5F7` — stage-goal strips, metric cells, table headers. Hierarchy via fill, not stroke.
 - **Border**: Prefer none. If needed, at most `0.5pt` hairline at `Color.black.opacity(0.06)`.
 - **Shadow**: Prefer none. Do not use FAB-style multi-layer shadows on content cards.
-- **Primary Accent (loss / positive direction)**: Coral `#FF5252` / `#E53935` — week delta ↓, loss days, progress fill toward target.
+- **Primary Accent (loss / positive direction)**: Coral `#FF5252` / `#E53935` — week delta ↓, loss days, progress fill toward target. **Not** a Settings page theme: do not `.tint(EasePalette.coral)` the Settings `List`. Settings toggles use system green; Export/Import stay primary text; only Delete is destructive red.
 - **Secondary Accent (gain / caution)**: Quiet mint / soft green for ↑ gain deltas when contrast is needed; keep saturation low.
 - **Primary Text**: Near-black (`Color.primary` / `#111111`). Hero numbers stay high contrast.
 - **Secondary Text**: Medium gray (`Color.secondary` / `#8E8E93`).
@@ -74,7 +74,7 @@ Sheets (weight log, metrics, weight history, sleep, cycle, energy) remain modal 
 ### Tab 1 — 体重 (Dashboard)
 1. **Hero**：系统 Large Title（`tab.weight`，左对齐）下方居中巨幅当前体重（所选日最新 `WeightLog`，否则全局最新）。下方一行小字周增减（如 `▼1.8 kg 本周`），coral on loss / quiet green on gain.
 2. **阶段目标卡片**：recessed `#F2F3F5` / `#F5F5F7` rounded card — linear progress bar, start / target weight, optional **basic** pace ETA line (PRD §8.3.A). No purple ring.
-3. **可自定义莫兰迪方块**：默认 BMI / 围度 / 体重 / 饮食。BMI 格显示数字 + 灰色档名；点开 BMI 详情 Sheet。可新增睡眠、经期、活动消耗。虚线「添加」打开模块编辑。
+3. **可自定义莫兰迪方块**：默认 BMI / 围度 / 体重。BMI 格显示数字 + 灰色档名；点开 BMI 详情 Sheet。可新增睡眠、经期、活动消耗。虚线「添加」打开模块编辑。**Never show Diet。**
 4. **体重列表**：默认近 **30** 天；早（太阳）/ 晚（月亮）、相对昨日涨跌。点行编辑。点 **All** → 体重历史 Sheet（全部记录）。**不要**在本页原地折叠展开全部历史。
 5. **无 FAB**；无右上角齿轮。
 
@@ -88,14 +88,14 @@ Sheets (weight log, metrics, weight history, sleep, cycle, energy) remain modal 
 图表交互：预览不改数据；点已有日可编辑体重。删体重不得删当日 `DailyRecord`。
 
 ### Tab 3 — 日历 (Calendar)
-1. **月历网格**：系统 Large Title（`tab.calendar`）下是 `< 月份 >` 选择器，再是 7 列月历。每格 — 日号、当日体重、涨跌（`▼0.2` / `▲0.2`）。点未选中日期只选中该日；再点同一天打开日明细 Sheet。
-2. **周均 / 月均**体重卡（选中日所在周 / 当前浏览月）。
-3. **月度 Overview**：净变化、打卡 / 减重 / 增重天数。不要清淡天数。
-4. **日明细 Sheet**（`.medium` / `.large`）：早晚体重。无餐图、无饮食芯片、无标签、无备注。
+1. **月历网格**：系统 Large Title（`tab.calendar`）下钉住 `< 月份 >` 选择器，再是 7 列月历。星期头 `.secondary` 半粗 caption。每格 — 日号（等宽）、当日体重（`.caption2.monospacedDigit()`）、涨跌（`▼0.2` / `▲0.2`）。未来日 `.tertiary`，不要再叠一层 0.3 opacity。今天 / 选中：浅珊瑚填 + 细环，禁止白字实心红圆。点未选中日期只选中该日；再点同一天打开日明细 Sheet。
+2. **月份 Overview**：上行月均 + 净变化；发丝分割；下行四等宽列周均 / 打卡 / 减重 / 增重。不要三列网格把「增重」挤到下一行。不要清淡天数、不要日均变化横栏。
+3. **日明细 Sheet**（`.medium` / `.large`）：早晚体重与日间波动。无餐图、无饮食芯片、无标签、无备注。
 
 ### Tab 4 — 设置 (Settings)
-Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-grouped list; 16pt horizontal content margins and 100pt bottom inset so the last rows clear the tab bar.
-身高 / 生日（紧凑 DatePicker，未设置显示 Not set，用 trailing X 清除）/ 性别 / 起止体重 / 睡眠目标 / 首页模块 / 通知与体重提醒时刻 / CSV 导出导入 / 扩展指标开关与 History / **两次确认**的清除全部数据（独立 destructive section）。
+Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-grouped list; 16pt horizontal content margins and 100pt bottom inset so the last rows clear the tab bar. **Quiet system console** — no list-level coral tint.
+顺序：个人 → 提醒 → 首页模块 → 扩展指标 → 数据 → 清除全部数据。
+身高 / 生日（紧凑 DatePicker，未设置显示 Not set，用 trailing X 清除）/ 性别（secondary）/ 起止体重 / 睡眠目标 / 首页模块（系统绿 Toggle）/ 通知总开关（关则体重提醒行收起变淡）与体重提醒时刻 / CSV 导出导入（普通 Label 行，页脚说明文件名）/ 扩展指标（五条核心置顶，其余进 More；行尾 History chevron，`.buttonStyle(.borderless)`，点 History 不拨开关）/ **两次确认**的清除全部数据（独立 destructive section）。睡眠/经期/消耗 Sheet 从首页方块进，设置里不再做入口。
 
 ### Shared Sheets
 - **Weight Log Sheet**：可展开图形日历 → 体重 + OCR → 体脂 → 黑 Capsule Save。
@@ -137,6 +137,7 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 - NEVER hardcode UI strings.
 - All UI text MUST use SwiftUI localization (`Text("Key")` or `String(localized: "...")`).
 - Apple String Catalog (`.xcstrings`) for Simplified Chinese and English. English is the base key language.
+- Never use the middle dot `·` (U+00B7) as a copy separator. Use a comma, Chinese enumeration comma, or two sentences.
 
 # Execution Rules
 1. ALWAYS wrap primary content in Milk & Card surfaces (`#FFFFFF` / `#F2F3F5` on `#F7F8F9`). No purple brand chrome. No heavy card shadows.
@@ -148,4 +149,4 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 7. v1.3 is in scope: Trend Patterns card (`HealthInsightEngine`) plus v1.2 (CSV import, `MetricLog`, basic + advanced pace ETA, reminder time pickers, home modules, Settings as Tab). Do not add water/waist reminder nags, dual-axis charts, third-party CSV dialects, Weight-tab FAB, a History Tab, WidgetKit, home-card `ultraThinMaterial` / drop shadows, Apple Health XML import, step/RHR/noise types, or EventKit “because of a meeting” copy.
 8. Never drop `DailyRecord.weight` / `bodyFat` from the schema. Never nil them after copying to `WeightLog`. Weight writes go only to `WeightLog`.
 9. Root navigation is Weight / Trend / Calendar / Settings. Do not collapse back into a single scrolling dashboard without tabs. Do not resurrect History as a fourth tab unless the PRD changes again.
-10. Quiet polish only, per `UX.md`: `.sensoryFeedback` on confirmed results (save / OCR / delete / calendar month change), `.contentTransition(.numericText())` on the hero/BMI/remaining numbers (not pace-day countdown), sheet detents on log/health sheets. Do not `Task.detached` HealthKit or SwiftData. Do not put body fat on the Trend chart. Skeleton placeholders only while the first HealthKit payload is empty. Empty states may include a log-weight CTA; never a fake HealthKit sync button.
+10. Quiet polish only, per `UX.md`: `.sensoryFeedback` on confirmed results (save / OCR / delete / calendar month change), `.contentTransition(.numericText())` on the hero/BMI/remaining numbers (not pace-day countdown), sheet detents on log/health sheets. Settings stays a quiet system list (system-green toggles, no coral chrome). Calendar Overview is a 2+4 layout that cannot wrap; today is a soft ring, not a solid coral disc. Do not `Task.detached` HealthKit or SwiftData. Do not put body fat on the Trend chart. Skeleton placeholders only while the first HealthKit payload is empty. Empty states may include a log-weight CTA; never a fake HealthKit sync button.

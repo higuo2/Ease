@@ -1981,13 +1981,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "About %lld days · around %@"
+            "value" : "About %lld days, around %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "大约 %lld 天 · 约 %@"
+            "value" : "大约 %lld 天，约 %@"
           }
         }
       }
