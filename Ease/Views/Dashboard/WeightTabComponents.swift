@@ -93,7 +93,7 @@ struct StageGoalCard: View {
                 Text(EaseFormatters.kg(currentWeight))
                     .font(.caption2.bold())
                     .monospacedDigit()
-                    .foregroundStyle(EasePalette.morandiGreenDeep)
+                    .foregroundStyle(EasePalette.morandiRedDeep)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(EasePalette.morandiOat, in: Capsule())
@@ -121,7 +121,13 @@ struct StageGoalCard: View {
                         .frame(height: 10)
 
                     Capsule()
-                        .fill(EasePalette.morandiProgressFill)
+                        .fill(
+                            LinearGradient(
+                                colors: [EasePalette.morandiRed, EasePalette.morandiRedDeep],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                         .frame(height: 10)
                         .scaleEffect(x: max(fraction, 0.0001), y: 1, anchor: .leading)
 
@@ -160,10 +166,10 @@ struct StageGoalCard: View {
 
             Text(EaseFormatters.remainingKg(remainingKg))
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(EasePalette.morandiGreenDeep)
+                .foregroundStyle(EasePalette.morandiRedDeep)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(EasePalette.morandiGreen.opacity(0.35), in: Capsule())
+                .background(EasePalette.morandiRed.opacity(0.35), in: Capsule())
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
                 .easeNumericText(remainingKg)
