@@ -230,22 +230,6 @@
         }
       }
     },
-    "bmi.metric.age" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Age"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "年龄"
-          }
-        }
-      }
-    },
     "bmi.input.ageUnknown" : {
       "localizations" : {
         "en" : {
@@ -274,6 +258,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "去设置补身高"
+          }
+        }
+      }
+    },
+    "bmi.metric.age" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Age"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "年龄"
           }
         }
       }
@@ -2247,12 +2247,12 @@
         }
       }
     },
-    "format.ageYears.yrs" : {
+    "format.ageYears.compact" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld yrs"
+            "value" : "%lld y"
           }
         },
         "zh-Hans" : {
@@ -2263,12 +2263,12 @@
         }
       }
     },
-    "format.ageYears.compact" : {
+    "format.ageYears.yrs" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld y"
+            "value" : "%lld yrs"
           }
         },
         "zh-Hans" : {
@@ -3073,6 +3073,7 @@
       }
     },
     "log.ocr" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

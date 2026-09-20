@@ -7,90 +7,171 @@ struct StageGoalCard: View {
     let targetWeight: Double
     let remainingKg: Double
     let paceLine: String?
+    var onTap: (() -> Void)? = nil
+
+    @State private var animatedProgress: Double = 0
+    @State private var selectionTick = 0
+
+    private var clampedProgress: Double {
+        min(max(progress, 0), 1)
+    }
+
+    private var percentComplete: Int {
+        Int((clampedProgress * 100).rounded())
+    }
+
+    private var currentWeight: Double {
+        startWeight + (targetWeight - startWeight) * clampedProgress
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        Button {
+            selectionTick += 1
+            onTap?()
+        } label: {
+            VStack(alignment: .leading, spacing: 14) {
+                headerRow
+                progressTrack
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(stageProgressLabel)
+                milestoneFooter
+                if let paceLine {
+                    Text(paceLine)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                Color(uiColor: .secondarySystemGroupedBackground),
+                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+            )
+        }
+        .buttonStyle(.plain)
+        .sensoryFeedback(.selection, trigger: selectionTick)
+        .onAppear {
+            animatedProgress = 0
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                animatedProgress = clampedProgress
+            }
+        }
+        .onChange(of: progress) { _, _ in
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                animatedProgress = clampedProgress
+            }
+        }
+    }
+
+    private var headerRow: some View {
+        HStack(alignment: .center, spacing: 12) {
             Text("weight.stageGoal")
                 .font(.headline)
                 .foregroundStyle(EasePalette.primaryText)
-
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color(uiColor: .tertiarySystemFill))
-                        .frame(height: 8)
-                    Capsule()
-                        .fill(EasePalette.coral)
-                        .frame(width: max(8, geo.size.width * min(max(progress, 0), 1)), height: 8)
-                }
-            }
-            .frame(height: 8)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(stageProgressLabel)
-
-            HStack(alignment: .top) {
-                stageLabel("weight.start", value: EaseFormatters.kg(startWeight), alignment: .leading)
-                Spacer(minLength: 8)
-                stageLabel(
-                    "weight.remaining",
-                    value: EaseFormatters.kg(remainingKg),
-                    alignment: .center,
-                    valueColor: EasePalette.coral.opacity(0.85),
-                    numericValue: remainingKg
-                )
-                Spacer(minLength: 8)
-                stageLabel("weight.target", value: EaseFormatters.kg(targetWeight), alignment: .trailing)
-            }
-
-            if let paceLine {
-                Text(paceLine)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
+            Spacer(minLength: 8)
+            Text(verbatim: "\(percentComplete)%")
+                .font(.caption.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(EasePalette.primaryText)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
+                .background(EasePalette.recessed, in: Capsule())
+                .accessibilityHidden(true)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            Color(uiColor: .secondarySystemGroupedBackground),
-            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-        )
+    }
+
+    private var progressTrack: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let fraction = min(max(animatedProgress, 0), 1)
+            let fillWidth = width * fraction
+            let thumbX = min(max(fillWidth, 7), max(width - 7, 7))
+
+            ZStack(alignment: .topLeading) {
+                Capsule()
+                    .fill(Color.black.opacity(0.05))
+                    .frame(height: 10)
+                    .frame(maxHeight: .infinity, alignment: .center)
+
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [EasePalette.accentSoft, EasePalette.accentWarm, EasePalette.coral],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: max(fillWidth, fraction > 0 ? 10 : 0), height: 10)
+                    .frame(maxHeight: .infinity, alignment: .center)
+
+                Text(EaseFormatters.kg(currentWeight))
+                    .font(.caption2.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(EasePalette.secondaryText)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .position(
+                        x: min(max(thumbX, 28), max(width - 28, 28)),
+                        y: 8
+                    )
+
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 14, height: 14)
+                    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+                    .position(x: thumbX, y: geo.size.height / 2)
+            }
+            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: animatedProgress)
+        }
+        .frame(height: 36)
+    }
+
+    private var milestoneFooter: some View {
+        HStack(alignment: .center, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("weight.start")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text(EaseFormatters.kg(startWeight))
+                    .font(.subheadline.bold())
+                    .monospacedDigit()
+                    .foregroundStyle(EasePalette.primaryText)
+                    .easeNumericText(startWeight)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(EaseFormatters.remainingKg(remainingKg))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(EasePalette.coral)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(EasePalette.coral.opacity(0.08), in: Capsule())
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .easeNumericText(remainingKg)
+
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("weight.target")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text(EaseFormatters.kg(targetWeight))
+                    .font(.subheadline.bold())
+                    .monospacedDigit()
+                    .foregroundStyle(EasePalette.primaryText)
+                    .easeNumericText(targetWeight)
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
     }
 
     private var stageProgressLabel: String {
-        let percent = Int((min(max(progress, 0), 1) * 100).rounded())
-        return String(
+        String(
             format: String(localized: "a11y.stageGoal"),
             locale: .current,
-            percent,
+            percentComplete,
             EaseFormatters.kg(remainingKg)
         )
-    }
-
-    private func stageLabel(
-        _ title: LocalizedStringKey,
-        value: String,
-        alignment: HorizontalAlignment,
-        valueColor: Color = EasePalette.primaryText,
-        numericValue: Double? = nil
-    ) -> some View {
-        VStack(alignment: alignment, spacing: 4) {
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            if let numericValue {
-                Text(value)
-                    .font(.subheadline.bold())
-                    .monospacedDigit()
-                    .foregroundStyle(valueColor)
-                    .easeNumericText(numericValue)
-            } else {
-                Text(value)
-                    .font(.subheadline.bold())
-                    .monospacedDigit()
-                    .foregroundStyle(valueColor)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment, vertical: .center))
     }
 }
 
