@@ -82,17 +82,17 @@ struct MetricSheet: View {
                 }
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if !enabledMetrics.isEmpty {
-                        stickySaveBar
-                    }
-                }
             }
             .navigationTitle("metric.sheet.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     EaseCloseToolbarButton(action: { dismiss() })
+                }
+                if !enabledMetrics.isEmpty {
+                    ToolbarItem(placement: .confirmationAction) {
+                        EaseToolbarSaveButton(isEnabled: canSave, action: save)
+                    }
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)
@@ -200,13 +200,6 @@ struct MetricSheet: View {
                 }
         }
         .accessibilityElement(children: .combine)
-    }
-
-    private var stickySaveBar: some View {
-        EasePrimaryButton(title: "log.save", isEnabled: canSave, usesAccent: true, action: save)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .background(.ultraThinMaterial)
     }
 
     @ViewBuilder

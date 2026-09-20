@@ -79,13 +79,17 @@ struct LogSheetView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 4)
                         }
+
+                        if showsDelete {
+                            EaseTextButton(title: "log.delete", action: deleteCurrent)
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 4)
+                        }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
+                    .padding(.bottom, 28)
                 }
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                stickySaveBar
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -96,6 +100,9 @@ struct LogSheetView: View {
                     Text("log.title.weight")
                         .font(.headline)
                         .foregroundStyle(EasePalette.primaryText)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    EaseToolbarSaveButton(isEnabled: canSave, action: save)
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)
@@ -111,23 +118,6 @@ struct LogSheetView: View {
         }
         .preferredColorScheme(.light)
         .tint(EasePalette.accent)
-    }
-
-    private var stickySaveBar: some View {
-        VStack(spacing: 8) {
-            EasePrimaryButton(
-                title: "log.save",
-                isEnabled: canSave,
-                usesAccent: true,
-                action: save
-            )
-            if showsDelete {
-                EaseTextButton(title: "log.delete", action: deleteCurrent)
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(.ultraThinMaterial)
     }
 
     private var heroWeightCard: some View {

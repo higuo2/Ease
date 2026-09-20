@@ -12,21 +12,31 @@ struct EasePrimaryButton: View {
 
     private var isInteractive: Bool { isEnabled && !isBusy }
 
-    private var fill: Color {
-        guard isInteractive else { return EasePalette.morandiOat }
-        if usesAccent { return EasePalette.morandiRed }
-        return EasePalette.morandiRedDeep
+    private var labelColor: Color {
+        isInteractive ? Color.white : EasePalette.secondaryText
     }
 
-    private var labelColor: Color {
-        isInteractive ? Color.white : Color.secondary.opacity(0.5)
+    private var buttonFill: AnyShapeStyle {
+        guard isInteractive else {
+            return AnyShapeStyle(EasePalette.card)
+        }
+        let deep = EasePalette.morandiRedDeep
+        if usesAccent {
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [deep, deep.opacity(0.9)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+        }
+        return AnyShapeStyle(deep)
     }
 
     var body: some View {
         Button {
-            if isInteractive {
-                pressPulse += 1
-            }
+            guard isInteractive else { return }
+            pressPulse += 1
             action()
         } label: {
             ZStack {
@@ -39,15 +49,28 @@ struct EasePrimaryButton: View {
                     .opacity(isBusy ? 0 : 1)
                 if isBusy {
                     ProgressView()
-                        .tint(EasePalette.morandiRedDeep)
+                        .tint(.white)
                 }
             }
             .frame(maxWidth: .infinity, minHeight: 52)
-            .background(fill, in: Capsule())
+            .background {
+                Capsule().fill(buttonFill)
+            }
+            .overlay {
+                if !isInteractive {
+                    Capsule()
+                        .strokeBorder(EasePalette.hairline, lineWidth: 1)
+                }
+            }
+            .shadow(
+                color: isInteractive ? EasePalette.morandiRedDeep.opacity(0.28) : .clear,
+                radius: 10,
+                y: 4
+            )
             .animation(.easeInOut(duration: 0.2), value: isEnabled)
         }
         .buttonStyle(.plain)
-        .disabled(!isInteractive)
+        .allowsHitTesting(isInteractive)
         .sensoryFeedback(.impact(weight: .light), trigger: pressPulse)
         .accessibilityLabel(Text(title))
         .modifier(OptionalAccessibilityHint(hint: accessibilityHint))
@@ -98,6 +121,24 @@ struct EaseCloseToolbarButton: View {
                 .foregroundStyle(.secondary)
         }
         .accessibilityLabel(Text("common.close"))
+    }
+}
+
+/// Trailing toolbar save — Morandi tint when enabled, muted secondary when not.
+struct EaseToolbarSaveButton: View {
+    var isEnabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text("log.save")
+                .font(.body.weight(.bold))
+                .foregroundStyle(
+                    isEnabled ? EasePalette.morandiRed : Color.secondary.opacity(0.4)
+                )
+        }
+        .disabled(!isEnabled)
+        .accessibilityLabel(Text("log.save"))
     }
 }
 
