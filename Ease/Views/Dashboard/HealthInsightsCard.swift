@@ -12,31 +12,21 @@ struct HealthInsightsCard: View, Equatable {
 
     var body: some View {
         if !insights.isEmpty {
-            EaseCard(padding: 24) {
+            TrendPremiumCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("trend.insights.title")
-                            .font(.headline)
-                            .foregroundStyle(EasePalette.primaryText)
-                        Text(subtitle)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityElement(children: .combine)
+                    LifestyleInsightsCardHeader(subtitle: subtitle)
 
-                    VStack(alignment: .leading, spacing: 0) {
-                        ForEach(Array(insights.enumerated()), id: \.element.id) { index, insight in
-                            if index > 0 {
-                                Divider()
-                                    .overlay(EasePalette.hairline)
-                                    .padding(.vertical, 14)
+                    VStack(spacing: 10) {
+                        ForEach(insights) { insight in
+                            LifestyleInsightActionRow(
+                                insight: insight,
+                                calendar: calendar
+                            ) {
+                                selectedInsight = insight
                             }
-                            insightRow(insight)
                         }
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .sheet(item: $selectedInsight) { insight in
                 LifestyleInsightDetailSheet(insight: insight, calendar: calendar)
@@ -61,45 +51,57 @@ struct HealthInsightsCard: View, Equatable {
             window
         )
     }
+}
 
-    private func insightRow(_ insight: HealthInsight) -> some View {
-        Button {
-            selectedInsight = insight
-        } label: {
-            HStack(alignment: .center, spacing: 12) {
-                TrendTintIconTile(systemName: insight.symbolName, tint: iconColor(insight.kind))
-                Text(insight.cardDisplayTitle(calendar: calendar))
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(EasePalette.primaryText)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 8)
-                Text(insight.deltaText())
-                    .font(.system(.body, design: .rounded, weight: .medium))
-                    .monospacedDigit()
-                    .foregroundStyle(heroColor(insight))
-                    .contentTransition(.numericText())
-                    .lineLimit(1)
-                TrendEntryChevron()
+private struct LifestyleInsightsCardHeader: View {
+    let subtitle: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("trend.insights.title")
+                .font(.headline)
+                .foregroundStyle(EasePalette.primaryText)
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct LifestyleInsightActionRow: View {
+    let insight: HealthInsight
+    var calendar: Calendar = .current
+    let action: () -> Void
+
+    private var rowTint: Color { TrendInsightStyle.rowTint(for: insight.kind) }
+
+    var body: some View {
+        Button(action: action) {
+            TrendActionRow(tint: rowTint) {
+                HStack(alignment: .center, spacing: 12) {
+                    TrendInsightAccentIcon(systemName: insight.symbolName, tint: rowTint)
+                    Text(insight.cardDisplayTitle(calendar: calendar))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(EasePalette.primaryText)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 8)
+                    Text(insight.deltaText())
+                        .font(.body.weight(.bold))
+                        .monospacedDigit()
+                        .foregroundStyle(TrendInsightStyle.deltaColor(for: insight))
+                        .contentTransition(.numericText())
+                        .lineLimit(1)
+                    TrendEntryChevron()
+                }
             }
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(insight.accessibilitySummary(calendar: calendar))
         .accessibilityHint(Text("trend.insights.openDetail.hint"))
         .accessibilityAddTraits(.isButton)
-    }
-
-    private func heroColor(_ insight: HealthInsight) -> Color {
-        insight.comparesWeight ? EasePalette.semanticDelta(insight.delta) : EasePalette.primaryText
-    }
-
-    private func iconColor(_ kind: HealthInsight.Kind) -> Color {
-        switch kind {
-        case .shortSleepWeight, .weekdaySleep: EasePalette.iconSleep
-        case .periodWeight: EasePalette.iconPeriod
-        case .lowEnergyWeight: EasePalette.iconEnergy
-        }
     }
 }
 

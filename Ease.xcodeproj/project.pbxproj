@@ -95,6 +95,7 @@
 		A10000000000000000000119 /* AdvancedEstimateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000118 /* AdvancedEstimateCard.swift */; };
 		A10000000000000000000207 /* WeightForecastDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000204 /* WeightForecastDetailSheet.swift */; };
 		A10000000000000000000208 /* LifestyleInsightDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000205 /* LifestyleInsightDetailSheet.swift */; };
+		A10000000000000000000210 /* TrendPremiumCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000209 /* TrendPremiumCard.swift */; };
 		A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D9 /* WeightHistorySheet.swift */; };
 		A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DA /* CalendarDayDetailSheet.swift */; };
 		A100000000000000000000EB /* MealSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000DB /* MealSlot.swift */; };
@@ -228,6 +229,7 @@
 		A10000000000000000000118 /* AdvancedEstimateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedEstimateCard.swift; sourceTree = "<group>"; };
 		A10000000000000000000204 /* WeightForecastDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightForecastDetailSheet.swift; sourceTree = "<group>"; };
 		A10000000000000000000205 /* LifestyleInsightDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifestyleInsightDetailSheet.swift; sourceTree = "<group>"; };
+		A10000000000000000000209 /* TrendPremiumCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendPremiumCard.swift; sourceTree = "<group>"; };
 		A100000000000000000000D9 /* WeightHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightHistorySheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000DA /* CalendarDayDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarDayDetailSheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000DB /* MealSlot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealSlot.swift; sourceTree = "<group>"; };
@@ -462,6 +464,7 @@
 				A10000000000000000000118 /* AdvancedEstimateCard.swift */,
 				A10000000000000000000204 /* WeightForecastDetailSheet.swift */,
 				A10000000000000000000205 /* LifestyleInsightDetailSheet.swift */,
+				A10000000000000000000209 /* TrendPremiumCard.swift */,
 				A10000000000000000000114 /* HealthInsightsCard.swift */,
 				A100000000000000000000D4 /* CalendarTabView.swift */,
 				A10000000000000000000108 /* DailyMomentsCard.swift */,
@@ -677,6 +680,7 @@
 				A10000000000000000000119 /* AdvancedEstimateCard.swift in Sources */,
 				A10000000000000000000207 /* WeightForecastDetailSheet.swift in Sources */,
 				A10000000000000000000208 /* LifestyleInsightDetailSheet.swift in Sources */,
+				A10000000000000000000210 /* TrendPremiumCard.swift in Sources */,
 				A100000000000000000000E9 /* WeightHistorySheet.swift in Sources */,
 				A100000000000000000000EA /* CalendarDayDetailSheet.swift in Sources */,
 				A100000000000000000000EB /* MealSlot.swift in Sources */,

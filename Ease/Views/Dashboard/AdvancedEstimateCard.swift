@@ -13,37 +13,14 @@ struct AdvancedEstimateCard: View, Equatable {
     }
 
     var body: some View {
-        EaseCard(padding: 24) {
+        TrendPremiumCard {
             VStack(alignment: .leading, spacing: 12) {
-                TrendAnalysisHeader(
-                    title: "trend.advanced.title",
-                    windowDays: AdvancedPaceEstimator.lookbackDays
-                )
+                WeightForecastCardHeader()
 
                 if let estimate {
-                    Button {
+                    WeightForecastActionRow(eta: estimate.eta) {
                         isDetailPresented = true
-                    } label: {
-                        HStack(alignment: .center, spacing: 12) {
-                            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                                Text("trend.advanced.horizon")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                Spacer(minLength: 8)
-                                Text(EaseFormatters.advancedPaceHorizon(estimate.eta))
-                                    .font(.system(.body, design: .rounded, weight: .medium))
-                                    .foregroundStyle(EasePalette.primaryText)
-                                    .multilineTextAlignment(.trailing)
-                                    .lineLimit(2)
-                                    .minimumScaleFactor(0.85)
-                            }
-                            TrendEntryChevron()
-                        }
-                        .padding(.vertical, 4)
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityHint(Text("trend.forecast.openDetail.hint"))
                     .sheet(isPresented: $isDetailPresented) {
                         WeightForecastDetailSheet(estimate: estimate)
                     }
@@ -53,7 +30,58 @@ struct AdvancedEstimateCard: View, Equatable {
                         .foregroundStyle(.secondary)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+}
+
+private struct WeightForecastCardHeader: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("trend.advanced.title")
+                .font(.headline)
+                .foregroundStyle(EasePalette.primaryText)
+            Text(windowCaption)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var windowCaption: String {
+        String(
+            format: String(localized: "trend.insights.window"),
+            locale: .current,
+            AdvancedPaceEstimator.lookbackDays
+        )
+    }
+}
+
+private struct WeightForecastActionRow: View {
+    let eta: Date
+    let action: () -> Void
+
+    private var rowTint: Color { EasePalette.sleepTeal }
+
+    var body: some View {
+        Button(action: action) {
+            TrendActionRow(tint: rowTint) {
+                HStack(alignment: .center, spacing: 12) {
+                    Text("trend.advanced.horizon")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Spacer(minLength: 8)
+                    Text(EaseFormatters.advancedPaceHorizon(eta))
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.85)
+                    TrendEntryChevron()
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(Text("trend.forecast.openDetail.hint"))
     }
 }
