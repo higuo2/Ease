@@ -15,6 +15,7 @@ struct MetricSheet: View {
     @State private var errorKey: String?
     @State private var errorPulse = 0
     @State private var deletePulse = 0
+    @FocusState private var focusedMetricKey: String?
 
     init(date: Date, initialKey: String? = nil) {
         _selectedDate = State(initialValue: CalendarDay.startOfDay(date))
@@ -29,7 +30,9 @@ struct MetricSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                EasePalette.background.ignoresSafeArea()
+                EasePalette.background
+                    .ignoresSafeArea()
+                    .onTapGesture { resignInputFocus() }
                 List {
                     Section {
                         dateRow
@@ -61,7 +64,8 @@ struct MetricSheet: View {
                                 MeasurementInputRow(
                                     definition: definition,
                                     text: binding(for: definition.key),
-                                    isInvalid: invalidKeys.contains(definition.key)
+                                    isInvalid: invalidKeys.contains(definition.key),
+                                    focusedMetricKey: $focusedMetricKey
                                 )
                             }
                             if let errorKey {
@@ -82,12 +86,13 @@ struct MetricSheet: View {
                 }
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationTitle("metric.sheet.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    EaseCloseToolbarButton(action: { dismiss() })
+                    EaseCloseToolbarButton(action: closeSheet)
                 }
                 if !enabledMetrics.isEmpty {
                     ToolbarItem(placement: .confirmationAction) {
@@ -310,7 +315,21 @@ struct MetricSheet: View {
         }
     }
 
+    private func resignInputFocus() {
+        focusedMetricKey = nil
+        EaseKeyboard.dismiss()
+    }
+
+    private func closeSheet() {
+        resignInputFocus()
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(80))
+            dismiss()
+        }
+    }
+
     private func save() {
+        resignInputFocus()
         var drafts: [MetricLogDraft] = []
         var invalid: Set<String> = []
         for definition in enabledMetrics {
@@ -380,6 +399,7 @@ private struct MeasurementInputRow: View {
     let definition: MetricDefinition
     @Binding var text: String
     var isInvalid: Bool
+    @FocusState.Binding var focusedMetricKey: String?
 
     private var spec: MetricSpec { MetricCatalog.spec(for: definition) }
 
@@ -405,6 +425,7 @@ private struct MeasurementInputRow: View {
 
             HStack(spacing: 6) {
                 TextField("0", text: $text)
+                    .focused($focusedMetricKey, equals: definition.key)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .font(.body.weight(.semibold).monospacedDigit())

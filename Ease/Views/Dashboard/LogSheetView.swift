@@ -1,6 +1,11 @@
 import SwiftUI
 import SwiftData
 
+private enum LogSheetField: Hashable {
+    case weight
+    case bodyFat
+}
+
 private enum WeightDaypart: String, CaseIterable, Identifiable {
     case morning
     case evening
@@ -48,6 +53,7 @@ struct LogSheetView: View {
     @State private var errorPulse = 0
     @State private var saveSuccessPulse = 0
     @State private var isCalendarExpanded = false
+    @FocusState private var focusedField: LogSheetField?
 
     init(date: Date, editingLogID: UUID? = nil) {
         let start = CalendarDay.startOfDay(date)
@@ -61,7 +67,9 @@ struct LogSheetView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                EasePalette.background.ignoresSafeArea()
+                EasePalette.background
+                    .ignoresSafeArea()
+                    .onTapGesture { resignInputFocus() }
                 ScrollView {
                     VStack(spacing: 16) {
                         EaseCard(radius: 16, padding: 18) {
@@ -90,11 +98,12 @@ struct LogSheetView: View {
                     .padding(.top, 12)
                     .padding(.bottom, 28)
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    EaseCloseToolbarButton(action: { dismiss() })
+                    EaseCloseToolbarButton(action: closeSheet)
                 }
                 ToolbarItem(placement: .principal) {
                     Text("log.title.weight")
@@ -128,6 +137,7 @@ struct LogSheetView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Spacer(minLength: 0)
                     TextField("onboarding.weight.placeholder", text: $weightText)
+                        .focused($focusedField, equals: .weight)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.center)
                         .font(.system(size: 52, weight: .bold, design: .rounded))
@@ -200,6 +210,7 @@ struct LogSheetView: View {
 
                 HStack(spacing: 6) {
                     TextField("log.bodyFat.placeholder", text: $bodyFatText)
+                        .focused($focusedField, equals: .bodyFat)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .font(.body.weight(.semibold).monospacedDigit())
@@ -310,7 +321,25 @@ struct LogSheetView: View {
         return try? WeightLogRepository(context: modelContext).log(id: editingLogID)
     }
 
+    private func resignInputFocus() {
+        focusedField = nil
+        EaseKeyboard.dismiss()
+    }
+
+    private func closeSheet() {
+        resignInputFocus()
+        dismissAfterKeyboard()
+    }
+
+    private func dismissAfterKeyboard() {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(80))
+            dismiss()
+        }
+    }
+
     private func save() {
+        resignInputFocus()
         do {
             let weight = EaseFormatters.parseDecimal(weightText)
             let bodyFat = EaseFormatters.parseDecimal(bodyFatText)
@@ -321,7 +350,7 @@ struct LogSheetView: View {
             try saveWeight(weight: weight, bodyFat: bodyFat)
             saveSuccessPulse += 1
             refreshReminders()
-            dismiss()
+            dismissAfterKeyboard()
         } catch let error as EaseDataError {
             switch error {
             case .emptyRecord, .emptyPatch:
@@ -355,12 +384,13 @@ struct LogSheetView: View {
     }
 
     private func deleteCurrent() {
+        resignInputFocus()
         do {
             if let editingLog {
                 try WeightLogRepository(context: modelContext).delete(editingLog)
             }
             refreshReminders()
-            dismiss()
+            dismissAfterKeyboard()
         } catch {
             presentError("onboarding.error.invalid")
         }
