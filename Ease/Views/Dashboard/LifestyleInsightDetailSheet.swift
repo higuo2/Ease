@@ -14,20 +14,11 @@ struct LifestyleInsightDetailSheet: View {
                         comparisonSection
                         adviceSection
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(insight.sampleSizeText())
-                                .font(.caption2)
-                                .monospacedDigit()
-                                .foregroundStyle(.tertiary)
-                            Text("trend.insights.footnote")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 4)
+                        TrendLegalFootnote("trend.insights.detailDisclaimer")
+                            .padding(.top, 12)
                     }
                     .padding(20)
+                    .padding(.bottom, 12)
                 }
             }
             .navigationTitle(insight.cardDisplayTitle(calendar: calendar))
@@ -59,47 +50,58 @@ struct LifestyleInsightDetailSheet: View {
     }
 
     private func comparisonCard(label: String, value: String, mean: Double) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.85)
             Text(value)
-                .font(.title2.weight(.semibold).monospacedDigit())
+                .font(.title2.weight(.bold).monospacedDigit())
                 .foregroundStyle(
                     insight.comparesWeight
                         ? EasePalette.semanticDelta(mean)
                         : EasePalette.primaryText
                 )
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.65)
+        }
+        .frame(maxWidth: .infinity, minHeight: 108, alignment: .leading)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 20)
+        .background(
+            Color(uiColor: .secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+    }
+
+    private var adviceSection: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "lightbulb.fill")
+                .font(.body)
+                .foregroundStyle(tipAccent)
+                .accessibilityHidden(true)
+            Text(insight.actionAdvice())
+                .font(.subheadline)
+                .foregroundStyle(EasePalette.primaryText)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(
-            EasePalette.card,
+            tipAccent.opacity(0.1),
             in: RoundedRectangle(cornerRadius: 16, style: .continuous)
         )
-        .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(EasePalette.hairline, lineWidth: 1)
-        }
     }
 
-    private var adviceSection: some View {
-        EaseCard(padding: 16) {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "lightbulb.fill")
-                    .font(.body)
-                    .foregroundStyle(EasePalette.accent)
-                    .accessibilityHidden(true)
-                Text(insight.actionAdvice())
-                    .font(.subheadline)
-                    .foregroundStyle(EasePalette.primaryText)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+    private var tipAccent: Color {
+        switch insight.kind {
+        case .shortSleepWeight, .weekdaySleep:
+            return EasePalette.iconSleep
+        case .periodWeight:
+            return EasePalette.iconPeriod
+        case .lowEnergyWeight:
+            return EasePalette.iconEnergy
         }
     }
 }

@@ -13,8 +13,8 @@ struct AdvancedEstimateCard: View, Equatable {
     }
 
     var body: some View {
-        EaseCard(padding: 20) {
-            VStack(alignment: .leading, spacing: 0) {
+        EaseCard(padding: 24) {
+            VStack(alignment: .leading, spacing: 12) {
                 TrendAnalysisHeader(
                     title: "trend.advanced.title",
                     windowDays: AdvancedPaceEstimator.lookbackDays
@@ -28,10 +28,10 @@ struct AdvancedEstimateCard: View, Equatable {
                             HStack(alignment: .firstTextBaseline, spacing: 12) {
                                 Text("trend.advanced.horizon")
                                     .font(.subheadline)
-                                    .foregroundStyle(EasePalette.secondaryText)
+                                    .foregroundStyle(.secondary)
                                 Spacer(minLength: 8)
                                 Text(EaseFormatters.advancedPaceHorizon(estimate.eta))
-                                    .font(.headline.bold())
+                                    .font(.system(.body, design: .rounded, weight: .medium))
                                     .foregroundStyle(EasePalette.primaryText)
                                     .multilineTextAlignment(.trailing)
                                     .lineLimit(2)
@@ -39,7 +39,7 @@ struct AdvancedEstimateCard: View, Equatable {
                             }
                             TrendEntryChevron()
                         }
-                        .padding(.top, 14)
+                        .padding(.vertical, 4)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -50,8 +50,7 @@ struct AdvancedEstimateCard: View, Equatable {
                 } else {
                     Text("trend.advanced.unavailable")
                         .font(.subheadline)
-                        .foregroundStyle(EasePalette.secondaryText)
-                        .padding(.top, 12)
+                        .foregroundStyle(.secondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

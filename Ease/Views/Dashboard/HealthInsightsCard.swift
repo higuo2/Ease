@@ -12,15 +12,15 @@ struct HealthInsightsCard: View, Equatable {
 
     var body: some View {
         if !insights.isEmpty {
-            EaseCard(padding: 20) {
-                VStack(alignment: .leading, spacing: 0) {
-                    VStack(alignment: .leading, spacing: 4) {
+            EaseCard(padding: 24) {
+                VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text("trend.insights.title")
                             .font(.headline)
                             .foregroundStyle(EasePalette.primaryText)
                         Text(subtitle)
                             .font(.subheadline)
-                            .foregroundStyle(EasePalette.secondaryText)
+                            .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine)
@@ -30,12 +30,11 @@ struct HealthInsightsCard: View, Equatable {
                             if index > 0 {
                                 Divider()
                                     .overlay(EasePalette.hairline)
-                                    .padding(.vertical, 12)
+                                    .padding(.vertical, 14)
                             }
                             insightRow(insight)
                         }
                     }
-                    .padding(.top, 14)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -76,7 +75,8 @@ struct HealthInsightsCard: View, Equatable {
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 8)
                 Text(insight.deltaText())
-                    .font(.headline.weight(.bold).monospacedDigit())
+                    .font(.system(.body, design: .rounded, weight: .medium))
+                    .monospacedDigit()
                     .foregroundStyle(heroColor(insight))
                     .contentTransition(.numericText())
                     .lineLimit(1)

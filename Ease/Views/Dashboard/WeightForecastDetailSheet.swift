@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct WeightForecastDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -10,49 +11,33 @@ struct WeightForecastDetailSheet: View {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
-                        EaseCard(padding: 20) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("trend.forecast.detail.headline")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                Text(EaseFormatters.advancedPaceHorizon(estimate.eta))
-                                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                                    .foregroundStyle(EasePalette.primaryText)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
+                        heroSection
 
-                        EaseCard(padding: 0) {
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("trend.forecast.projectionFactors")
-                                    .font(.headline)
-                                    .foregroundStyle(EasePalette.primaryText)
-                                    .padding(.horizontal, 20)
-                                    .padding(.top, 20)
-                                    .padding(.bottom, 12)
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("trend.forecast.projectionFactors")
+                                .font(.headline)
+                                .foregroundStyle(EasePalette.primaryText)
+                                .padding(.horizontal, 4)
 
+                            VStack(spacing: 0) {
                                 factorRow(
                                     symbol: "moon.fill",
                                     tint: EasePalette.iconSleep,
                                     title: "trend.advanced.sleep",
                                     value: sleepValue
                                 )
-                                factorDivider
                                 factorRow(
                                     symbol: "bolt.fill",
                                     tint: EasePalette.iconEnergy,
                                     title: "trend.advanced.energy",
                                     value: energyValue
                                 )
-                                factorDivider
                                 factorRow(
                                     symbol: "drop.fill",
                                     tint: EasePalette.iconPeriod,
                                     title: "trend.advanced.period",
                                     value: periodValue
                                 )
-                                factorDivider
                                 factorRow(
                                     symbol: "chart.line.downtrend.xyaxis",
                                     tint: EasePalette.accent,
@@ -60,17 +45,18 @@ struct WeightForecastDetailSheet: View {
                                     value: EaseFormatters.signedKgPerDay(estimate.adjustedSlopeKg)
                                 )
                             }
-                            .padding(.bottom, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                Color(uiColor: .secondarySystemGroupedBackground),
+                                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            )
                         }
 
-                        Text("trend.forecast.disclaimer")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 4)
+                        TrendLegalFootnote("trend.forecast.disclaimer")
+                            .padding(.top, 8)
                     }
                     .padding(20)
+                    .padding(.bottom, 12)
                 }
             }
             .navigationTitle("trend.forecast.detail.title")
@@ -86,10 +72,24 @@ struct WeightForecastDetailSheet: View {
         .easeSheetPresentation()
     }
 
-    private var factorDivider: some View {
-        Divider()
-            .overlay(EasePalette.hairline)
-            .padding(.leading, 56)
+    private var heroSection: some View {
+        VStack(spacing: 10) {
+            Text("trend.forecast.detail.headline")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Text(EaseFormatters.advancedPaceHorizon(estimate.eta))
+                .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                .foregroundStyle(EasePalette.primaryText)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 32)
+        .padding(.horizontal, 24)
+        .background(
+            Color(uiColor: .secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
     }
 
     private var sleepValue: String {
@@ -141,20 +141,20 @@ struct WeightForecastDetailSheet: View {
         value: String
     ) -> some View {
         HStack(alignment: .center, spacing: 12) {
-            TrendTintIconTile(systemName: symbol, tint: tint)
-            VStack(alignment: .leading, spacing: 2) {
+            TrendTintIconTile(systemName: symbol, tint: tint, soft: true)
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(EasePalette.primaryText)
                 Text(value)
-                    .font(.subheadline)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .accessibilityElement(children: .combine)
     }

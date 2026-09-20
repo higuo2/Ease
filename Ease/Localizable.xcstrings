@@ -5693,6 +5693,7 @@
       }
     },
     "trend.advanced.explain.energy.fast" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5709,6 +5710,7 @@
       }
     },
     "trend.advanced.explain.energy.neutral" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5725,6 +5727,7 @@
       }
     },
     "trend.advanced.explain.energy.slow" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5741,6 +5744,7 @@
       }
     },
     "trend.advanced.explain.period.active" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5757,6 +5761,7 @@
       }
     },
     "trend.advanced.explain.period.neutral" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5773,6 +5778,7 @@
       }
     },
     "trend.advanced.explain.sleep.fast" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5789,6 +5795,7 @@
       }
     },
     "trend.advanced.explain.sleep.neutral" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5805,6 +5812,7 @@
       }
     },
     "trend.advanced.explain.sleep.slow" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5821,6 +5829,7 @@
       }
     },
     "trend.advanced.explain.slope" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5837,6 +5846,7 @@
       }
     },
     "trend.advanced.factor.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6051,13 +6061,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weight slope is adjusted after sleep, energy, and period multipliers. Not a countdown. Association, not cause. Not medical advice."
+            "value" : "Weight slope adjusted after sleep, energy and cycle multipliers; not a countdown, association not causation, not medical advice."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "体重斜率经睡眠、活动消耗与经期因子轻度修正。不是倒计时。仅描述关联，不是因果，也不是医疗建议。"
+            "value" : "体重斜率经睡眠、活动消耗与周期因子修正；非倒计时，仅关联非因果，非医疗建议。"
           }
         }
       }
@@ -6286,22 +6296,6 @@
         }
       }
     },
-    "trend.insights.openDetail.hint" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opens insight details."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开洞察详情。"
-          }
-        }
-      }
-    },
     "trend.insights.footnote" : {
       "localizations" : {
         "en" : {
@@ -6314,6 +6308,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只描述关联，不是因果，也不是医疗建议。"
+          }
+        }
+      }
+    },
+    "trend.insights.detailDisclaimer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It is not a countdown; results show association, not causation. This does not constitute medical advice."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非倒计时；结果仅表示关联，不代表因果，不构成医疗建议。"
           }
         }
       }
@@ -6431,6 +6441,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "消耗偏低后体重偏高"
+          }
+        }
+      }
+    },
+    "trend.insights.openDetail.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens insight details."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开洞察详情。"
           }
         }
       }
@@ -6553,6 +6579,7 @@
       }
     },
     "trend.insights.row.collapsed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6569,6 +6596,7 @@
       }
     },
     "trend.insights.row.expanded" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6585,6 +6613,7 @@
       }
     },
     "trend.insights.row.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
