@@ -118,10 +118,10 @@ struct BMIDetailSheet: View {
 
     private var statusBackground: Color {
         switch verdict {
-        case .band(.underweight, _): EasePalette.morandiMist.opacity(0.55)
-        case .band(.normal, _): EasePalette.morandiSage.opacity(0.55)
-        case .band(.overweight, _): EasePalette.morandiSand.opacity(0.65)
-        case .band(.obese, _): EasePalette.morandiBlush.opacity(0.55)
+        case .band(.underweight, _): EasePalette.morandiBarMist.opacity(0.65)
+        case .band(.normal, _): EasePalette.morandiBarSage.opacity(0.65)
+        case .band(.overweight, _): EasePalette.morandiBarSand.opacity(0.72)
+        case .band(.obese, _): EasePalette.morandiBarBlush.opacity(0.65)
         default: EasePalette.recessed
         }
     }
@@ -247,7 +247,7 @@ private struct IdealWeightRangeBar: View {
                     .frame(height: 8)
 
                 Capsule()
-                    .fill(EasePalette.morandiSage.opacity(0.55))
+                    .fill(EasePalette.morandiBarSage.opacity(0.62))
                     .frame(width: max(4, width * CGFloat((high - low) / span)), height: 8)
                     .offset(x: width * CGFloat((low - start) / span))
 

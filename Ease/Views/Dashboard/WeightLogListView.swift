@@ -288,6 +288,6 @@ struct WeightLogRowView: View, Equatable {
         return text
     }
 
-    private static let morningTint = EasePalette.morandiEnergy
-    private static let eveningTint = EasePalette.morandiMist
+    private static let morningTint = EasePalette.morandiEnergyDeep
+    private static let eveningTint = EasePalette.morandiMistDeep
 }

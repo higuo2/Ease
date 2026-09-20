@@ -60,10 +60,10 @@ struct BMIRangeBar: View {
 
     private func fill(for band: BMIBand) -> Color {
         switch band {
-        case .underweight: EasePalette.morandiMist
-        case .normal: EasePalette.morandiSage
-        case .overweight: EasePalette.morandiSand
-        case .obese: EasePalette.morandiBlush
+        case .underweight: EasePalette.morandiBarMist
+        case .normal: EasePalette.morandiBarSage
+        case .overweight: EasePalette.morandiBarSand
+        case .obese: EasePalette.morandiBarBlush
         }
     }
 

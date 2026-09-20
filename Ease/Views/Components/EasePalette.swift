@@ -19,7 +19,7 @@ enum EasePalette {
     static let tooltip = Color.black
     static let healthBar = Color.gray.opacity(0.28)
 
-    // MARK: - Morandi core
+    // MARK: - Morandi module fills (Weight home grid — do not retune)
 
     static let morandiSage = Color(red: 197 / 255, green: 206 / 255, blue: 195 / 255)
     static let morandiBlush = Color(red: 212 / 255, green: 193 / 255, blue: 192 / 255)
@@ -28,17 +28,26 @@ enum EasePalette {
     static let morandiSleep = Color(red: 196 / 255, green: 210 / 255, blue: 208 / 255)
     static let morandiPeriod = Color(red: 220 / 255, green: 198 / 255, blue: 204 / 255)
     static let morandiEnergy = Color(red: 224 / 255, green: 208 / 255, blue: 190 / 255)
-    static let morandiOat = Color(red: 239 / 255, green: 236 / 255, blue: 232 / 255)
-    static let morandiTerracotta = Color(red: 211 / 255, green: 158 / 255, blue: 130 / 255)
-    static let morandiTerracottaDeep = Color(red: 194 / 255, green: 137 / 255, blue: 108 / 255)
-    static let morandiClay = Color(red: 140 / 255, green: 88 / 255, blue: 63 / 255)
-    static let morandiSageDeep = Color(red: 118 / 255, green: 136 / 255, blue: 116 / 255)
-    static let morandiMistDeep = Color(red: 126 / 255, green: 142 / 255, blue: 150 / 255)
-    static let morandiPeriodDeep = Color(red: 162 / 255, green: 118 / 255, blue: 128 / 255)
-    static let morandiSleepDeep = Color(red: 128 / 255, green: 158 / 255, blue: 152 / 255)
-    static let morandiEnergyDeep = Color(red: 168 / 255, green: 128 / 255, blue: 96 / 255)
 
-    // MARK: - Semantic aliases (Morandi-backed)
+    // MARK: - Morandi UI (charts, accents, sheets — slightly brighter)
+
+    static let morandiOat = Color(red: 244 / 255, green: 240 / 255, blue: 235 / 255)
+    static let morandiTerracotta = Color(red: 225 / 255, green: 172 / 255, blue: 142 / 255)
+    static let morandiTerracottaDeep = Color(red: 208 / 255, green: 148 / 255, blue: 112 / 255)
+    static let morandiClay = Color(red: 168 / 255, green: 102 / 255, blue: 72 / 255)
+    static let morandiSageDeep = Color(red: 92 / 255, green: 142 / 255, blue: 108 / 255)
+    static let morandiMistDeep = Color(red: 98 / 255, green: 148 / 255, blue: 162 / 255)
+    static let morandiPeriodDeep = Color(red: 188 / 255, green: 128 / 255, blue: 142 / 255)
+    static let morandiSleepDeep = Color(red: 88 / 255, green: 162 / 255, blue: 148 / 255)
+    static let morandiEnergyDeep = Color(red: 198 / 255, green: 142 / 255, blue: 98 / 255)
+
+    /// BMI spectrum & similar bars — lifted from module fills, still Morandi.
+    static let morandiBarMist = Color(red: 186 / 255, green: 198 / 255, blue: 206 / 255)
+    static let morandiBarSage = Color(red: 178 / 255, green: 198 / 255, blue: 172 / 255)
+    static let morandiBarSand = Color(red: 228 / 255, green: 210 / 255, blue: 188 / 255)
+    static let morandiBarBlush = Color(red: 224 / 255, green: 192 / 255, blue: 190 / 255)
+
+    // MARK: - Semantic aliases
 
     static let coral = morandiTerracottaDeep
     static let coralDeep = morandiClay
@@ -79,14 +88,12 @@ enum EasePalette {
         )
     }
 
-    /// Weight-tab hero: terracotta when weight is down, sage when up.
     static func deltaColor(_ delta: Double) -> Color {
         if delta < 0 { return morandiTerracottaDeep }
         if delta > 0 { return morandiSageDeep }
         return secondaryText
     }
 
-    /// Chips / badges: muted teal vs clay terracotta.
     static func semanticDelta(_ delta: Double) -> Color {
         if delta < 0 { return morandiSleepDeep }
         if delta > 0 { return morandiClay }
