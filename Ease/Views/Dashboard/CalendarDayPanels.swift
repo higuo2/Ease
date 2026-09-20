@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 // MARK: - Premium panel shell
 
@@ -7,26 +6,13 @@ struct CalendarPremiumPanel<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
         content()
             .padding(22)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(panelBackground)
-            .overlay(panelBorder)
+            .background(EasePalette.card, in: shape)
+            .overlay(shape.strokeBorder(Color.black.opacity(0.04), lineWidth: 1))
             .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 3)
-    }
-
-    private var panelBackground: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .fill(.regularMaterial)
-            .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color(uiColor: .secondarySystemGroupedBackground))
-            )
-    }
-
-    private var panelBorder: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .stroke(Color.primary.opacity(0.05), lineWidth: 1)
     }
 }
 
@@ -69,25 +55,25 @@ struct DailySnapshotView: View {
                         ) {
                             DailyMetricTile(
                                 symbol: "scalemass.fill",
-                                tint: .blue,
+                                fill: HomeModule.weight.fill,
                                 title: "calendar.detail.weight",
                                 value: selected.weight.map { EaseFormatters.kg($0) }
                             )
                             DailyMetricTile(
                                 symbol: "moon.fill",
-                                tint: .indigo,
+                                fill: HomeModule.sleep.fill,
                                 title: "calendar.detail.sleep",
                                 value: selected.sleepHours.map(EaseFormatters.sleepDuration)
                             )
                             DailyMetricTile(
                                 symbol: "flame.fill",
-                                tint: .orange,
+                                fill: HomeModule.energy.fill,
                                 title: "health.energy",
                                 value: selected.activeEnergyKcal.map { EaseFormatters.kcal($0) }
                             )
                             DailyMetricTile(
                                 symbol: "drop.fill",
-                                tint: EasePalette.iconPeriod,
+                                fill: HomeModule.period.fill,
                                 title: "calendar.detail.period",
                                 value: periodValue(
                                     dayNumber: selected.periodDayNumber,
@@ -141,23 +127,20 @@ struct DailySnapshotView: View {
 
 private struct DailyMetricTile: View {
     let symbol: String
-    let tint: Color
+    let fill: Color
     let title: LocalizedStringKey
     let value: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Image(systemName: symbol)
-                .symbolRenderingMode(.hierarchical)
                 .font(.body.weight(.semibold))
-                .foregroundStyle(tint)
-                .frame(width: 32, height: 32)
-                .background(tint.opacity(0.1), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .foregroundStyle(EasePalette.primaryText)
                 .accessibilityHidden(true)
 
             Text(title)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(EasePalette.secondaryText)
                 .lineLimit(1)
             Text(value ?? "—")
                 .font(.subheadline.weight(.semibold).monospacedDigit())
@@ -167,10 +150,7 @@ private struct DailyMetricTile: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(
-            tint.opacity(0.06),
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-        )
+        .background(fill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 

@@ -61,7 +61,7 @@ private struct WeightForecastActionRow: View {
     let eta: Date
     let action: () -> Void
 
-    private var rowTint: Color { EasePalette.sleepTeal }
+    private var rowTint: Color { HomeModule.weight.fill }
 
     var body: some View {
         Button(action: action) {

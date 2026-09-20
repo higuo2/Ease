@@ -294,9 +294,13 @@ struct TrendStatsGrid: View, Equatable {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
             .background(
-                Color(uiColor: .secondarySystemGroupedBackground),
+                EasePalette.card,
                 in: RoundedRectangle(cornerRadius: 16, style: .continuous)
             )
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.black.opacity(0.04), lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
         .accessibilityHint(focusDate == nil ? Text("trend.stats.chart.hint") : Text("trend.stats.focus.hint"))

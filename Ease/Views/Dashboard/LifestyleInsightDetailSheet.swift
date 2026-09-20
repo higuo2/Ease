@@ -70,9 +70,13 @@ struct LifestyleInsightDetailSheet: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 20)
         .background(
-            Color(uiColor: .secondarySystemGroupedBackground),
+            EasePalette.card,
             in: RoundedRectangle(cornerRadius: 16, style: .continuous)
         )
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.black.opacity(0.04), lineWidth: 1)
+        }
     }
 
     private var adviceSection: some View {

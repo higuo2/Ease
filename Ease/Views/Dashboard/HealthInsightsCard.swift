@@ -75,13 +75,14 @@ private struct LifestyleInsightActionRow: View {
     var calendar: Calendar = .current
     let action: () -> Void
 
-    private var rowTint: Color { TrendInsightStyle.rowTint(for: insight.kind) }
+    private var rowFill: Color { TrendInsightStyle.rowFill(for: insight.kind) }
+    private var iconTint: Color { TrendInsightStyle.iconTint(for: insight.kind) }
 
     var body: some View {
         Button(action: action) {
-            TrendActionRow(tint: rowTint) {
+            TrendActionRow(tint: rowFill) {
                 HStack(alignment: .center, spacing: 12) {
-                    TrendInsightAccentIcon(systemName: insight.symbolName, tint: rowTint)
+                    TrendInsightAccentIcon(systemName: insight.symbolName, tint: iconTint)
                     Text(insight.cardDisplayTitle(calendar: calendar))
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(EasePalette.primaryText)

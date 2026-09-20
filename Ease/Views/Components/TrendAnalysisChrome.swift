@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 enum TrendAnalysisMotion {
     static let accordion = Animation.spring(duration: 0.25)
@@ -89,26 +88,13 @@ struct TrendPremiumCard<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
         content()
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(cardBackground)
-            .overlay(cardBorder)
+            .background(EasePalette.card, in: shape)
+            .overlay(shape.strokeBorder(Color.black.opacity(0.04), lineWidth: 1))
             .shadow(color: .black.opacity(0.03), radius: 5, x: 0, y: 2)
-    }
-
-    private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(.regularMaterial)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(uiColor: .secondarySystemGroupedBackground))
-            )
-    }
-
-    private var cardBorder: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .stroke(Color.primary.opacity(0.05), lineWidth: 1)
     }
 }
 
@@ -121,10 +107,7 @@ struct TrendActionRow<Content: View>: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                tint.opacity(0.08),
-                in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-            )
+            .background(tint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 
@@ -139,7 +122,7 @@ struct TrendInsightAccentIcon: View {
             .foregroundStyle(tint)
             .frame(width: 36, height: 36)
             .background(
-                tint.opacity(0.18),
+                EasePalette.card.opacity(0.65),
                 in: RoundedRectangle(cornerRadius: 10, style: .continuous)
             )
             .accessibilityHidden(true)
@@ -147,10 +130,21 @@ struct TrendInsightAccentIcon: View {
 }
 
 enum TrendInsightStyle {
-    static func rowTint(for kind: HealthInsight.Kind) -> Color {
+    static func rowFill(for kind: HealthInsight.Kind) -> Color {
         switch kind {
         case .shortSleepWeight, .weekdaySleep:
-            return .indigo
+            return HomeModule.sleep.fill
+        case .periodWeight:
+            return HomeModule.period.fill
+        case .lowEnergyWeight:
+            return HomeModule.energy.fill
+        }
+    }
+
+    static func iconTint(for kind: HealthInsight.Kind) -> Color {
+        switch kind {
+        case .shortSleepWeight, .weekdaySleep:
+            return EasePalette.iconSleep
         case .periodWeight:
             return EasePalette.iconPeriod
         case .lowEnergyWeight:
@@ -163,10 +157,10 @@ enum TrendInsightStyle {
             return EasePalette.semanticDelta(insight.delta)
         }
         if insight.delta < -0.05 {
-            return Color.orange
+            return EasePalette.iconSleep
         }
         if insight.delta > 0.05 {
-            return EasePalette.mint
+            return EasePalette.morandiGreenDeep
         }
         return EasePalette.primaryText
     }

@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct WeightForecastDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -47,9 +46,13 @@ struct WeightForecastDetailSheet: View {
                             }
                             .padding(.vertical, 4)
                             .background(
-                                Color(uiColor: .secondarySystemGroupedBackground),
+                                EasePalette.card,
                                 in: RoundedRectangle(cornerRadius: 16, style: .continuous)
                             )
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(Color.black.opacity(0.04), lineWidth: 1)
+                            }
                         }
 
                         TrendLegalFootnote("trend.forecast.disclaimer")
@@ -87,7 +90,7 @@ struct WeightForecastDetailSheet: View {
         .padding(.vertical, 32)
         .padding(.horizontal, 24)
         .background(
-            Color(uiColor: .secondarySystemGroupedBackground),
+            HomeModule.weight.fill,
             in: RoundedRectangle(cornerRadius: 18, style: .continuous)
         )
     }
