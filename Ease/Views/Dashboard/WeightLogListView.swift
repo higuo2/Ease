@@ -256,15 +256,14 @@ struct WeightLogRowView: View, Equatable {
     }
 
     private func deltaBadge(_ delta: Double) -> some View {
-        let lost = delta < 0
-        let color = lost ? Color.green : Color.red
+        let color = EasePalette.semanticDelta(delta)
         return Text(EaseFormatters.signedKg(delta))
             .font(.caption.weight(.semibold))
             .monospacedDigit()
             .foregroundStyle(color)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(color.opacity(0.12), in: Capsule())
+            .background(color.opacity(0.14), in: Capsule())
             .accessibilityLabel(Text(EaseFormatters.signedKg(delta)))
     }
 
@@ -289,6 +288,6 @@ struct WeightLogRowView: View, Equatable {
         return text
     }
 
-    private static let morningTint = Color(red: 0.92, green: 0.62, blue: 0.22)
-    private static let eveningTint = Color(red: 0.45, green: 0.48, blue: 0.82)
+    private static let morningTint = EasePalette.morandiEnergy
+    private static let eveningTint = EasePalette.morandiMist
 }
