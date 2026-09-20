@@ -82,6 +82,20 @@ struct TrendEntryChevron: View {
     }
 }
 
+/// Subtle press feedback only — no static row fill.
+struct TrendCardRowButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background {
+                if configuration.isPressed {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.primary.opacity(0.06))
+                }
+            }
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
 // MARK: - Premium Trend cards (compiled with TrendAnalysisChrome for target membership)
 
 struct TrendPremiumCard<Content: View>: View {
@@ -95,73 +109,5 @@ struct TrendPremiumCard<Content: View>: View {
             .background(EasePalette.card, in: shape)
             .overlay(shape.strokeBorder(Color.black.opacity(0.04), lineWidth: 1))
             .shadow(color: .black.opacity(0.03), radius: 5, x: 0, y: 2)
-    }
-}
-
-struct TrendActionRow<Content: View>: View {
-    let tint: Color
-    @ViewBuilder var content: () -> Content
-
-    var body: some View {
-        content()
-            .padding(.horizontal, 14)
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(tint, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
-}
-
-struct TrendInsightAccentIcon: View {
-    let systemName: String
-    let tint: Color
-
-    var body: some View {
-        Image(systemName: systemName)
-            .symbolRenderingMode(.hierarchical)
-            .font(.body.weight(.semibold))
-            .foregroundStyle(tint)
-            .frame(width: 36, height: 36)
-            .background(
-                EasePalette.card.opacity(0.65),
-                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
-            )
-            .accessibilityHidden(true)
-    }
-}
-
-enum TrendInsightStyle {
-    static func rowFill(for kind: HealthInsight.Kind) -> Color {
-        switch kind {
-        case .shortSleepWeight, .weekdaySleep:
-            return HomeModule.sleep.fill
-        case .periodWeight:
-            return HomeModule.period.fill
-        case .lowEnergyWeight:
-            return HomeModule.energy.fill
-        }
-    }
-
-    static func iconTint(for kind: HealthInsight.Kind) -> Color {
-        switch kind {
-        case .shortSleepWeight, .weekdaySleep:
-            return EasePalette.iconSleep
-        case .periodWeight:
-            return EasePalette.iconPeriod
-        case .lowEnergyWeight:
-            return EasePalette.iconEnergy
-        }
-    }
-
-    static func deltaColor(for insight: HealthInsight) -> Color {
-        if insight.comparesWeight {
-            return EasePalette.semanticDelta(insight.delta)
-        }
-        if insight.delta < -0.05 {
-            return EasePalette.iconSleep
-        }
-        if insight.delta > 0.05 {
-            return EasePalette.morandiGreenDeep
-        }
-        return EasePalette.primaryText
     }
 }

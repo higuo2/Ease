@@ -16,8 +16,12 @@ struct HealthInsightsCard: View, Equatable {
                 VStack(alignment: .leading, spacing: 12) {
                     LifestyleInsightsCardHeader(subtitle: subtitle)
 
-                    VStack(spacing: 10) {
-                        ForEach(insights) { insight in
+                    VStack(spacing: 0) {
+                        ForEach(Array(insights.enumerated()), id: \.element.id) { index, insight in
+                            if index > 0 {
+                                Divider()
+                                    .padding(.vertical, 4)
+                            }
                             LifestyleInsightActionRow(
                                 insight: insight,
                                 calendar: calendar
@@ -75,31 +79,28 @@ private struct LifestyleInsightActionRow: View {
     var calendar: Calendar = .current
     let action: () -> Void
 
-    private var rowFill: Color { TrendInsightStyle.rowFill(for: insight.kind) }
-    private var iconTint: Color { TrendInsightStyle.iconTint(for: insight.kind) }
-
     var body: some View {
         Button(action: action) {
-            TrendActionRow(tint: rowFill) {
-                HStack(alignment: .center, spacing: 12) {
-                    TrendInsightAccentIcon(systemName: insight.symbolName, tint: iconTint)
-                    Text(insight.cardDisplayTitle(calendar: calendar))
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(EasePalette.primaryText)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 8)
-                    Text(insight.deltaText())
-                        .font(.body.weight(.bold))
-                        .monospacedDigit()
-                        .foregroundStyle(TrendInsightStyle.deltaColor(for: insight))
-                        .contentTransition(.numericText())
-                        .lineLimit(1)
-                    TrendEntryChevron()
-                }
+            HStack(alignment: .center, spacing: 8) {
+                Text(insight.cardDisplayTitle(calendar: calendar))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 8)
+                Text(insight.deltaText())
+                    .font(.body.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(.primary)
+                    .contentTransition(.numericText())
+                    .lineLimit(1)
+                TrendEntryChevron()
             }
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(TrendCardRowButtonStyle())
         .accessibilityLabel(insight.accessibilitySummary(calendar: calendar))
         .accessibilityHint(Text("trend.insights.openDetail.hint"))
         .accessibilityAddTraits(.isButton)

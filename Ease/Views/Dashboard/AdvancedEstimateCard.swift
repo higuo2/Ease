@@ -61,27 +61,27 @@ private struct WeightForecastActionRow: View {
     let eta: Date
     let action: () -> Void
 
-    private var rowTint: Color { HomeModule.weight.fill }
-
     var body: some View {
         Button(action: action) {
-            TrendActionRow(tint: rowTint) {
-                HStack(alignment: .center, spacing: 12) {
-                    Text("trend.advanced.horizon")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                    Spacer(minLength: 8)
-                    Text(EaseFormatters.advancedPaceHorizon(eta))
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.trailing)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.85)
-                    TrendEntryChevron()
-                }
+            HStack(alignment: .center, spacing: 8) {
+                Text("trend.advanced.horizon")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 8)
+                Text(EaseFormatters.advancedPaceHorizon(eta))
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.trailing)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                TrendEntryChevron()
             }
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(TrendCardRowButtonStyle())
         .accessibilityHint(Text("trend.forecast.openDetail.hint"))
     }
 }
