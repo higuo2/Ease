@@ -23,8 +23,8 @@ struct CalendarTabView: View {
                                 cellHeight: dayCellHeight,
                                 isAccessibilityType: isAccessibilityType
                             )
-                            CalendarSelectedDayCard(viewModel: viewModel, snapshot: snapshot)
-                            CalendarMonthOverview(viewModel: viewModel, snapshot: snapshot)
+                            DailySnapshotView(viewModel: viewModel, snapshot: snapshot)
+                            MonthlyOverviewCard(viewModel: viewModel, snapshot: snapshot)
                         }
                     }
                     .easeTabScrollContent()
@@ -256,214 +256,6 @@ private struct CalendarDayCell: View, Equatable {
     }
 }
 
-private struct CalendarSelectedDayCard: View {
-    @Bindable var viewModel: DashboardViewModel
-    let snapshot: CalendarMonthSnapshot
-
-    var body: some View {
-        let selected = snapshot.day(for: viewModel.selectedDate)
-        let hasLogs = selected.map(\.hasLogs) ?? false
-
-        if let selected, hasLogs {
-            EaseCard(padding: 20) {
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text(selected.date, format: EaseDateFormat.weekdayMonthDay)
-                            .font(.headline)
-                            .foregroundStyle(EasePalette.primaryText)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.85)
-                        Spacer(minLength: 8)
-                        Button("common.edit") {
-                            viewModel.openWeightEntry(for: selected.date)
-                        }
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(EasePalette.secondaryText)
-                        .buttonStyle(.borderless)
-                    }
-
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible(), spacing: EaseLayout.gridGap),
-                            GridItem(.flexible(), spacing: EaseLayout.gridGap)
-                        ],
-                        alignment: .leading,
-                        spacing: 12
-                    ) {
-                        detailMetric(
-                            "calendar.detail.weight",
-                            selected.weight.map { EaseFormatters.kg($0) }
-                        )
-                        detailMetric(
-                            "calendar.detail.sleep",
-                            selected.sleepHours.map(EaseFormatters.sleepDuration)
-                        )
-                        detailMetric(
-                            "calendar.detail.period",
-                            periodValue(dayNumber: selected.periodDayNumber, logged: selected.marks.contains(.period))
-                        )
-                        detailMetric(
-                            "calendar.detail.notes",
-                            selected.note,
-                            lineLimit: 2
-                        )
-                    }
-                }
-            }
-        } else {
-            Button {
-                viewModel.openWeightEntry(for: viewModel.selectedDate)
-            } label: {
-                Text(emptyCTATitle)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(EasePalette.primaryText)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .padding(.horizontal, 16)
-                    .background(EasePalette.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .strokeBorder(
-                                EasePalette.secondaryText.opacity(0.28),
-                                style: StrokeStyle(lineWidth: 1.2, dash: [6, 4])
-                            )
-                    }
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private var emptyCTATitle: String {
-        String(
-            format: String(localized: "calendar.cta.logData"),
-            locale: .current,
-            viewModel.selectedDate.formatted(EaseDateFormat.monthDay)
-        )
-    }
-
-    private func detailMetric(
-        _ title: LocalizedStringKey,
-        _ value: String?,
-        lineLimit: Int = 1
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(value ?? "—")
-                .font(.subheadline.weight(.medium).monospacedDigit())
-                .foregroundStyle(EasePalette.primaryText)
-                .lineLimit(lineLimit)
-                .minimumScaleFactor(0.85)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(
-            EasePalette.recessed,
-            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-        )
-    }
-
-    private func periodValue(dayNumber: Int?, logged: Bool) -> String? {
-        if let dayNumber {
-            return String(format: String(localized: "calendar.detail.periodDay"), locale: .current, dayNumber)
-        }
-        return logged ? String(localized: "calendar.detail.periodYes") : nil
-    }
-}
-
-private struct CalendarMonthOverview: View {
-    @Bindable var viewModel: DashboardViewModel
-    let snapshot: CalendarMonthSnapshot
-
-    var body: some View {
-        let weekAverageWeight = WeekWeightStats.averageWeight(
-            weightIndex: WeightMetrics.DayIndex(lastWeightByDay: snapshot.lastWeightByDay),
-            weekContaining: viewModel.selectedDate
-        )
-        EaseCard(padding: 20) {
-            VStack(alignment: .leading, spacing: 14) {
-                Text(overviewTitle)
-                    .font(.headline)
-                    .foregroundStyle(EasePalette.primaryText)
-
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(), spacing: EaseLayout.gridGap),
-                        GridItem(.flexible(), spacing: EaseLayout.gridGap)
-                    ],
-                    alignment: .leading,
-                    spacing: 12
-                ) {
-                    overviewStat(
-                        "calendar.stat.monthAvg",
-                        snapshot.stats.averageWeight.map { EaseFormatters.kg($0) }
-                    )
-                    overviewStat(
-                        "calendar.stat.monthDelta",
-                        netChangeText(snapshot.stats.monthDelta),
-                        valueColor: snapshot.stats.monthDelta.map(EasePalette.semanticDelta)
-                    )
-                    overviewStat(
-                        "calendar.stat.weekAvg",
-                        weekAverageWeight.map { EaseFormatters.kg($0) }
-                    )
-                    overviewStat(
-                        "calendar.stat.loggedDays",
-                        String(
-                            format: String(localized: "calendar.stat.loggedDays.value"),
-                            locale: .current,
-                            snapshot.stats.checkinDays,
-                            snapshot.stats.elapsedDays
-                        )
-                    )
-                }
-            }
-        }
-    }
-
-    private var overviewTitle: String {
-        String(
-            format: String(localized: "calendar.overview.title"),
-            locale: .current,
-            snapshot.month.formatted(EaseDateFormat.monthWide)
-        )
-    }
-
-    private func overviewStat(
-        _ title: LocalizedStringKey,
-        _ value: String?,
-        valueColor: Color? = nil
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(value ?? "—")
-                .font(.subheadline.weight(.semibold).monospacedDigit())
-                .foregroundStyle(valueColor ?? EasePalette.primaryText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(
-            EasePalette.recessed,
-            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-        )
-    }
-
-    private func netChangeText(_ delta: Double?) -> String? {
-        guard let delta else { return nil }
-        if delta == 0 {
-            return EaseFormatters.kg(0)
-        }
-        let arrow = delta < 0 ? "▼ " : "▲ "
-        return arrow + EaseFormatters.oneDecimal(abs(delta)) + "\u{00A0}" + String(localized: "unit.kg")
-    }
-}
-
 struct CalendarDayMarks: OptionSet, Equatable, Sendable {
     let rawValue: UInt8
 
@@ -479,6 +271,7 @@ struct CalendarDaySnapshot: Equatable, Identifiable, Sendable {
     var dayNumber: Int
     var weight: Double?
     var sleepHours: Double?
+    var activeEnergyKcal: Double?
     var marks: CalendarDayMarks
     var note: String?
     var periodDayNumber: Int?
@@ -487,7 +280,11 @@ struct CalendarDaySnapshot: Equatable, Identifiable, Sendable {
     var accessibilityLabel: String
 
     var hasLogs: Bool {
-        weight != nil || sleepHours != nil || marks.contains(.period) || note != nil
+        weight != nil
+            || sleepHours != nil
+            || activeEnergyKcal != nil
+            || marks.contains(.period)
+            || note != nil
     }
 }
 
@@ -569,6 +366,7 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
             dayNumber: calendar.component(.day, from: day),
             weight: weight,
             sleepHours: sleep,
+            activeEnergyKcal: healthByDay[key]?.activeEnergyKcal,
             marks: marks,
             note: trimmedNote,
             periodDayNumber: cycleHistory.periodDayNumber(on: day, calendar: calendar),

@@ -694,6 +694,22 @@
         }
       }
     },
+    "calendar.detail.openLog.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens log entry for this day."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开这一天的记录。"
+          }
+        }
+      }
+    },
     "calendar.detail.day" : {
       "localizations" : {
         "en" : {
