@@ -45,7 +45,7 @@ struct ProgressRingView: View {
             ZStack {
                 EaseArcRing(
                     progress: clamped,
-                    colors: [EasePalette.accentSoft, EasePalette.accent]
+                    colors: [EasePalette.morandiGreen, EasePalette.morandiGreenDeep]
                 )
                 VStack(spacing: 6) {
                     if isComplete {

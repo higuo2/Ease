@@ -29,19 +29,21 @@ enum EasePalette {
     static let morandiPeriod = Color(red: 220 / 255, green: 198 / 255, blue: 204 / 255)
     static let morandiEnergy = Color(red: 224 / 255, green: 208 / 255, blue: 190 / 255)
 
-    // MARK: - Morandi UI (charts, accents, sheets — slightly brighter)
+    // MARK: - Morandi red / green (progress, charts, deltas — slightly bright)
+
+    static let morandiGreen = Color(red: 168 / 255, green: 210 / 255, blue: 176 / 255)
+    static let morandiGreenDeep = Color(red: 88 / 255, green: 158 / 255, blue: 108 / 255)
+    static let morandiRed = Color(red: 238 / 255, green: 172 / 255, blue: 164 / 255)
+    static let morandiRedDeep = Color(red: 210 / 255, green: 108 / 255, blue: 100 / 255)
 
     static let morandiOat = Color(red: 244 / 255, green: 240 / 255, blue: 235 / 255)
-    static let morandiTerracotta = Color(red: 225 / 255, green: 172 / 255, blue: 142 / 255)
-    static let morandiTerracottaDeep = Color(red: 208 / 255, green: 148 / 255, blue: 112 / 255)
-    static let morandiClay = Color(red: 168 / 255, green: 102 / 255, blue: 72 / 255)
-    static let morandiSageDeep = Color(red: 92 / 255, green: 142 / 255, blue: 108 / 255)
+    static let morandiSageDeep = morandiGreenDeep
     static let morandiMistDeep = Color(red: 98 / 255, green: 148 / 255, blue: 162 / 255)
     static let morandiPeriodDeep = Color(red: 188 / 255, green: 128 / 255, blue: 142 / 255)
     static let morandiSleepDeep = Color(red: 88 / 255, green: 162 / 255, blue: 148 / 255)
     static let morandiEnergyDeep = Color(red: 198 / 255, green: 142 / 255, blue: 98 / 255)
 
-    /// BMI spectrum & similar bars — lifted from module fills, still Morandi.
+    /// BMI spectrum — brighter bar tints (tiles unchanged).
     static let morandiBarMist = Color(red: 186 / 255, green: 198 / 255, blue: 206 / 255)
     static let morandiBarSage = Color(red: 178 / 255, green: 198 / 255, blue: 172 / 255)
     static let morandiBarSand = Color(red: 228 / 255, green: 210 / 255, blue: 188 / 255)
@@ -49,13 +51,13 @@ enum EasePalette {
 
     // MARK: - Semantic aliases
 
-    static let coral = morandiTerracottaDeep
-    static let coralDeep = morandiClay
-    static let accent = morandiTerracottaDeep
-    static let accentSoft = morandiTerracotta
-    static let accentWarm = morandiEnergyDeep
-    static let mint = morandiSageDeep
-    static let softTeal = morandiSleepDeep
+    static let coral = morandiRedDeep
+    static let coralDeep = morandiRedDeep
+    static let accent = morandiRedDeep
+    static let accentSoft = morandiRed
+    static let accentWarm = morandiRedDeep
+    static let mint = morandiGreenDeep
+    static let softTeal = morandiGreenDeep
 
     static let sleepMint = morandiSleep
     static let sleepTeal = morandiSleepDeep
@@ -67,14 +69,14 @@ enum EasePalette {
     static let iconEnergy = morandiEnergyDeep
     static let iconPeriod = morandiPeriodDeep
 
-    static let dietClean = morandiSageDeep
-    static let dietNormal = morandiTerracotta
+    static let dietClean = morandiGreenDeep
+    static let dietNormal = morandiEnergyDeep
     static let dietCheat = morandiPeriodDeep
     static let dietFasting = morandiMistDeep
 
     static var morandiProgressFill: LinearGradient {
         LinearGradient(
-            colors: [morandiTerracotta, morandiTerracottaDeep],
+            colors: [morandiGreen, morandiGreenDeep],
             startPoint: .leading,
             endPoint: .trailing
         )
@@ -82,21 +84,22 @@ enum EasePalette {
 
     static var chartLineGradient: LinearGradient {
         LinearGradient(
-            colors: [morandiClay, morandiTerracotta],
+            colors: [morandiRed, morandiRedDeep],
             startPoint: .leading,
             endPoint: .trailing
         )
     }
 
+    /// Weight down (negative delta) = green; up = red.
     static func deltaColor(_ delta: Double) -> Color {
-        if delta < 0 { return morandiTerracottaDeep }
-        if delta > 0 { return morandiSageDeep }
+        if delta < 0 { return morandiGreenDeep }
+        if delta > 0 { return morandiRedDeep }
         return secondaryText
     }
 
     static func semanticDelta(_ delta: Double) -> Color {
-        if delta < 0 { return morandiSleepDeep }
-        if delta > 0 { return morandiClay }
+        if delta < 0 { return morandiGreenDeep }
+        if delta > 0 { return morandiRedDeep }
         return secondaryText
     }
 

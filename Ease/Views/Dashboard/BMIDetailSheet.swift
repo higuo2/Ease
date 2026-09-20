@@ -110,7 +110,7 @@ struct BMIDetailSheet: View {
         switch verdict {
         case .band(.underweight, _): EasePalette.morandiMistDeep
         case .band(.normal, _): EasePalette.morandiSageDeep
-        case .band(.overweight, _): EasePalette.morandiClay
+        case .band(.overweight, _): EasePalette.morandiRedDeep
         case .band(.obese, _): EasePalette.morandiPeriodDeep
         default: EasePalette.secondaryText
         }
