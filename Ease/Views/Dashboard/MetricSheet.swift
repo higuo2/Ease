@@ -8,79 +8,136 @@ struct MetricSheet: View {
     @Query(sort: \MetricLog.timestamp, order: .forward) private var metricLogs: [MetricLog]
 
     @State private var selectedDate: Date
+    @State private var selectedCategory: MetricInputCategory = .core
     @State private var selectedKey: String
     @State private var metricTexts: [String: String] = [:]
     @State private var invalidKeys: Set<String> = []
     @State private var errorKey: String?
     @State private var errorPulse = 0
+    @State private var deletePulse = 0
 
     init(date: Date, initialKey: String? = nil) {
         _selectedDate = State(initialValue: CalendarDay.startOfDay(date))
         _selectedKey = State(initialValue: initialKey ?? "")
+        if let initialKey {
+            _selectedCategory = State(
+                initialValue: MetricInputCategory.category(for: initialKey, kind: .builtin)
+            )
+        }
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
-                ScrollView {
-                    VStack(spacing: 20) {
-                        EaseCard {
-                            dateRow
-                        }
-                        if !enabledMetrics.isEmpty {
-                            EaseCard {
-                                VStack(spacing: 20) {
-                                    ForEach(enabledMetrics, id: \.key) { definition in
-                                        metricField(definition)
-                                    }
+                List {
+                    Section {
+                        dateRow
+                        if availableCategories.count > 1 {
+                            Picker("metric.category.title", selection: $selectedCategory) {
+                                ForEach(availableCategories) { category in
+                                    Text(LocalizedStringKey(category.titleKey)).tag(category)
                                 }
+                            }
+                            .pickerStyle(.segmented)
+                            .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                        }
+                    }
+                    .listRowBackground(EasePalette.card)
+
+                    if enabledMetrics.isEmpty {
+                        Section {
+                            Text("metric.sheet.empty")
+                                .font(.subheadline)
+                                .foregroundStyle(EasePalette.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .listRowBackground(EasePalette.card)
+                    } else {
+                        Section {
+                            ForEach(visibleMetrics, id: \.key) { definition in
+                                MeasurementInputRow(
+                                    definition: definition,
+                                    text: binding(for: definition.key),
+                                    isInvalid: invalidKeys.contains(definition.key)
+                                )
                             }
                             if let errorKey {
                                 Text(LocalizedStringKey(errorKey))
-                                    .font(.system(size: 14, weight: .bold))
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundStyle(EasePalette.primaryText)
-                            }
-                            EasePrimaryButton(title: "log.save", isEnabled: canSave, action: save)
-                        } else {
-                            EaseCard {
-                                Text("metric.sheet.empty")
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(EasePalette.secondaryText)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
                             }
                         }
-                        historyListCard
+                        .listRowBackground(EasePalette.card)
+                        .animation(.snappy(duration: 0.25), value: selectedCategory)
                     }
-                    .padding(20)
+
+                    if selectedDefinition != nil {
+                        historySection
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if !enabledMetrics.isEmpty {
+                        stickySaveBar
+                    }
                 }
             }
             .navigationTitle("metric.sheet.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    EaseTextButton(title: "common.close", action: { dismiss() })
+                ToolbarItem(placement: .topBarLeading) {
+                    EaseCloseToolbarButton(action: { dismiss() })
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)
-            .onAppear {
-                if selectedKey.isEmpty || !historyDefinitions.contains(where: { $0.key == selectedKey }) {
-                    selectedKey = historyDefinitions.first?.key ?? ""
-                }
-            }
+            .onAppear(perform: alignSelection)
             .onChange(of: selectedDate) { _, _ in
                 metricTexts = [:]
                 invalidKeys = []
                 errorKey = nil
             }
+            .onChange(of: availableCategoryID) { _, _ in
+                if !availableCategories.contains(selectedCategory),
+                   let first = availableCategories.first {
+                    selectedCategory = first
+                }
+            }
+            .onChange(of: selectedCategory) { _, _ in
+                if !historyDefinitions.contains(where: { $0.key == selectedKey }) {
+                    selectedKey = visibleMetrics.first?.key
+                        ?? historyDefinitions.first?.key
+                        ?? selectedKey
+                }
+            }
             .sensoryFeedback(.error, trigger: errorPulse)
+            .sensoryFeedback(.impact(flexibility: .solid, intensity: 0.7), trigger: deletePulse)
         }
         .preferredColorScheme(.light)
         .tint(EasePalette.accent)
     }
 
+    private var availableCategoryID: String {
+        availableCategories.map(\.rawValue).joined(separator: ",")
+    }
+
     private var enabledMetrics: [MetricDefinition] {
         metricDefinitions.filter { $0.isEnabled && MetricCatalog.isActiveMetricKey($0.key) }
+    }
+
+    private var availableCategories: [MetricInputCategory] {
+        MetricInputCategory.allCases.filter { category in
+            enabledMetrics.contains { category.matches(key: $0.key, kind: $0.kind) }
+        }
+    }
+
+    private var visibleMetrics: [MetricDefinition] {
+        enabledMetrics.filter { selectedCategory.matches(key: $0.key, kind: $0.kind) }
     }
 
     private var historyDefinitions: [MetricDefinition] {
@@ -89,10 +146,8 @@ struct MetricSheet: View {
         let extras = metricDefinitions.filter {
             $0.key == selectedKey && MetricCatalog.isActiveMetricKey($0.key)
         }
-        for definition in enabledMetrics + extras {
-            if seen.insert(definition.key).inserted {
-                result.append(definition)
-            }
+        for definition in enabledMetrics + extras where seen.insert(definition.key).inserted {
+            result.append(definition)
         }
         return result
     }
@@ -109,8 +164,8 @@ struct MetricSheet: View {
     }
 
     private var canSave: Bool {
-        enabledMetrics.contains { definition in
-            EaseFormatters.parseUnrounded(metricTexts[definition.key] ?? "") != nil
+        enabledMetrics.contains {
+            EaseFormatters.parseUnrounded(metricTexts[$0.key] ?? "") != nil
         }
     }
 
@@ -124,12 +179,11 @@ struct MetricSheet: View {
     private var dateRow: some View {
         HStack {
             Text("log.date")
-                .font(.system(size: 16, weight: .regular))
+                .font(.body)
                 .foregroundStyle(EasePalette.primaryText)
             Spacer(minLength: 12)
             Text(EaseFormatters.numericDate(selectedDate))
-                .font(.system(size: 16, weight: .regular))
-                .monospacedDigit()
+                .font(.body.monospacedDigit())
                 .foregroundStyle(EasePalette.primaryText)
                 .frame(minWidth: 120, minHeight: 32, alignment: .trailing)
                 .overlay {
@@ -145,25 +199,123 @@ struct MetricSheet: View {
                     .opacity(0.02)
                 }
         }
+        .accessibilityElement(children: .combine)
     }
 
-    private func metricField(_ definition: MetricDefinition) -> some View {
-        let spec = MetricCatalog.spec(for: definition)
-        let key = definition.key
-        return EaseField(
-            title: LocalizedStringKey(spec.titleKey ?? "settings.metrics"),
-            titleVerbatim: spec.kind == .custom ? spec.resolvedTitle : nil,
-            placeholder: "log.bodyFat.placeholder",
-            text: Binding(
-                get: { metricTexts[key] ?? "" },
-                set: {
-                    metricTexts[key] = $0
-                    invalidKeys.remove(key)
+    private var stickySaveBar: some View {
+        VStack(spacing: 0) {
+            Divider().overlay(EasePalette.hairline)
+            EasePrimaryButton(title: "log.save", isEnabled: canSave, action: save)
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 10)
+        }
+        .background(.ultraThinMaterial)
+    }
+
+    @ViewBuilder
+    private var historySection: some View {
+        if let selectedDefinition {
+            let spec = MetricCatalog.spec(for: selectedDefinition)
+            Section {
+                if historyDefinitions.count > 1 {
+                    historyChipBar
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                 }
-            ),
-            suffix: LocalizedStringKey(spec.unit.titleKey),
-            isInvalid: invalidKeys.contains(key)
+
+                if series.isEmpty {
+                    Text("metric.history.empty")
+                        .font(.subheadline)
+                        .foregroundStyle(EasePalette.secondaryText)
+                        .listRowBackground(EasePalette.card)
+                } else {
+                    ForEach(Array(series.enumerated()).reversed(), id: \.element.id) { index, log in
+                        let previous = index > 0 ? series[index - 1].value : nil
+                        let delta = previous.map {
+                            MeasurementBounds.roundedToStep(log.value - $0, step: spec.step)
+                        }
+                        MeasurementHistoryRow(
+                            date: log.timestamp,
+                            valueText: readingValueText(log.value, spec: spec),
+                            delta: delta,
+                            deltaText: delta.flatMap {
+                                abs($0) < 0.05 ? nil : MetricCatalog.formattedDelta($0, spec: spec)
+                            }
+                        )
+                        .listRowBackground(EasePalette.card)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                delete(log)
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                            .accessibilityLabel(Text("log.delete"))
+                        }
+                    }
+                }
+            } header: {
+                Text("metric.history.title")
+                    .font(.headline)
+                    .foregroundStyle(EasePalette.primaryText)
+                    .textCase(nil)
+            }
+        }
+    }
+
+    private var historyChipBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(historyDefinitions, id: \.key) { definition in
+                    let title = MetricCatalog.spec(for: definition).resolvedTitle
+                    let selected = definition.key == selectedKey
+                    Button {
+                        withAnimation(.snappy(duration: 0.2)) {
+                            selectedKey = definition.key
+                        }
+                    } label: {
+                        Text(verbatim: title)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(selected ? Color.white : EasePalette.primaryText)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(selected ? Color.black : EasePalette.recessed, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(selected ? .isSelected : [])
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func binding(for key: String) -> Binding<String> {
+        Binding(
+            get: { metricTexts[key] ?? "" },
+            set: {
+                metricTexts[key] = $0
+                invalidKeys.remove(key)
+            }
         )
+    }
+
+    private func readingValueText(_ value: Double, spec: MetricSpec) -> String {
+        let number = MetricCatalog.formattedValue(value, spec: spec)
+        let unit = String(localized: String.LocalizationValue(spec.unit.titleKey))
+        return "\(number) \(unit)"
+    }
+
+    private func alignSelection() {
+        if !availableCategories.contains(selectedCategory), let first = availableCategories.first {
+            selectedCategory = first
+        }
+        if selectedKey.isEmpty || !historyDefinitions.contains(where: { $0.key == selectedKey }) {
+            selectedKey = visibleMetrics.first?.key ?? historyDefinitions.first?.key ?? ""
+        }
+        if let selected = historyDefinitions.first(where: { $0.key == selectedKey }) {
+            selectedCategory = MetricInputCategory.category(for: selected.key, kind: selected.kind)
+        }
     }
 
     private func save() {
@@ -193,6 +345,12 @@ struct MetricSheet: View {
         }
         invalidKeys = invalid
         if !invalid.isEmpty {
+            if let firstInvalid = enabledMetrics.first(where: { invalid.contains($0.key) }) {
+                selectedCategory = MetricInputCategory.category(
+                    for: firstInvalid.key,
+                    kind: firstInvalid.kind
+                )
+            }
             presentError("metric.error.invalid")
             return
         }
@@ -215,62 +373,109 @@ struct MetricSheet: View {
         }
     }
 
-    private var historyListCard: some View {
-        Group {
-            if let selectedDefinition {
-                EaseCard {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("metric.history.title")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(EasePalette.primaryText)
-                        if historyDefinitions.count > 1 {
-                            Picker("metric.history.title", selection: $selectedKey) {
-                                ForEach(historyDefinitions, id: \.key) { definition in
-                                    Text(verbatim: MetricCatalog.spec(for: definition).resolvedTitle)
-                                        .tag(definition.key)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .tint(EasePalette.primaryText)
-                        } else {
-                            Text(verbatim: MetricCatalog.spec(for: selectedDefinition).resolvedTitle)
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundStyle(EasePalette.secondaryText)
-                        }
-                        if series.isEmpty {
-                            Text("metric.history.empty")
-                                .font(.system(size: 16, weight: .regular))
-                                .foregroundStyle(EasePalette.secondaryText)
-                        } else {
-                            ForEach(series.reversed(), id: \.id) { log in
-                                HStack {
-                                    Text(EaseFormatters.numericDate(log.timestamp))
-                                        .font(.system(size: 14, weight: .regular))
-                                        .foregroundStyle(EasePalette.secondaryText)
-                                    Spacer()
-                                    Text(MetricCatalog.formattedValue(log.value, spec: MetricCatalog.spec(for: selectedDefinition)))
-                                        .font(EaseFont.number(16, weight: .bold))
-                                        .monospacedDigit()
-                                        .foregroundStyle(EasePalette.primaryText)
-                                    EaseTextButton(title: "log.delete") {
-                                        delete(log)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-        }
-    }
-
     private func delete(_ log: MetricLog) {
+        deletePulse += 1
         try? MetricRepository(context: modelContext).delete(log)
     }
 
     private func presentError(_ key: String) {
         errorKey = key
         errorPulse += 1
+    }
+}
+
+private struct MeasurementInputRow: View {
+    let definition: MetricDefinition
+    @Binding var text: String
+    var isInvalid: Bool
+
+    private var spec: MetricSpec { MetricCatalog.spec(for: definition) }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: spec.symbolName)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(EasePalette.secondaryText)
+                .frame(width: 28, height: 28)
+                .background(
+                    EasePalette.recessed,
+                    in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+                )
+                .accessibilityHidden(true)
+
+            Text(verbatim: spec.resolvedTitle)
+                .font(.body.weight(.medium))
+                .foregroundStyle(EasePalette.primaryText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+
+            Spacer(minLength: 8)
+
+            HStack(spacing: 6) {
+                TextField("0", text: $text)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .font(.body.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(EasePalette.primaryText)
+                    .frame(minWidth: 56, maxWidth: 88)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .background(
+                        EasePalette.recessed,
+                        in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .strokeBorder(
+                                isInvalid ? EasePalette.coral : Color.clear,
+                                lineWidth: 1.5
+                            )
+                    }
+                Text(LocalizedStringKey(spec.unit.titleKey))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: spec.resolvedTitle))
+        .accessibilityValue(
+            Text(
+                text.isEmpty
+                    ? "—"
+                    : "\(text) \(String(localized: String.LocalizationValue(spec.unit.titleKey)))"
+            )
+        )
+    }
+}
+
+private struct MeasurementHistoryRow: View {
+    let date: Date
+    let valueText: String
+    let delta: Double?
+    let deltaText: String?
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(EaseFormatters.numericDate(date))
+                .font(.subheadline)
+                .foregroundStyle(EasePalette.secondaryText)
+                .monospacedDigit()
+            Spacer(minLength: 8)
+            if let delta, let deltaText, abs(delta) >= 0.05 {
+                let color = delta < 0 ? Color.green : Color.red
+                Text(deltaText)
+                    .font(.caption.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(color)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(color.opacity(0.12), in: Capsule())
+            }
+            Text(valueText)
+                .font(.body.weight(.semibold).monospacedDigit())
+                .foregroundStyle(EasePalette.primaryText)
+        }
+        .accessibilityElement(children: .combine)
     }
 }

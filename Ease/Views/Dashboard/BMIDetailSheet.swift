@@ -43,11 +43,7 @@ struct BMIDetailSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { dismiss() }) {
-                        Text("common.close")
-                            .lineLimit(1)
-                            .fixedSize()
-                    }
+                    EaseCloseToolbarButton(action: { dismiss() })
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

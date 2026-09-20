@@ -176,7 +176,7 @@ final class MetricRepositoryTests: EaseStoreTestCase {
 
     func test_内置符号与单位() {
         XCTAssertNil(MetricCatalog.builtin(for: "water"))
-        XCTAssertEqual(MetricCatalog.builtin(for: "waist")?.symbolName, "ruler")
+        XCTAssertEqual(MetricCatalog.builtin(for: "waist")?.symbolName, "figure.stand")
         XCTAssertEqual(MetricCatalog.builtin(for: "waist")?.unit, .cm)
         XCTAssertEqual(MetricCatalog.builtin(for: "thigh")?.range, 20...120)
     }

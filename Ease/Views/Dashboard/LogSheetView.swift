@@ -69,16 +69,8 @@ struct LogSheetView: View {
             .navigationTitle("log.title.weight")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(.tertiary)
-                            .symbolRenderingMode(.hierarchical)
-                    }
-                    .accessibilityLabel(Text("common.close"))
+                ToolbarItem(placement: .topBarLeading) {
+                    EaseCloseToolbarButton(action: { dismiss() })
                 }
             }
             .onAppear(perform: hydrateFromExisting)

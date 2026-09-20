@@ -22,6 +22,40 @@ struct MetricSpec: Sendable, Equatable {
     }
 }
 
+enum MetricInputCategory: String, CaseIterable, Identifiable, Sendable {
+    case core
+    case limbs
+    case other
+
+    var id: String { rawValue }
+
+    var titleKey: String {
+        switch self {
+        case .core: "metric.category.core"
+        case .limbs: "metric.category.limbs"
+        case .other: "metric.category.other"
+        }
+    }
+
+    private static let coreKeys: Set<String> = [
+        "waist", "highWaist", "navel", "hip", "chest", "underbust"
+    ]
+    private static let limbKeys: Set<String> = [
+        "thigh", "leftArm", "rightArm", "leftThigh", "rightThigh", "leftCalf", "rightCalf"
+    ]
+
+    static func category(for key: String, kind: MetricKind) -> MetricInputCategory {
+        if kind == .custom { return .other }
+        if coreKeys.contains(key) { return .core }
+        if limbKeys.contains(key) { return .limbs }
+        return .other
+    }
+
+    func matches(key: String, kind: MetricKind) -> Bool {
+        Self.category(for: key, kind: kind) == self
+    }
+}
+
 enum MetricCatalog {
     static let maxCustom = 8
 
@@ -29,6 +63,9 @@ enum MetricCatalog {
         "ruler",
         "drop",
         "figure.stand",
+        "figure.arms.open",
+        "figure.walk",
+        "hand.raised",
         "cup.and.saucer",
         "dumbbell",
         "heart",
@@ -37,22 +74,22 @@ enum MetricCatalog {
     ]
 
     static let builtins: [MetricSpec] = [
-        cm("waist", title: "metric.waist", range: 40...200, order: 0),
-        cm("hip", title: "metric.hip", range: 40...200, order: 1),
-        cm("chest", title: "metric.chest", range: 40...200, order: 2),
-        cm("thigh", title: "metric.thigh", range: 20...120, order: 3),
-        cm("underbust", title: "metric.underbust", range: 40...200, order: 4),
-        cm("highWaist", title: "metric.highWaist", range: 40...200, order: 5),
-        cm("navel", title: "metric.navel", range: 40...200, order: 6),
-        cm("leftArm", title: "metric.leftArm", range: 15...60, order: 7),
-        cm("rightArm", title: "metric.rightArm", range: 15...60, order: 8),
-        cm("leftThigh", title: "metric.leftThigh", range: 20...120, order: 9),
-        cm("leftCalf", title: "metric.leftCalf", range: 20...60, order: 10),
-        cm("rightCalf", title: "metric.rightCalf", range: 20...60, order: 11),
-        cm("shoulderWidth", title: "metric.shoulderWidth", range: 20...80, order: 12),
-        cm("shoulder", title: "metric.shoulder", range: 50...160, order: 13),
-        cm("wrist", title: "metric.wrist", range: 10...30, order: 14),
-        cm("head", title: "metric.head", range: 40...70, order: 15)
+        cm("waist", title: "metric.waist", symbol: "figure.stand", range: 40...200, order: 0),
+        cm("hip", title: "metric.hip", symbol: "figure.stand", range: 40...200, order: 1),
+        cm("chest", title: "metric.chest", symbol: "figure.arms.open", range: 40...200, order: 2),
+        cm("thigh", title: "metric.thigh", symbol: "figure.walk", range: 20...120, order: 3),
+        cm("underbust", title: "metric.underbust", symbol: "figure.arms.open", range: 40...200, order: 4),
+        cm("highWaist", title: "metric.highWaist", symbol: "figure.stand", range: 40...200, order: 5),
+        cm("navel", title: "metric.navel", symbol: "circle", range: 40...200, order: 6),
+        cm("leftArm", title: "metric.leftArm", symbol: "figure.arms.open", range: 15...60, order: 7),
+        cm("rightArm", title: "metric.rightArm", symbol: "figure.arms.open", range: 15...60, order: 8),
+        cm("leftThigh", title: "metric.leftThigh", symbol: "figure.walk", range: 20...120, order: 9),
+        cm("leftCalf", title: "metric.leftCalf", symbol: "figure.walk", range: 20...60, order: 10),
+        cm("rightCalf", title: "metric.rightCalf", symbol: "figure.walk", range: 20...60, order: 11),
+        cm("shoulderWidth", title: "metric.shoulderWidth", symbol: "figure.arms.open", range: 20...80, order: 12),
+        cm("shoulder", title: "metric.shoulder", symbol: "figure.arms.open", range: 50...160, order: 13),
+        cm("wrist", title: "metric.wrist", symbol: "hand.raised", range: 10...30, order: 14),
+        cm("head", title: "metric.head", symbol: "circle", range: 40...70, order: 15)
     ]
 
     /// Retired builtins stay out of home / settings / seed (legacy rows may remain in store).
@@ -65,6 +102,7 @@ enum MetricCatalog {
     private static func cm(
         _ key: String,
         title: String,
+        symbol: String = "ruler",
         range: ClosedRange<Double>,
         order: Int
     ) -> MetricSpec {
@@ -74,7 +112,7 @@ enum MetricCatalog {
             unit: .cm,
             step: 0.1,
             range: range,
-            symbolName: "ruler",
+            symbolName: allowedSymbols.contains(symbol) ? symbol : "ruler",
             titleKey: title,
             displayName: "",
             sortOrder: order
@@ -151,6 +189,14 @@ enum MetricCatalog {
         let number = formattedValue(value, spec: spec)
         let unit = String(localized: String.LocalizationValue(spec.unit.titleKey))
         return "\(spec.resolvedTitle) \(number) \(unit)"
+    }
+
+    /// Signed delta with unit, e.g. `-2.0 cm` / `+1.5 cm`.
+    static func formattedDelta(_ value: Double, spec: MetricSpec) -> String {
+        let sign = value > 0 ? "+" : ""
+        let number = "\(sign)\(formattedValue(value, spec: spec))"
+        let unit = String(localized: String.LocalizationValue(spec.unit.titleKey))
+        return "\(number) \(unit)"
     }
 
     static func csvValue(_ value: Double, spec: MetricSpec) -> String {

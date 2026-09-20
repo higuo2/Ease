@@ -73,18 +73,16 @@ struct EaseTextButton: View {
     }
 }
 
-/// Compact toolbar close that does not wrap localized “Close” / 「关闭」.
+/// Leading toolbar close — matches BMI sheet: localized “Close” / 「关闭」, no wrap.
 struct EaseCloseToolbarButton: View {
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: "xmark.circle.fill")
-                .font(.title3)
-                .foregroundStyle(.tertiary)
-                .symbolRenderingMode(.hierarchical)
+            Text("common.close")
+                .lineLimit(1)
+                .fixedSize()
         }
-        .accessibilityLabel(Text("common.close"))
     }
 }
 

@@ -38,8 +38,8 @@ struct WeightHistorySheet: View {
                         .font(.headline)
                         .foregroundStyle(EasePalette.primaryText)
                 }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("common.close") { dismiss() }
+                ToolbarItem(placement: .topBarLeading) {
+                    EaseCloseToolbarButton(action: { dismiss() })
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)
