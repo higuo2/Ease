@@ -135,10 +135,18 @@ final class DashboardViewModel {
         let now = Date.now
         if !HealthKitCachePolicy.isFresh(fetchedAt: healthFetchedAt, now: now, force: forceHealth) {
             let payload = await HealthKitReader.loadAll()
-            healthByDay = payload.byDay
-            sleepHistory = payload.sleep
-            cycleHistory = payload.cycle
-            energyHistory = payload.energy
+            if healthByDay != payload.byDay {
+                healthByDay = payload.byDay
+            }
+            if sleepHistory != payload.sleep {
+                sleepHistory = payload.sleep
+            }
+            if cycleHistory != payload.cycle {
+                cycleHistory = payload.cycle
+            }
+            if energyHistory != payload.energy {
+                energyHistory = payload.energy
+            }
             healthFetchedAt = now
             hasLoadedHealth = true
         }

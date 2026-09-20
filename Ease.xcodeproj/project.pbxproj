@@ -52,6 +52,7 @@
 		A1000000000000000000002C /* OnboardingMeasurementsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000008D /* OnboardingMeasurementsStep.swift */; };
 		A1000000000000000000002D /* OnboardingPermissionsStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000008E /* OnboardingPermissionsStep.swift */; };
 		A1000000000000000000002E /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000008F /* DashboardViewModel.swift */; };
+		A10000000000000000000201 /* DashboardComputeToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000200 /* DashboardComputeToken.swift */; };
 		A1000000000000000000002F /* TodayStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000090 /* TodayStripView.swift */; };
 		A10000000000000000000031 /* WeightSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000091 /* WeightSummaryCard.swift */; };
 		A10000000000000000000032 /* TrendChartCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000092 /* TrendChartCard.swift */; };
@@ -182,6 +183,7 @@
 		A1000000000000000000008D /* OnboardingMeasurementsStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingMeasurementsStep.swift; sourceTree = "<group>"; };
 		A1000000000000000000008E /* OnboardingPermissionsStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPermissionsStep.swift; sourceTree = "<group>"; };
 		A1000000000000000000008F /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		A10000000000000000000200 /* DashboardComputeToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardComputeToken.swift; sourceTree = "<group>"; };
 		A10000000000000000000090 /* TodayStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayStripView.swift; sourceTree = "<group>"; };
 		A10000000000000000000091 /* WeightSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightSummaryCard.swift; sourceTree = "<group>"; };
 		A10000000000000000000092 /* TrendChartCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendChartCard.swift; sourceTree = "<group>"; };
@@ -462,6 +464,7 @@
 				A100000000000000000000FE /* MealPhotoCarousel.swift */,
 				A100000000000000000000D5 /* HistoryTabView.swift */,
 				A1000000000000000000008F /* DashboardViewModel.swift */,
+				A10000000000000000000200 /* DashboardComputeToken.swift */,
 				A100000000000000000000A0 /* DayPickerHeader.swift */,
 				A100000000000000000000A1 /* HealthCardsView.swift */,
 				A10000000000000000000090 /* TodayStripView.swift */,
@@ -617,6 +620,7 @@
 				A1000000000000000000002C /* OnboardingMeasurementsStep.swift in Sources */,
 				A1000000000000000000002D /* OnboardingPermissionsStep.swift in Sources */,
 				A1000000000000000000002E /* DashboardViewModel.swift in Sources */,
+				A10000000000000000000201 /* DashboardComputeToken.swift in Sources */,
 				A1000000000000000000002F /* TodayStripView.swift in Sources */,
 				A10000000000000000000031 /* WeightSummaryCard.swift in Sources */,
 				A10000000000000000000032 /* TrendChartCard.swift in Sources */,

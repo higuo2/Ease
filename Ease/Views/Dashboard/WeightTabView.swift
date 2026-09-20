@@ -10,6 +10,7 @@ struct WeightTabView: View {
     let metricLogs: [MetricLog]
     @State private var isModuleEditorPresented = false
     @State private var isWeightHistoryPresented = false
+    @State private var logEntries: [WeightLogEntry] = []
 
     private var selectedDate: Date { viewModel.selectedDate }
     private var snapshot: DashboardSnapshot {
@@ -56,8 +57,8 @@ struct WeightTabView: View {
     private var unusedModules: [HomeModule] {
         HomeModule.selectable.filter { !homeModules.contains($0) }
     }
-    private var logEntries: [WeightLogEntry] {
-        WeightLogEntry.build(records: records, logs: logs)
+    private var logEntriesRevision: Int {
+        DashboardComputeToken.weightSeriesRevision(records: records, logs: logs)
     }
 
     var body: some View {
@@ -113,6 +114,9 @@ struct WeightTabView: View {
             .navigationTitle("tab.weight")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
+            .onChange(of: logEntriesRevision, initial: true) { _, _ in
+                logEntries = WeightLogEntry.build(records: records, logs: logs)
+            }
             .sheet(isPresented: $isWeightHistoryPresented) {
                 WeightHistorySheet(
                     entries: logEntries,

@@ -73,10 +73,10 @@ struct TrendTabView: View {
             .navigationTitle("tab.trend")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EasePalette.background, for: .navigationBar)
-            .onChange(of: chartComputeID, initial: true) { _, _ in
+            .onChange(of: chartComputeToken, initial: true) { _, _ in
                 refreshChart()
             }
-            .onChange(of: analysisComputeID, initial: true) { _, _ in
+            .onChange(of: analysisComputeToken, initial: true) { _, _ in
                 refreshAnalysis()
             }
         }
@@ -87,32 +87,32 @@ struct TrendTabView: View {
     }
 
     /// Chart series + range stats. Omits health insights and selected-day snapshot.
-    private var chartComputeID: String {
-        let logStamp = logs.last.map {
-            "\($0.id.uuidString)-\($0.weight)-\($0.timestamp.timeIntervalSinceReferenceDate)"
-        } ?? "0"
-        let recordStamp = records.last.map {
-            "\($0.dayKey)-\($0.weight ?? -1)-\($0.updatedAt.timeIntervalSinceReferenceDate)"
-        } ?? "0"
-        return "\(records.count)|\(logs.count)|\(viewModel.chartRange.rawValue)|\(profile?.targetWeight ?? 0)|\(logStamp)|\(recordStamp)"
+    private var chartComputeToken: Int {
+        var hasher = Hasher()
+        hasher.combine(viewModel.chartRange.rawValue)
+        hasher.combine(profile?.targetWeight ?? 0)
+        hasher.combine(DashboardComputeToken.weightSeriesRevision(records: records, logs: logs))
+        return hasher.finalize()
     }
 
     /// Insights / advanced estimate. Omits chart range so chips don't rebuild analysis.
-    private var analysisComputeID: String {
-        let logStamp = logs.last.map { "\($0.id.uuidString)-\($0.weight)" } ?? "0"
-        return [
-            "\(records.count)",
-            "\(logs.count)",
-            "\(viewModel.healthByDay.count)",
-            "\(viewModel.sleepHistory.nights.count)",
-            "\(viewModel.energyHistory.days.count)",
-            "\(viewModel.cycleHistory.periodDayKeys.count)",
-            "\(profile?.sleepTargetHours ?? 8)",
-            "\(profile?.targetWeight ?? 0)",
-            "\(profile?.startWeight ?? 0)",
-            CalendarDay.dayKey(from: viewModel.selectedDate),
-            logStamp
-        ].joined(separator: "|")
+    private var analysisComputeToken: Int {
+        var hasher = Hasher()
+        hasher.combine(records.count)
+        hasher.combine(logs.count)
+        hasher.combine(viewModel.healthByDay.count)
+        hasher.combine(viewModel.sleepHistory.nights.count)
+        hasher.combine(viewModel.energyHistory.days.count)
+        hasher.combine(viewModel.cycleHistory.periodDayKeys.count)
+        hasher.combine(profile?.sleepTargetHours ?? 8)
+        hasher.combine(profile?.targetWeight ?? 0)
+        hasher.combine(profile?.startWeight ?? 0)
+        hasher.combine(CalendarDay.dayKey(from: viewModel.selectedDate))
+        if let last = logs.last {
+            hasher.combine(last.id)
+            hasher.combine(last.weight)
+        }
+        return hasher.finalize()
     }
 
     private func refreshChart() {

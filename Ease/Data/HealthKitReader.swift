@@ -21,7 +21,7 @@ struct HealthDaySnapshot: Sendable, Equatable {
 }
 
 enum HealthKitCachePolicy {
-    static let ttl: TimeInterval = 60
+    static let ttl: TimeInterval = 300
 
     static func isFresh(fetchedAt: Date?, now: Date = .now, force: Bool = false) -> Bool {
         guard !force, let fetchedAt else { return false }

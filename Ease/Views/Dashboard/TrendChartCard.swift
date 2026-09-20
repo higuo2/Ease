@@ -155,6 +155,7 @@ struct TrendChartCard: View, Equatable {
     @State private var preview: ChartDayPreview?
     @State private var scrubDayKey = ""
     @State private var isScrubbing = false
+    @State private var lastScrubX: CGFloat = -.infinity
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.model == rhs.model
@@ -270,7 +271,6 @@ struct TrendChartCard: View, Equatable {
             }
         }
         .frame(height: 260)
-        .drawingGroup(opaque: false)
         .sensoryFeedback(.selection, trigger: scrubDayKey)
     }
 
@@ -339,6 +339,8 @@ struct TrendChartCard: View, Equatable {
                 let distance = hypot(value.translation.width, value.translation.height)
                 guard distance >= 8 else { return }
                 isScrubbing = true
+                guard abs(value.location.x - lastScrubX) >= Self.scrubMinDeltaX else { return }
+                lastScrubX = value.location.x
                 applyPreview(makePreview(at: value.location, proxy: proxy, geometry: geometry))
             }
             .onEnded { value in
@@ -381,6 +383,7 @@ struct TrendChartCard: View, Equatable {
         preview = nil
         scrubDayKey = ""
         isScrubbing = false
+        lastScrubX = -.infinity
     }
 
     private func pinFocusIfPossible() {
@@ -437,6 +440,7 @@ struct TrendChartCard: View, Equatable {
 
     private static let yWeight = "chart.axis.weight"
     private static let xDate = "chart.axis.date"
+    private static let scrubMinDeltaX: CGFloat = 2
 }
 
 private struct TrendRangePicker: View, Equatable {

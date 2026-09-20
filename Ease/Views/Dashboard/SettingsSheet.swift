@@ -576,7 +576,11 @@ struct SettingsSheet: View {
     }
 
     private func exportCSV() {
-        let csv = CSVExporter.export(records, logs: logs)
+        let exportRecords = (try? DailyRecordRepository(context: modelContext).allRecords()) ?? records
+        let exportLogs = (try? modelContext.fetch(FetchDescriptor<WeightLog>(
+            sortBy: [SortDescriptor(\.timestamp, order: .forward)]
+        ))) ?? logs
+        let csv = CSVExporter.export(exportRecords, logs: exportLogs)
         let journalURL = FileManager.default.temporaryDirectory.appendingPathComponent("ease-export.csv")
         do {
             try csv.write(to: journalURL, atomically: true, encoding: .utf8)
@@ -609,11 +613,18 @@ struct SettingsSheet: View {
             do {
                 let data = try Data(contentsOf: url, options: .mappedIfSafe)
                 let specs = MetricCatalog.specs(for: Array(metricDefinitions))
+                let importLogs = (try? modelContext.fetch(FetchDescriptor<WeightLog>(
+                    sortBy: [SortDescriptor(\.timestamp, order: .forward)]
+                ))) ?? logs
+                let importRecords = (try? DailyRecordRepository(context: modelContext).allRecords()) ?? records
+                let importMetricLogs = (try? modelContext.fetch(FetchDescriptor<MetricLog>(
+                    sortBy: [SortDescriptor(\.timestamp, order: .forward)]
+                ))) ?? metricLogs
                 let preview = try CSVImporter.preview(
                     from: data,
-                    existingLogs: logs,
-                    existingRecords: records,
-                    existingMetricLogs: metricLogs,
+                    existingLogs: importLogs,
+                    existingRecords: importRecords,
+                    existingMetricLogs: importMetricLogs,
                     metricSpecs: specs
                 )
                 errorKey = nil

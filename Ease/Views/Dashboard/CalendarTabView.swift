@@ -37,7 +37,7 @@ struct CalendarTabView: View {
             .onChange(of: visibleMonth) { _, month in
                 alignSelection(to: month)
             }
-            .onChange(of: monthComputeID, initial: true) { _, _ in
+            .onChange(of: monthComputeToken, initial: true) { _, _ in
                 snapshot = CalendarMonthSnapshot.make(
                     records: records,
                     logs: logs,
@@ -59,23 +59,17 @@ struct CalendarTabView: View {
     }
 
     /// Inputs that rebuild month stats / dots. Intentionally omits `selectedDate`.
-    private var monthComputeID: String {
-        let lastLog = logs.last.map {
-            "\($0.id.uuidString)-\($0.weight)-\($0.timestamp.timeIntervalSinceReferenceDate)"
-        } ?? "0"
-        let lastRecord = records.last.map {
-            "\($0.dayKey)-\($0.weight ?? -1)-\($0.note ?? "")-\($0.variableTags)"
-        } ?? "0"
-        return [
-            CalendarDay.dayKey(from: visibleMonth),
-            "\(records.count)",
-            "\(logs.count)",
-            "\(viewModel.healthByDay.count)",
-            "\(viewModel.sleepHistory.nights.count)",
-            "\(viewModel.cycleHistory.periodDayKeys.count)",
-            lastLog,
-            lastRecord
-        ].joined(separator: "|")
+    private var monthComputeToken: Int {
+        var hasher = Hasher()
+        hasher.combine(CalendarDay.dayKey(from: visibleMonth))
+        hasher.combine(records.count)
+        hasher.combine(logs.count)
+        hasher.combine(viewModel.healthByDay.count)
+        hasher.combine(viewModel.sleepHistory.nights.count)
+        hasher.combine(viewModel.cycleHistory.periodDayKeys.count)
+        DashboardComputeToken.mixWeightLogTail(logs.last, into: &hasher)
+        DashboardComputeToken.mixDailyRecordCalendarTail(records.last, into: &hasher)
+        return hasher.finalize()
     }
 
     private func alignSelection(to month: Date) {

@@ -3,14 +3,49 @@ import SwiftData
 import UIKit
 
 struct MainTabView: View {
+    private enum QueryWindow {
+        static let recordDays = 180
+        static let weightLogDays = 365
+        static let metricLogDays = 365
+    }
+
     @Environment(\.scenePhase) private var scenePhase
-    @Query(sort: \UserProfile.updatedAt, order: .reverse) private var profiles: [UserProfile]
-    @Query(sort: \DailyRecord.date, order: .forward) private var records: [DailyRecord]
-    @Query(sort: \WeightLog.timestamp, order: .forward) private var weightLogs: [WeightLog]
-    @Query(sort: \MetricDefinition.sortOrder, order: .forward) private var metricDefinitions: [MetricDefinition]
-    @Query(sort: \MetricLog.timestamp, order: .forward) private var metricLogs: [MetricLog]
+    @Query private var profiles: [UserProfile]
+    @Query private var records: [DailyRecord]
+    @Query private var weightLogs: [WeightLog]
+    @Query private var metricDefinitions: [MetricDefinition]
+    @Query private var metricLogs: [MetricLog]
     @State private var viewModel = DashboardViewModel()
     @State private var selectedTab: AppTab = .weight
+
+    init() {
+        let now = CalendarDay.startOfDay(.now)
+        let recordsCutoff = CalendarDay.addingDays(-QueryWindow.recordDays, to: now)
+        let weightLogsCutoff = CalendarDay.addingDays(-QueryWindow.weightLogDays, to: now)
+        let metricLogsCutoff = CalendarDay.addingDays(-QueryWindow.metricLogDays, to: now)
+
+        _profiles = Query(sort: \UserProfile.updatedAt, order: .reverse)
+        _records = Query(
+            filter: #Predicate<DailyRecord> { $0.date >= recordsCutoff },
+            sort: \DailyRecord.date,
+            order: .forward
+        )
+        _weightLogs = Query(
+            filter: #Predicate<WeightLog> { $0.timestamp >= weightLogsCutoff },
+            sort: \WeightLog.timestamp,
+            order: .forward
+        )
+        _metricDefinitions = Query(
+            filter: #Predicate<MetricDefinition> { $0.isEnabled },
+            sort: \MetricDefinition.sortOrder,
+            order: .forward
+        )
+        _metricLogs = Query(
+            filter: #Predicate<MetricLog> { $0.timestamp >= metricLogsCutoff },
+            sort: \MetricLog.timestamp,
+            order: .forward
+        )
+    }
 
     private var profile: UserProfile? { profiles.first }
     private var enabledMetrics: [MetricDefinition] {
