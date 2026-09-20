@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Premium panel shell
 
@@ -171,31 +172,26 @@ struct MonthlyOverviewCard: View {
             : 0
 
         CalendarPremiumPanel {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 20) {
                 Text(overviewTitle)
                     .font(.headline)
                     .foregroundStyle(EasePalette.primaryText)
 
-                HStack(alignment: .center, spacing: 16) {
-                    netChangeHero(delta: stats.monthDelta)
-                    logProgressRing(
+                HStack(alignment: .center, spacing: 0) {
+                    netChangeColumn(delta: stats.monthDelta)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    logProgressColumn(
                         progress: logProgress,
                         checkins: stats.checkinDays,
                         elapsed: stats.elapsedDays
                     )
+                    .frame(maxWidth: .infinity)
                 }
 
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    auxiliaryLine(
-                        title: "calendar.stat.monthAvg",
-                        value: stats.averageWeight.map { EaseFormatters.kg($0) }
-                    )
-                    Spacer(minLength: 8)
-                    auxiliaryLine(
-                        title: "calendar.stat.weekAvg",
-                        value: weekAverageWeight.map { EaseFormatters.kg($0) }
-                    )
-                }
+                averagesFooter(
+                    monthAverage: stats.averageWeight.map { EaseFormatters.kg($0) },
+                    weekAverage: weekAverageWeight.map { EaseFormatters.kg($0) }
+                )
             }
         }
     }
@@ -208,29 +204,24 @@ struct MonthlyOverviewCard: View {
         )
     }
 
-    private func netChangeHero(delta: Double?) -> some View {
-        let tint = delta.map(EasePalette.semanticDelta) ?? EasePalette.primaryText
-        return VStack(alignment: .leading, spacing: 8) {
+    private func netChangeColumn(delta: Double?) -> some View {
+        let valueColor = delta.map(EasePalette.semanticDelta) ?? Color.primary
+        return VStack(alignment: .leading, spacing: 10) {
             Text("calendar.stat.monthDelta")
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
             Text(netChangeText(delta) ?? "—")
-                .font(.system(.title2, design: .rounded, weight: .bold))
+                .font(.title2.weight(.bold))
                 .monospacedDigit()
-                .foregroundStyle(tint)
+                .foregroundStyle(valueColor)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(
-            (delta.map { EasePalette.semanticDelta($0).opacity(0.12) } ?? Color.primary.opacity(0.04)),
-            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-        )
+        .accessibilityElement(children: .combine)
     }
 
-    private func logProgressRing(progress: Double, checkins: Int, elapsed: Int) -> some View {
-        VStack(spacing: 6) {
+    private func logProgressColumn(progress: Double, checkins: Int, elapsed: Int) -> some View {
+        VStack(spacing: 10) {
             ZStack {
                 EaseArcRing(
                     progress: progress,
@@ -241,18 +232,18 @@ struct MonthlyOverviewCard: View {
                 VStack(spacing: 0) {
                     Text("\(checkins)")
                         .font(.headline.weight(.bold).monospacedDigit())
-                        .foregroundStyle(EasePalette.primaryText)
+                        .foregroundStyle(.primary)
                     Text("/ \(elapsed)")
                         .font(.caption2.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
             }
             Text("calendar.stat.loggedDays")
-                .font(.caption2)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
-        .frame(width: 96)
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
             String(
@@ -264,16 +255,35 @@ struct MonthlyOverviewCard: View {
         )
     }
 
-    private func auxiliaryLine(title: LocalizedStringKey, value: String?) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-            Text(value ?? "—")
-                .monospacedDigit()
+    private func averagesFooter(monthAverage: String?, weekAverage: String?) -> some View {
+        HStack(spacing: 0) {
+            averageFooterCell(title: "calendar.stat.monthAvg", value: monthAverage)
+            Divider()
+            averageFooterCell(title: "calendar.stat.weekAvg", value: weekAverage)
         }
-        .font(.caption)
-        .foregroundStyle(.secondary)
-        .lineLimit(1)
-        .minimumScaleFactor(0.85)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(
+            Color(uiColor: .secondarySystemFill),
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
+    }
+
+    private func averageFooterCell(title: LocalizedStringKey, value: String?) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Text(value ?? "—")
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 4)
     }
 
     private func netChangeText(_ delta: Double?) -> String? {
