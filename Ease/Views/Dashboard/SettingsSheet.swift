@@ -292,7 +292,7 @@ struct SettingsSheet: View {
                     SettingsRowIcon(systemName: "bell.fill")
                 }
             }
-            .tint(Color(.systemGreen))
+            .tint(EasePalette.morandiSageDeep)
             .contentShape(Rectangle())
             .sensoryFeedback(.selection, trigger: notificationsEnabled)
 
@@ -705,7 +705,7 @@ private struct SettingsModuleToggleRow: View, Equatable {
                 SettingsRowIcon(systemName: module.symbolName, tint: module.settingsIconTint)
             }
         }
-        .tint(Color(.systemGreen))
+        .tint(EasePalette.morandiSageDeep)
         .contentShape(Rectangle())
         .sensoryFeedback(.selection, trigger: isOn)
     }
@@ -745,7 +745,7 @@ private struct SettingsMetricToggleRow: View {
                 Text(verbatim: spec.resolvedTitle)
             }
             .labelsHidden()
-            .tint(Color(.systemGreen))
+            .tint(EasePalette.morandiSageDeep)
             .buttonStyle(.borderless)
             .accessibilityLabel(Text(verbatim: spec.resolvedTitle))
         }

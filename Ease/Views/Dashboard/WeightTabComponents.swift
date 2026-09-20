@@ -12,21 +12,6 @@ struct StageGoalCard: View {
     @State private var animatedProgress: Double = 0
     @State private var selectionTick = 0
 
-    private enum Morandi {
-        static let oat = Color(red: 239 / 255, green: 236 / 255, blue: 232 / 255)
-        static let terracotta = Color(red: 211 / 255, green: 158 / 255, blue: 130 / 255)
-        static let terracottaDeep = Color(red: 194 / 255, green: 137 / 255, blue: 108 / 255)
-        static let clay = Color(red: 140 / 255, green: 88 / 255, blue: 63 / 255)
-
-        static var fill: LinearGradient {
-            LinearGradient(
-                colors: [terracotta, terracottaDeep],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        }
-    }
-
     private var clampedProgress: Double {
         min(max(progress, 0), 1)
     }
@@ -90,7 +75,7 @@ struct StageGoalCard: View {
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
-                .background(Morandi.oat, in: Capsule())
+                .background(EasePalette.morandiOat, in: Capsule())
                 .accessibilityHidden(true)
         }
     }
@@ -108,13 +93,13 @@ struct StageGoalCard: View {
                 Text(EaseFormatters.kg(currentWeight))
                     .font(.caption2.bold())
                     .monospacedDigit()
-                    .foregroundStyle(Morandi.clay)
+                    .foregroundStyle(EasePalette.morandiClay)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(Morandi.oat, in: Capsule())
+                    .background(EasePalette.morandiOat, in: Capsule())
                     .overlay(alignment: .bottom) {
                         TinyCaret()
-                            .fill(Morandi.oat)
+                            .fill(EasePalette.morandiOat)
                             .frame(width: 8, height: 5)
                             .offset(y: 4)
                     }
@@ -132,11 +117,11 @@ struct StageGoalCard: View {
 
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Morandi.oat)
+                        .fill(EasePalette.morandiOat)
                         .frame(height: 10)
 
                     Capsule()
-                        .fill(Morandi.fill)
+                        .fill(EasePalette.morandiProgressFill)
                         .frame(height: 10)
                         .scaleEffect(x: max(fraction, 0.0001), y: 1, anchor: .leading)
 
@@ -175,10 +160,10 @@ struct StageGoalCard: View {
 
             Text(EaseFormatters.remainingKg(remainingKg))
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Morandi.clay)
+                .foregroundStyle(EasePalette.morandiClay)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(Morandi.terracotta.opacity(0.12), in: Capsule())
+                .background(EasePalette.morandiTerracotta.opacity(0.12), in: Capsule())
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
                 .easeNumericText(remainingKg)

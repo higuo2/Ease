@@ -108,20 +108,20 @@ struct BMIDetailSheet: View {
 
     private var statusForeground: Color {
         switch verdict {
-        case .band(.underweight, _): Color(red: 0.22, green: 0.45, blue: 0.78)
-        case .band(.normal, _): Color(red: 0.18, green: 0.55, blue: 0.32)
-        case .band(.overweight, _): Color(red: 0.72, green: 0.45, blue: 0.08)
-        case .band(.obese, _): Color(red: 0.72, green: 0.28, blue: 0.35)
+        case .band(.underweight, _): EasePalette.morandiMistDeep
+        case .band(.normal, _): EasePalette.morandiSageDeep
+        case .band(.overweight, _): EasePalette.morandiClay
+        case .band(.obese, _): EasePalette.morandiPeriodDeep
         default: EasePalette.secondaryText
         }
     }
 
     private var statusBackground: Color {
         switch verdict {
-        case .band(.underweight, _): Color.blue.opacity(0.15)
-        case .band(.normal, _): Color.green.opacity(0.15)
-        case .band(.overweight, _): Color.orange.opacity(0.15)
-        case .band(.obese, _): Color.pink.opacity(0.15)
+        case .band(.underweight, _): EasePalette.morandiMist.opacity(0.55)
+        case .band(.normal, _): EasePalette.morandiSage.opacity(0.55)
+        case .band(.overweight, _): EasePalette.morandiSand.opacity(0.65)
+        case .band(.obese, _): EasePalette.morandiBlush.opacity(0.55)
         default: EasePalette.recessed
         }
     }
@@ -164,7 +164,7 @@ struct BMIDetailSheet: View {
                     .foregroundStyle(EasePalette.secondaryText)
                     .frame(width: 28, height: 28)
                     .background(
-                        Color(red: 242 / 255, green: 243 / 255, blue: 245 / 255),
+                        EasePalette.recessed,
                         in: RoundedRectangle(cornerRadius: 7, style: .continuous)
                     )
                     .accessibilityHidden(true)
@@ -247,14 +247,14 @@ private struct IdealWeightRangeBar: View {
                     .frame(height: 8)
 
                 Capsule()
-                    .fill(Color.green.opacity(0.35))
+                    .fill(EasePalette.morandiSage.opacity(0.55))
                     .frame(width: max(4, width * CGFloat((high - low) / span)), height: 8)
                     .offset(x: width * CGFloat((low - start) / span))
 
                 if let current {
                     let clamped = min(max(current, start), end)
                     Circle()
-                        .fill(Color.green)
+                        .fill(EasePalette.morandiSageDeep)
                         .frame(width: 12, height: 12)
                         .overlay {
                             Circle().strokeBorder(Color.white, lineWidth: 2)

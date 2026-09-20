@@ -463,14 +463,14 @@ private struct MeasurementHistoryRow: View {
                 .monospacedDigit()
             Spacer(minLength: 8)
             if let delta, let deltaText, abs(delta) >= 0.05 {
-                let color = delta < 0 ? Color.green : Color.red
+                let color = EasePalette.semanticDelta(delta)
                 Text(deltaText)
                     .font(.caption.weight(.semibold))
                     .monospacedDigit()
                     .foregroundStyle(color)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(color.opacity(0.12), in: Capsule())
+                    .background(color.opacity(0.14), in: Capsule())
             }
             Text(valueText)
                 .font(.body.weight(.semibold).monospacedDigit())
