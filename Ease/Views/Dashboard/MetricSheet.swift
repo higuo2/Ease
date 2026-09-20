@@ -91,7 +91,7 @@ struct MetricSheet: View {
             .navigationTitle("metric.sheet.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     EaseCloseToolbarButton(action: { dismiss() })
                 }
             }
@@ -203,14 +203,10 @@ struct MetricSheet: View {
     }
 
     private var stickySaveBar: some View {
-        VStack(spacing: 0) {
-            Divider().overlay(EasePalette.hairline)
-            EasePrimaryButton(title: "log.save", isEnabled: canSave, action: save)
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 10)
-        }
-        .background(.ultraThinMaterial)
+        EasePrimaryButton(title: "log.save", isEnabled: canSave, usesAccent: true, action: save)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(.ultraThinMaterial)
     }
 
     @ViewBuilder
@@ -280,7 +276,10 @@ struct MetricSheet: View {
                             .foregroundStyle(selected ? Color.white : EasePalette.primaryText)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
-                            .background(selected ? Color.black : EasePalette.recessed, in: Capsule())
+                            .background(
+                                selected ? EasePalette.morandiRedDeep : EasePalette.recessed,
+                                in: Capsule()
+                            )
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(selected ? .isSelected : [])

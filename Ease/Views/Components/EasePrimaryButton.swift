@@ -8,34 +8,47 @@ struct EasePrimaryButton: View {
     var accessibilityHint: LocalizedStringKey? = nil
     let action: () -> Void
 
+    @State private var pressPulse = 0
+
+    private var isInteractive: Bool { isEnabled && !isBusy }
+
     private var fill: Color {
-        guard isEnabled && !isBusy else { return Color.gray.opacity(0.35) }
-        return usesAccent ? EasePalette.accent : Color.black
+        guard isInteractive else { return EasePalette.morandiOat }
+        if usesAccent { return EasePalette.morandiRed }
+        return EasePalette.morandiRedDeep
+    }
+
+    private var labelColor: Color {
+        isInteractive ? Color.white : Color.secondary.opacity(0.5)
     }
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            if isInteractive {
+                pressPulse += 1
+            }
+            action()
+        } label: {
             ZStack {
                 Text(title)
                     .font(.body.weight(.bold))
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(labelColor)
                     .opacity(isBusy ? 0 : 1)
                 if isBusy {
                     ProgressView()
-                        .tint(.white)
+                        .tint(EasePalette.morandiRedDeep)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity, minHeight: 54)
+            .frame(maxWidth: .infinity, minHeight: 52)
             .background(fill, in: Capsule())
             .animation(.easeInOut(duration: 0.2), value: isEnabled)
         }
         .buttonStyle(.plain)
-        .disabled(!isEnabled || isBusy)
+        .disabled(!isInteractive)
+        .sensoryFeedback(.impact(weight: .light), trigger: pressPulse)
         .accessibilityLabel(Text(title))
         .modifier(OptionalAccessibilityHint(hint: accessibilityHint))
         .accessibilityAddTraits(.isButton)
@@ -73,16 +86,18 @@ struct EaseTextButton: View {
     }
 }
 
-/// Leading toolbar close — matches BMI sheet: localized “Close” / 「关闭」, no wrap.
+/// Leading toolbar dismiss — hierarchical `xmark.circle.fill`, localized Close label.
 struct EaseCloseToolbarButton: View {
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text("common.close")
-                .lineLimit(1)
-                .fixedSize()
+            Image(systemName: "xmark.circle.fill")
+                .font(.title2)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.secondary)
         }
+        .accessibilityLabel(Text("common.close"))
     }
 }
 

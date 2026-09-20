@@ -82,7 +82,6 @@ struct LogSheetView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
-                    .padding(.bottom, 8)
                 }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -116,7 +115,6 @@ struct LogSheetView: View {
 
     private var stickySaveBar: some View {
         VStack(spacing: 8) {
-            Divider().overlay(EasePalette.hairline)
             EasePrimaryButton(
                 title: "log.save",
                 isEnabled: canSave,
@@ -128,8 +126,7 @@ struct LogSheetView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 12)
-        .padding(.bottom, 10)
+        .padding(.vertical, 12)
         .background(.ultraThinMaterial)
     }
 
@@ -181,7 +178,7 @@ struct LogSheetView: View {
                     .padding(.vertical, 9)
                     .frame(maxWidth: .infinity)
                     .background(
-                        selected ? Color.black : EasePalette.recessed,
+                        selected ? EasePalette.morandiRedDeep : EasePalette.recessed,
                         in: Capsule()
                     )
                 }
