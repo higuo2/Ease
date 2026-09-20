@@ -4,12 +4,13 @@ import UIKit
 // MARK: - Premium panel shell
 
 struct CalendarPremiumPanel<Content: View>: View {
+    var contentInset: CGFloat = 22
     @ViewBuilder var content: () -> Content
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
         content()
-            .padding(22)
+            .padding(contentInset)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(EasePalette.card, in: shape)
             .overlay(shape.strokeBorder(Color.black.opacity(0.04), lineWidth: 1))
@@ -161,6 +162,16 @@ struct MonthlyOverviewCard: View {
     @Bindable var viewModel: DashboardViewModel
     let snapshot: CalendarMonthSnapshot
 
+    private enum Layout {
+        static let panelInset: CGFloat = 16
+        static let sectionSpacing: CGFloat = 14
+        static let middleColumnSpacing: CGFloat = 12
+        static let metricLabelSpacing: CGFloat = 6
+        static let footerColumnSpacing: CGFloat = 16
+        static let footerInsetH: CGFloat = 12
+        static let footerInsetV: CGFloat = 10
+    }
+
     var body: some View {
         let weekAverageWeight = WeekWeightStats.averageWeight(
             weightIndex: WeightMetrics.DayIndex(lastWeightByDay: snapshot.lastWeightByDay),
@@ -171,13 +182,13 @@ struct MonthlyOverviewCard: View {
             ? Double(stats.checkinDays) / Double(stats.elapsedDays)
             : 0
 
-        CalendarPremiumPanel {
-            VStack(alignment: .leading, spacing: 20) {
+        CalendarPremiumPanel(contentInset: Layout.panelInset) {
+            VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
                 Text(overviewTitle)
                     .font(.headline)
                     .foregroundStyle(EasePalette.primaryText)
 
-                HStack(alignment: .center, spacing: 0) {
+                HStack(alignment: .center, spacing: Layout.middleColumnSpacing) {
                     netChangeColumn(delta: stats.monthDelta)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     logProgressColumn(
@@ -206,12 +217,10 @@ struct MonthlyOverviewCard: View {
 
     private func netChangeColumn(delta: Double?) -> some View {
         let valueColor = delta.map(EasePalette.semanticDelta) ?? Color.primary
-        return VStack(alignment: .leading, spacing: 10) {
-            Text("calendar.stat.monthDelta")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        return VStack(alignment: .leading, spacing: Layout.metricLabelSpacing) {
+            overviewMetricLabel("calendar.stat.monthDelta")
             Text(netChangeText(delta) ?? "—")
-                .font(.title2.weight(.bold))
+                .font(.system(.title2, design: .rounded).weight(.bold))
                 .monospacedDigit()
                 .foregroundStyle(valueColor)
                 .lineLimit(2)
@@ -221,27 +230,28 @@ struct MonthlyOverviewCard: View {
     }
 
     private func logProgressColumn(progress: Double, checkins: Int, elapsed: Int) -> some View {
-        VStack(spacing: 10) {
+        VStack(spacing: Layout.metricLabelSpacing) {
             ZStack {
                 EaseArcRing(
                     progress: progress,
                     colors: [EasePalette.morandiGreen, EasePalette.mint],
                     lineWidth: 8,
-                    diameter: 84
+                    diameter: 76
                 )
-                VStack(spacing: 0) {
+                HStack(alignment: .firstTextBaseline, spacing: 1) {
                     Text("\(checkins)")
-                        .font(.headline.weight(.bold).monospacedDigit())
+                        .font(.system(.title2, design: .rounded).weight(.bold))
+                        .monospacedDigit()
                         .foregroundStyle(.primary)
                     Text("/ \(elapsed)")
-                        .font(.caption2.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .font(.system(.caption, design: .rounded).weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(Color.primary.opacity(0.72))
                 }
             }
-            Text("calendar.stat.loggedDays")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            overviewMetricLabel("calendar.stat.loggedDays")
                 .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -256,13 +266,12 @@ struct MonthlyOverviewCard: View {
     }
 
     private func averagesFooter(monthAverage: String?, weekAverage: String?) -> some View {
-        HStack(spacing: 0) {
+        HStack(alignment: .top, spacing: Layout.footerColumnSpacing) {
             averageFooterCell(title: "calendar.stat.monthAvg", value: monthAverage)
-            Divider()
             averageFooterCell(title: "calendar.stat.weekAvg", value: weekAverage)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.horizontal, Layout.footerInsetH)
+        .padding(.vertical, Layout.footerInsetV)
         .background(
             Color(uiColor: .secondarySystemFill),
             in: RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -270,20 +279,24 @@ struct MonthlyOverviewCard: View {
     }
 
     private func averageFooterCell(title: LocalizedStringKey, value: String?) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+        VStack(alignment: .leading, spacing: 2) {
+            overviewMetricLabel(title)
             Text(value ?? "—")
-                .font(.subheadline.weight(.semibold))
+                .font(.system(.subheadline, design: .rounded).weight(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 4)
+    }
+
+    private func overviewMetricLabel(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .font(.caption)
+            .foregroundStyle(Color.primary.opacity(0.8))
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
     }
 
     private func netChangeText(_ delta: Double?) -> String? {
