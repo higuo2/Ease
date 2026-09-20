@@ -167,6 +167,37 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
         }
         return weekdayName(locale: locale, calendar: calendar, style: .wide)
     }
+
+    /// Concise title for Trend lifestyle insight entry rows and detail navigation.
+    func cardDisplayTitle(locale: Locale = .current, calendar: Calendar = .current) -> String {
+        switch kind {
+        case .weekdaySleep:
+            return String(
+                format: String(localized: "trend.insights.cardTitle.weekdaySleep", locale: locale),
+                locale: locale,
+                weekdayName(locale: locale, calendar: calendar, style: .wide)
+            )
+        case .shortSleepWeight:
+            return String(localized: "trend.insights.cardTitle.shortSleep", locale: locale)
+        case .periodWeight:
+            return String(localized: "trend.insights.cardTitle.period", locale: locale)
+        case .lowEnergyWeight:
+            return String(localized: "trend.insights.cardTitle.energy", locale: locale)
+        }
+    }
+
+    func actionAdvice(locale: Locale = .current) -> String {
+        switch kind {
+        case .weekdaySleep:
+            return String(localized: "trend.insights.advice.weekdaySleep", locale: locale)
+        case .shortSleepWeight:
+            return String(localized: "trend.insights.advice.shortSleep", locale: locale)
+        case .periodWeight:
+            return String(localized: "trend.insights.advice.period", locale: locale)
+        case .lowEnergyWeight:
+            return String(localized: "trend.insights.advice.energy", locale: locale)
+        }
+    }
 }
 
 struct HealthInsightReport: Equatable, Sendable {

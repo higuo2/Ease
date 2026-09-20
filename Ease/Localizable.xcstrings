@@ -5890,13 +5890,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "At current pace"
+            "value" : "Projected Target"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按当前节奏"
+            "value" : "预测达标"
           }
         }
       }
@@ -5987,13 +5987,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Advanced estimate"
+            "value" : "Weight Forecast"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "高级估算"
+            "value" : "体重预测"
           }
         }
       }
@@ -6010,6 +6010,294 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "需要更多朝向目标的体重记录。"
+          }
+        }
+      }
+    },
+    "trend.forecast.detail.headline" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimated target date"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预计达标日期"
+          }
+        }
+      }
+    },
+    "trend.forecast.detail.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight Forecast Analysis"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "体重预测分析"
+          }
+        }
+      }
+    },
+    "trend.forecast.disclaimer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight slope is adjusted after sleep, energy, and period multipliers. Not a countdown. Association, not cause. Not medical advice."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "体重斜率经睡眠、活动消耗与经期因子轻度修正。不是倒计时。仅描述关联，不是因果，也不是医疗建议。"
+          }
+        }
+      }
+    },
+    "trend.forecast.factor.aboveBaseline" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Above baseline"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高于基线"
+          }
+        }
+      }
+    },
+    "trend.forecast.factor.belowBaseline" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Below baseline"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低于基线"
+          }
+        }
+      }
+    },
+    "trend.forecast.openDetail.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens weight forecast analysis."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开体重预测分析。"
+          }
+        }
+      }
+    },
+    "trend.forecast.projectionFactors" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Projection Factors"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预测影响因子"
+          }
+        }
+      }
+    },
+    "trend.insights.advice.energy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily movement patterns can correlate with short-term weight shifts. Aim for consistent activity that matches your typical energy output."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日常活动模式可能与短期体重波动相关。尽量保持与平时相近的活动消耗。"
+          }
+        }
+      }
+    },
+    "trend.insights.advice.period" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight can fluctuate across the menstrual cycle. Track trends over full cycles rather than day-to-day shifts."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "体重会随月经周期波动。建议按完整周期观察趋势，而非逐日对比。"
+          }
+        }
+      }
+    },
+    "trend.insights.advice.shortSleep" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sleep duration is associated with next-day weight variability. Prioritize consistent, restorative sleep when you can."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠时长与次日体重波动存在关联。尽量保持规律、充分的睡眠。"
+          }
+        }
+      }
+    },
+    "trend.insights.advice.weekdaySleep" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consistent sleep schedules support metabolic health. Try to maintain your usual sleep duration on weekends."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "规律的睡眠有助于代谢健康。周末也尽量维持与平时接近的睡眠时长。"
+          }
+        }
+      }
+    },
+    "trend.insights.cardSubtitle.many" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld patterns detected in last %lld days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "近 %2$lld 天检测到 %1$lld 个模式"
+          }
+        }
+      }
+    },
+    "trend.insights.cardSubtitle.one" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 pattern detected in last %lld days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "近 %lld 天检测到 1 个模式"
+          }
+        }
+      }
+    },
+    "trend.insights.cardTitle.energy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Low-Activity Weight Pattern"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低活动量体重模式"
+          }
+        }
+      }
+    },
+    "trend.insights.cardTitle.period" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cycle-Linked Weight Pattern"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周期相关体重模式"
+          }
+        }
+      }
+    },
+    "trend.insights.cardTitle.shortSleep" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Short-Sleep Weight Pattern"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "短睡眠体重模式"
+          }
+        }
+      }
+    },
+    "trend.insights.cardTitle.weekdaySleep" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Sleep Deficit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@睡眠偏少"
+          }
+        }
+      }
+    },
+    "trend.insights.openDetail.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens insight details."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开洞察详情。"
           }
         }
       }
@@ -6485,13 +6773,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Patterns"
+            "value" : "Lifestyle Insights"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "交叉对照"
+            "value" : "生活方式洞察"
           }
         }
       }

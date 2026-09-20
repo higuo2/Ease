@@ -4,7 +4,7 @@ struct HealthInsightsCard: View, Equatable {
     let insights: [HealthInsight]
     var calendar: Calendar = .current
 
-    @State private var expandedID: String?
+    @State private var selectedInsight: HealthInsight?
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.insights == rhs.insights
@@ -14,10 +14,16 @@ struct HealthInsightsCard: View, Equatable {
         if !insights.isEmpty {
             EaseCard(padding: 20) {
                 VStack(alignment: .leading, spacing: 0) {
-                    TrendAnalysisHeader(
-                        title: "trend.insights.title",
-                        windowDays: HealthInsightEngine.lookbackDays
-                    )
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("trend.insights.title")
+                            .font(.headline)
+                            .foregroundStyle(EasePalette.primaryText)
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(EasePalette.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .combine)
 
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(Array(insights.enumerated()), id: \.element.id) { index, insight in
@@ -30,109 +36,58 @@ struct HealthInsightsCard: View, Equatable {
                         }
                     }
                     .padding(.top, 14)
-
-                    TrendAnalysisFootnote()
-                        .padding(.top, 16)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .animation(TrendAnalysisMotion.accordion, value: expandedID)
             }
-            .sensoryFeedback(.selection, trigger: expandedID)
+            .sheet(item: $selectedInsight) { insight in
+                LifestyleInsightDetailSheet(insight: insight, calendar: calendar)
+            }
         }
+    }
+
+    private var subtitle: String {
+        let count = insights.count
+        let window = HealthInsightEngine.lookbackDays
+        if count == 1 {
+            return String(
+                format: String(localized: "trend.insights.cardSubtitle.one"),
+                locale: .current,
+                window
+            )
+        }
+        return String(
+            format: String(localized: "trend.insights.cardSubtitle.many"),
+            locale: .current,
+            count,
+            window
+        )
     }
 
     private func insightRow(_ insight: HealthInsight) -> some View {
-        let isExpanded = expandedID == insight.id
-        return Button {
-            withAnimation(TrendAnalysisMotion.accordion) {
-                expandedID = isExpanded ? nil : insight.id
-            }
+        Button {
+            selectedInsight = insight
         } label: {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .center, spacing: 12) {
-                    TrendTintIconTile(systemName: insight.symbolName, tint: iconColor(insight.kind))
-                    Text(insight.localizedHeadline(calendar: calendar))
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(EasePalette.primaryText)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 8)
-                    Text(insight.deltaText())
-                        .font(.headline.weight(.bold).monospacedDigit())
-                        .foregroundStyle(heroColor(insight))
-                        .contentTransition(.numericText())
-                        .lineLimit(1)
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                        .accessibilityHidden(true)
-                }
-
-                if isExpanded {
-                    comparisonCapsules(insight)
-                    Text(insight.sampleSizeText())
-                        .font(.caption2)
-                        .monospacedDigit()
-                        .foregroundStyle(.tertiary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+            HStack(alignment: .center, spacing: 12) {
+                TrendTintIconTile(systemName: insight.symbolName, tint: iconColor(insight.kind))
+                Text(insight.cardDisplayTitle(calendar: calendar))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(EasePalette.primaryText)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 8)
+                Text(insight.deltaText())
+                    .font(.headline.weight(.bold).monospacedDigit())
+                    .foregroundStyle(heroColor(insight))
+                    .contentTransition(.numericText())
+                    .lineLimit(1)
+                TrendEntryChevron()
             }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .animation(TrendAnalysisMotion.accordion, value: isExpanded)
-        .accessibilityElement(children: .ignore)
         .accessibilityLabel(insight.accessibilitySummary(calendar: calendar))
-        .accessibilityHint(Text("trend.insights.row.hint"))
+        .accessibilityHint(Text("trend.insights.openDetail.hint"))
         .accessibilityAddTraits(.isButton)
-        .accessibilityValue(
-            isExpanded
-                ? Text("trend.insights.row.expanded")
-                : Text("trend.insights.row.collapsed")
-        )
-    }
-
-    private func comparisonCapsules(_ insight: HealthInsight) -> some View {
-        HStack(spacing: 8) {
-            metricCapsule(
-                label: insight.inGroupLabel(calendar: calendar),
-                value: insight.inValueText(),
-                mean: insight.inMean,
-                comparesWeight: insight.comparesWeight
-            )
-            metricCapsule(
-                label: insight.outGroupLabel(),
-                value: insight.outValueText(),
-                mean: insight.outMean,
-                comparesWeight: insight.comparesWeight
-            )
-        }
-    }
-
-    private func metricCapsule(
-        label: String,
-        value: String,
-        mean: Double,
-        comparesWeight: Bool
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(EasePalette.secondaryText)
-                .lineLimit(1)
-            Text(value)
-                .font(.subheadline.weight(.medium).monospacedDigit())
-                .foregroundStyle(comparesWeight ? EasePalette.semanticDelta(mean) : EasePalette.primaryText)
-                .contentTransition(.numericText())
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            EasePalette.recessed,
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-        )
     }
 
     private func heroColor(_ insight: HealthInsight) -> Color {
