@@ -49,6 +49,61 @@ struct WeightLogEntry: Identifiable, Equatable, Sendable {
     }
 }
 
+/// Weight log block for root-tab `ScrollView` (scrollbar flush to screen edge).
+struct WeightLogScrollSection: View {
+    let entries: [WeightLogEntry]
+    var recentDays: Int = 30
+    let onSelect: (WeightLogEntry) -> Void
+    var onDelete: ((WeightLogEntry) -> Void)? = nil
+    let onShowAll: () -> Void
+
+    private var visibleEntries: [WeightLogEntry] {
+        let cutoff = CalendarDay.addingDays(-(recentDays - 1), to: CalendarDay.startOfDay(.now))
+        return entries.filter { $0.timestamp >= cutoff }
+    }
+
+    private var showsSeeAll: Bool {
+        !entries.isEmpty
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            WeightLogSectionHeaderBar(showsSeeAll: showsSeeAll, onShowAll: onShowAll)
+                .padding(.top, 4)
+
+            Group {
+                if visibleEntries.isEmpty {
+                    Text("weight.list.empty")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(Array(visibleEntries.enumerated()), id: \.element.id) { index, entry in
+                            if index > 0 {
+                                Divider()
+                                    .overlay(EasePalette.hairline)
+                                    .padding(.leading, 56)
+                            }
+                            WeightLogScrollRowButton(
+                                entry: entry,
+                                onSelect: { onSelect(entry) },
+                                onDelete: (onDelete == nil || entry.logID == nil)
+                                    ? nil
+                                    : { onDelete?(entry) }
+                            )
+                        }
+                    }
+                }
+            }
+            .background(EasePalette.card, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+    }
+}
+
 struct WeightLogListView: View {
     let entries: [WeightLogEntry]
     var recentDays: Int = 30
@@ -92,6 +147,27 @@ struct WeightLogListView: View {
     }
 }
 
+private struct WeightLogScrollRowButton: View {
+    let entry: WeightLogEntry
+    let onSelect: () -> Void
+    var onDelete: (() -> Void)? = nil
+    @State private var selectionTick = 0
+
+    var body: some View {
+        Button {
+            selectionTick += 1
+            onSelect()
+        } label: {
+            WeightLogRowView(entry: entry)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
+        .sensoryFeedback(.selection, trigger: selectionTick)
+        .easeRecordContextMenu(onEdit: onSelect, onDelete: onDelete)
+    }
+}
+
 struct WeightLogRows: View {
     let entries: [WeightLogEntry]
     let onSelect: (WeightLogEntry) -> Void
@@ -108,7 +184,7 @@ struct WeightLogRows: View {
     }
 }
 
-private struct WeightLogSectionHeader: View {
+private struct WeightLogSectionHeaderBar: View {
     let showsSeeAll: Bool
     let onShowAll: () -> Void
 
@@ -117,7 +193,6 @@ private struct WeightLogSectionHeader: View {
             Text("weight.list.title")
                 .font(.headline)
                 .foregroundStyle(EasePalette.primaryText)
-                .textCase(nil)
             Spacer(minLength: 8)
             if showsSeeAll {
                 Button(action: onShowAll) {
@@ -132,8 +207,17 @@ private struct WeightLogSectionHeader: View {
                 .accessibilityLabel(Text("weight.list.all"))
             }
         }
-        .textCase(nil)
-        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+    }
+}
+
+private struct WeightLogSectionHeader: View {
+    let showsSeeAll: Bool
+    let onShowAll: () -> Void
+
+    var body: some View {
+        WeightLogSectionHeaderBar(showsSeeAll: showsSeeAll, onShowAll: onShowAll)
+            .textCase(nil)
+            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
     }
 }
 

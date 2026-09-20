@@ -64,8 +64,8 @@ struct WeightTabView: View {
         NavigationStack {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
-                List {
-                    Section {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: EaseLayout.sectionSpacing) {
                         VStack(spacing: EaseLayout.sectionSpacing) {
                             WeightHeroView(weight: snapshot.displayWeight, weekDelta: weekDelta)
                             if snapshot.startWeight > 0, snapshot.targetWeight > 0 {
@@ -99,30 +99,16 @@ struct WeightTabView: View {
                                 onAddModule: { isModuleEditorPresented = true }
                             )
                         }
-                    }
-                    .listRowInsets(
-                        EdgeInsets(
-                            top: 8,
-                            leading: 0,
-                            bottom: 8,
-                            trailing: 0
-                        )
-                    )
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
 
-                    WeightLogListView(
-                        entries: logEntries,
-                        onSelect: openLog(_:),
-                        onDelete: deleteLog(_:),
-                        onShowAll: { isWeightHistoryPresented = true }
-                    )
+                        WeightLogScrollSection(
+                            entries: logEntries,
+                            onSelect: openLog(_:),
+                            onDelete: deleteLog(_:),
+                            onShowAll: { isWeightHistoryPresented = true }
+                        )
+                    }
+                    .easeTabScrollContent()
                 }
-                .listStyle(.insetGrouped)
-                .listSectionSpacing(EaseLayout.sectionSpacing)
-                .headerProminence(.standard)
-                .scrollContentBackground(.hidden)
-                .easeTabListMargins()
             }
             .navigationTitle("tab.weight")
             .navigationBarTitleDisplayMode(.large)
