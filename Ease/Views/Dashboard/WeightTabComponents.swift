@@ -12,6 +12,21 @@ struct StageGoalCard: View {
     @State private var animatedProgress: Double = 0
     @State private var selectionTick = 0
 
+    private enum Morandi {
+        static let oat = Color(red: 239 / 255, green: 236 / 255, blue: 232 / 255)
+        static let terracotta = Color(red: 211 / 255, green: 158 / 255, blue: 130 / 255)
+        static let terracottaDeep = Color(red: 194 / 255, green: 137 / 255, blue: 108 / 255)
+        static let clay = Color(red: 140 / 255, green: 88 / 255, blue: 63 / 255)
+
+        static var fill: LinearGradient {
+            LinearGradient(
+                colors: [terracotta, terracottaDeep],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+    }
+
     private var clampedProgress: Double {
         min(max(progress, 0), 1)
     }
@@ -31,7 +46,7 @@ struct StageGoalCard: View {
         } label: {
             VStack(alignment: .leading, spacing: 14) {
                 headerRow
-                progressTrack
+                progressSection
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(stageProgressLabel)
                 milestoneFooter
@@ -52,12 +67,12 @@ struct StageGoalCard: View {
         .sensoryFeedback(.selection, trigger: selectionTick)
         .onAppear {
             animatedProgress = 0
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            withAnimation(.snappy(duration: 0.4, extraBounce: 0.05)) {
                 animatedProgress = clampedProgress
             }
         }
         .onChange(of: progress) { _, _ in
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            withAnimation(.snappy(duration: 0.4, extraBounce: 0.05)) {
                 animatedProgress = clampedProgress
             }
         }
@@ -67,64 +82,81 @@ struct StageGoalCard: View {
         HStack(alignment: .center, spacing: 12) {
             Text("weight.stageGoal")
                 .font(.headline)
-                .foregroundStyle(EasePalette.primaryText)
+                .foregroundStyle(.primary)
             Spacer(minLength: 8)
             Text(verbatim: "\(percentComplete)%")
-                .font(.caption.weight(.semibold))
+                .font(.caption.bold())
                 .monospacedDigit()
-                .foregroundStyle(EasePalette.primaryText)
-                .padding(.horizontal, 9)
-                .padding(.vertical, 5)
-                .background(EasePalette.recessed, in: Capsule())
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Morandi.oat, in: Capsule())
                 .accessibilityHidden(true)
         }
     }
 
-    private var progressTrack: some View {
-        GeometryReader { geo in
-            let width = geo.size.width
-            let fraction = min(max(animatedProgress, 0), 1)
-            let fillWidth = width * fraction
-            let thumbX = min(max(fillWidth, 7), max(width - 7, 7))
-
-            ZStack(alignment: .topLeading) {
-                Capsule()
-                    .fill(Color.black.opacity(0.05))
-                    .frame(height: 10)
-                    .frame(maxHeight: .infinity, alignment: .center)
-
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [EasePalette.accentSoft, EasePalette.accentWarm, EasePalette.coral],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(width: max(fillWidth, fraction > 0 ? 10 : 0), height: 10)
-                    .frame(maxHeight: .infinity, alignment: .center)
+    /// Tooltip sits in its own row; 22pt gap to the track — never overlaps the thumb.
+    private var progressSection: some View {
+        VStack(spacing: 0) {
+            GeometryReader { geo in
+                let width = max(geo.size.width, 1)
+                let fraction = min(max(animatedProgress, 0), 1)
+                let thumbCenter = thumbCenterX(fraction: fraction, width: width)
+                let tipWidth: CGFloat = 64
+                let tipX = min(max(thumbCenter - tipWidth / 2, 0), max(width - tipWidth, 0))
 
                 Text(EaseFormatters.kg(currentWeight))
-                    .font(.caption2.weight(.semibold))
+                    .font(.caption2.bold())
                     .monospacedDigit()
-                    .foregroundStyle(EasePalette.secondaryText)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(.ultraThinMaterial, in: Capsule())
-                    .position(
-                        x: min(max(thumbX, 28), max(width - 28, 28)),
-                        y: 8
-                    )
-
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 14, height: 14)
-                    .shadow(color: .black.opacity(0.12), radius: 3, y: 1)
-                    .position(x: thumbX, y: geo.size.height / 2)
+                    .foregroundStyle(Morandi.clay)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Morandi.oat, in: Capsule())
+                    .overlay(alignment: .bottom) {
+                        TinyCaret()
+                            .fill(Morandi.oat)
+                            .frame(width: 8, height: 5)
+                            .offset(y: 4)
+                    }
+                    .frame(width: tipWidth, alignment: .center)
+                    .offset(x: tipX)
             }
-            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: animatedProgress)
+            .frame(height: 22)
+
+            Color.clear.frame(height: 22)
+
+            GeometryReader { geo in
+                let width = max(geo.size.width, 1)
+                let fraction = min(max(animatedProgress, 0), 1)
+                let thumbCenter = thumbCenterX(fraction: fraction, width: width)
+
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Morandi.oat)
+                        .frame(height: 10)
+
+                    Capsule()
+                        .fill(Morandi.fill)
+                        .frame(height: 10)
+                        .scaleEffect(x: max(fraction, 0.0001), y: 1, anchor: .leading)
+
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 14, height: 14)
+                        .shadow(color: .black.opacity(0.08), radius: 3, y: 1)
+                        .offset(x: thumbCenter - 7)
+                }
+                .frame(maxHeight: .infinity, alignment: .center)
+                .drawingGroup()
+            }
+            .frame(height: 14)
         }
-        .frame(height: 36)
+        .animation(.snappy(duration: 0.4, extraBounce: 0.05), value: animatedProgress)
+    }
+
+    private func thumbCenterX(fraction: Double, width: CGFloat) -> CGFloat {
+        let inset: CGFloat = 7
+        return inset + CGFloat(fraction) * max(width - inset * 2, 0)
     }
 
     private var milestoneFooter: some View {
@@ -134,21 +166,21 @@ struct StageGoalCard: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Text(EaseFormatters.kg(startWeight))
-                    .font(.subheadline.bold())
+                    .font(.subheadline.weight(.semibold))
                     .monospacedDigit()
-                    .foregroundStyle(EasePalette.primaryText)
+                    .foregroundStyle(.primary)
                     .easeNumericText(startWeight)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Text(EaseFormatters.remainingKg(remainingKg))
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(EasePalette.coral)
+                .foregroundStyle(Morandi.clay)
                 .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(EasePalette.coral.opacity(0.08), in: Capsule())
+                .padding(.vertical, 6)
+                .background(Morandi.terracotta.opacity(0.12), in: Capsule())
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.85)
                 .easeNumericText(remainingKg)
 
             VStack(alignment: .trailing, spacing: 4) {
@@ -156,9 +188,9 @@ struct StageGoalCard: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Text(EaseFormatters.kg(targetWeight))
-                    .font(.subheadline.bold())
+                    .font(.subheadline.weight(.semibold))
                     .monospacedDigit()
-                    .foregroundStyle(EasePalette.primaryText)
+                    .foregroundStyle(.primary)
                     .easeNumericText(targetWeight)
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -172,6 +204,17 @@ struct StageGoalCard: View {
             percentComplete,
             EaseFormatters.kg(remainingKg)
         )
+    }
+}
+
+private struct TinyCaret: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.closeSubpath()
+        return path
     }
 }
 

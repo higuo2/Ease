@@ -2508,7 +2508,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%.1f kg remaining"
+            "value" : "%.1f kg left"
           }
         },
         "zh-Hans" : {
@@ -7018,6 +7018,7 @@
       }
     },
     "weight.remaining" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
