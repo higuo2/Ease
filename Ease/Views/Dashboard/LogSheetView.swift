@@ -1,7 +1,37 @@
 import SwiftUI
 import SwiftData
-import PhotosUI
-import UIKit
+
+private enum WeightDaypart: String, CaseIterable, Identifiable {
+    case morning
+    case evening
+
+    var id: String { rawValue }
+
+    var titleKey: LocalizedStringKey {
+        switch self {
+        case .morning: "history.morning"
+        case .evening: "history.evening"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .morning: "sun.max.fill"
+        case .evening: "moon.fill"
+        }
+    }
+
+    var hour: Int {
+        switch self {
+        case .morning: 8
+        case .evening: 20
+        }
+    }
+
+    static func from(date: Date, calendar: Calendar = .current) -> WeightDaypart {
+        calendar.component(.hour, from: date) < 12 ? .morning : .evening
+    }
+}
 
 struct LogSheetView: View {
     @Environment(\.dismiss) private var dismiss
@@ -10,16 +40,13 @@ struct LogSheetView: View {
     @Query(sort: \UserProfile.updatedAt, order: .reverse) private var profiles: [UserProfile]
 
     @State private var selectedDate: Date
+    @State private var daypart: WeightDaypart
     @State private var editingLogID: UUID?
     @State private var weightText: String
     @State private var bodyFatText: String
     @State private var errorKey: String?
     @State private var errorPulse = 0
     @State private var saveSuccessPulse = 0
-    @State private var ocrSuccessPulse = 0
-    @State private var ocrPhotoItem: PhotosPickerItem?
-    @State private var isOCRPickerPresented = false
-    @State private var isOCRBusy = false
     @State private var isCalendarExpanded = false
 
     init(date: Date, editingLogID: UUID? = nil) {
@@ -28,6 +55,7 @@ struct LogSheetView: View {
         _editingLogID = State(initialValue: editingLogID)
         _weightText = State(initialValue: "")
         _bodyFatText = State(initialValue: "")
+        _daypart = State(initialValue: WeightDaypart.from(date: .now))
     }
 
     var body: some View {
@@ -35,44 +63,43 @@ struct LogSheetView: View {
             ZStack {
                 EasePalette.background.ignoresSafeArea()
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
                         EaseCard(radius: 16, padding: 18) {
                             logDateRow
                         }
-                        weightCard
+
+                        heroWeightCard
+
+                        bodyFatCard
+
                         if let errorKey {
                             Text(LocalizedStringKey(errorKey))
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(EasePalette.primaryText)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 4)
                         }
                     }
-                    .padding(20)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
                 }
             }
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 8) {
-                    EasePrimaryButton(
-                        title: "log.save",
-                        isEnabled: canSave,
-                        usesAccent: true,
-                        action: save
-                    )
-                    if showsDelete {
-                        EaseTextButton(title: "log.delete", action: deleteCurrent)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 12)
-                .background(EasePalette.background.ignoresSafeArea(edges: .bottom))
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                stickySaveBar
             }
-            .navigationTitle("log.title.weight")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     EaseCloseToolbarButton(action: { dismiss() })
                 }
+                ToolbarItem(placement: .principal) {
+                    Text("log.title.weight")
+                        .font(.headline)
+                        .foregroundStyle(EasePalette.primaryText)
+                }
             }
+            .toolbarBackground(EasePalette.background, for: .navigationBar)
             .onAppear(perform: hydrateFromExisting)
             .onChange(of: selectedDate) { oldValue, newValue in
                 if !Calendar.current.isDate(oldValue, inSameDayAs: newValue) {
@@ -80,56 +107,131 @@ struct LogSheetView: View {
                 }
                 hydrateFromExisting()
             }
-            .onChange(of: ocrPhotoItem) { _, item in
-                guard let item else { return }
-                Task { await applyOCR(from: item) }
-            }
-            .photosPicker(isPresented: $isOCRPickerPresented, selection: $ocrPhotoItem, matching: .images)
             .sensoryFeedback(.error, trigger: errorPulse)
             .sensoryFeedback(.success, trigger: saveSuccessPulse)
-            .sensoryFeedback(.success, trigger: ocrSuccessPulse)
         }
         .preferredColorScheme(.light)
+        .tint(EasePalette.accent)
     }
 
-    private var weightCard: some View {
-        EaseCard(radius: 16, padding: 20) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("log.weight")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+    private var stickySaveBar: some View {
+        VStack(spacing: 8) {
+            Divider().overlay(EasePalette.hairline)
+            EasePrimaryButton(
+                title: "log.save",
+                isEnabled: canSave,
+                usesAccent: true,
+                action: save
+            )
+            if showsDelete {
+                EaseTextButton(title: "log.delete", action: deleteCurrent)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 10)
+        .background(.ultraThinMaterial)
+    }
 
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
+    private var heroWeightCard: some View {
+        EaseCard(radius: 20, padding: 22) {
+            VStack(spacing: 18) {
+                daypartPicker
+
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Spacer(minLength: 0)
                     TextField("onboarding.weight.placeholder", text: $weightText)
                         .keyboardType(.decimalPad)
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .multilineTextAlignment(.center)
+                        .font(.system(size: 52, weight: .bold, design: .rounded))
                         .monospacedDigit()
-                        .foregroundStyle(EasePalette.primaryText)
-                        .minimumScaleFactor(0.5)
+                        .foregroundStyle(.primary)
+                        .minimumScaleFactor(0.45)
+                        .frame(maxWidth: 220)
                     Text("unit.kg")
-                        .font(.title2)
-                        .foregroundStyle(.tertiary)
-                    Spacer(minLength: 8)
-                    ocrButton
+                        .font(.title3.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 6)
+                    Spacer(minLength: 0)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(Text("log.weight"))
+            }
+        }
+    }
 
-                Divider().overlay(EasePalette.hairline)
+    private var daypartPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(WeightDaypart.allCases) { part in
+                let selected = daypart == part
+                Button {
+                    withAnimation(.snappy(duration: 0.2)) {
+                        daypart = part
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: part.symbolName)
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(part.titleKey)
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(selected ? Color.white : EasePalette.primaryText)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 9)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        selected ? Color.black : EasePalette.recessed,
+                        in: Capsule()
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }
+    }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("log.bodyFat")
+    private var bodyFatCard: some View {
+        EaseCard(radius: 16, padding: 14) {
+            HStack(spacing: 12) {
+                Image(systemName: "percent")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(EasePalette.secondaryText)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        EasePalette.recessed,
+                        in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    )
+                    .accessibilityHidden(true)
+
+                Text("log.bodyFat")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(EasePalette.primaryText)
+                    .lineLimit(1)
+
+                Spacer(minLength: 8)
+
+                HStack(spacing: 6) {
+                    TextField("log.bodyFat.placeholder", text: $bodyFatText)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .font(.body.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(.primary)
+                        .frame(minWidth: 52, maxWidth: 72)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(
+                            EasePalette.recessed,
+                            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        )
+                    Text("unit.percent")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        TextField("log.bodyFat.placeholder", text: $bodyFatText)
-                            .keyboardType(.decimalPad)
-                            .font(.body.monospacedDigit())
-                            .foregroundStyle(EasePalette.primaryText)
-                        Text("unit.percent")
-                            .font(.subheadline)
-                            .foregroundStyle(.tertiary)
-                    }
+                        .fixedSize()
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text("log.bodyFat"))
         }
     }
 
@@ -183,44 +285,19 @@ struct LogSheetView: View {
         EaseFormatters.parseDecimal(weightText) != nil
     }
 
-    private var ocrButton: some View {
-        Button {
-            isOCRPickerPresented = true
-        } label: {
-            ZStack {
-                Image(systemName: "photo")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(EasePalette.accent)
-                    .opacity(isOCRBusy ? 0 : 1)
-                if isOCRBusy {
-                    ProgressView()
-                        .tint(EasePalette.accent)
-                }
+    private var timestampForLog: Date {
+        let candidate: Date
+        if Calendar.current.isDate(selectedDate, inSameDayAs: .now) {
+            let nowPart = WeightDaypart.from(date: .now)
+            if nowPart == daypart {
+                candidate = .now
+            } else {
+                candidate = CalendarDay.atHour(daypart.hour, on: selectedDate)
             }
-            .frame(width: 28, height: 28)
+        } else {
+            candidate = CalendarDay.atHour(daypart.hour, on: selectedDate)
         }
-        .buttonStyle(.plain)
-        .disabled(isOCRBusy)
-        .accessibilityLabel(Text("log.ocr"))
-    }
-
-    private func applyOCR(from item: PhotosPickerItem) async {
-        isOCRBusy = true
-        defer {
-            isOCRBusy = false
-            ocrPhotoItem = nil
-        }
-        guard let picked = try? await item.loadTransferable(type: PickedUIImage.self) else { return }
-        let result = await ScaleOCR.recognize(image: picked.image)
-        if let weight = result.weightKg {
-            weightText = EaseFormatters.oneDecimal(weight)
-        }
-        if let bodyFat = result.bodyFatPercent {
-            bodyFatText = EaseFormatters.oneDecimal(bodyFat)
-        }
-        if result.weightKg != nil || result.bodyFatPercent != nil {
-            ocrSuccessPulse += 1
-        }
+        return min(candidate, .now)
     }
 
     private func hydrateFromExisting() {
@@ -228,9 +305,15 @@ struct LogSheetView: View {
         if let log {
             weightText = EaseFormatters.oneDecimal(log.weight)
             bodyFatText = log.bodyFat.map(EaseFormatters.oneDecimal) ?? ""
+            daypart = WeightDaypart.from(date: log.timestamp)
         } else {
             weightText = ""
             bodyFatText = ""
+            if Calendar.current.isDate(selectedDate, inSameDayAs: .now) {
+                daypart = WeightDaypart.from(date: .now)
+            } else {
+                daypart = .morning
+            }
         }
         errorKey = nil
     }
@@ -268,20 +351,15 @@ struct LogSheetView: View {
 
     private func saveWeight(weight: Double?, bodyFat: Double?) throws {
         let logs = WeightLogRepository(context: modelContext)
+        let stamp = timestampForLog
         if let editingLog {
             guard let weight else { return }
+            editingLog.timestamp = stamp
             try logs.update(editingLog, weight: weight, bodyFat: bodyFat)
             return
         }
         guard let weight else { return }
-        try logs.insert(timestamp: timestampForNewLog, weight: weight, bodyFat: bodyFat)
-    }
-
-    private var timestampForNewLog: Date {
-        if Calendar.current.isDate(selectedDate, inSameDayAs: .now) {
-            return .now
-        }
-        return CalendarDay.atHour(8, on: selectedDate)
+        try logs.insert(timestamp: stamp, weight: weight, bodyFat: bodyFat)
     }
 
     private func presentError(_ key: String) {
