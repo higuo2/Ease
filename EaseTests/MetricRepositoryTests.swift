@@ -174,6 +174,21 @@ final class MetricRepositoryTests: EaseStoreTestCase {
         )
     }
 
+    func test_围度分类解剖排序顺序() {
+        XCTAssertEqual(
+            MetricInputCategory.core.anatomicalSortKeys,
+            ["chest", "underbust", "highWaist", "navel", "waist", "hip"]
+        )
+        XCTAssertEqual(
+            MetricInputCategory.limbs.anatomicalSortKeys,
+            ["leftArm", "rightArm", "leftThigh", "thigh", "leftCalf", "rightCalf"]
+        )
+        XCTAssertEqual(
+            MetricInputCategory.other.anatomicalSortKeys,
+            ["head", "shoulderWidth", "shoulder", "wrist"]
+        )
+    }
+
     func test_内置符号与单位() {
         XCTAssertNil(MetricCatalog.builtin(for: "water"))
         XCTAssertEqual(MetricCatalog.builtin(for: "waist")?.symbolName, "ruler")

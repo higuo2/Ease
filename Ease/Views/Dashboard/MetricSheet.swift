@@ -142,7 +142,8 @@ struct MetricSheet: View {
     }
 
     private var visibleMetrics: [MetricDefinition] {
-        enabledMetrics.filter { selectedCategory.matches(key: $0.key, kind: $0.kind) }
+        let filtered = enabledMetrics.filter { selectedCategory.matches(key: $0.key, kind: $0.kind) }
+        return selectedCategory.sort(filtered)
     }
 
     private var historyDefinitions: [MetricDefinition] {
@@ -154,7 +155,7 @@ struct MetricSheet: View {
         for definition in enabledMetrics + extras where seen.insert(definition.key).inserted {
             result.append(definition)
         }
-        return result
+        return MetricInputCategory.anatomicalSort(result)
     }
 
     private var selectedDefinition: MetricDefinition? {

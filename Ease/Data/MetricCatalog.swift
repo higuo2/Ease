@@ -54,6 +54,59 @@ enum MetricInputCategory: String, CaseIterable, Identifiable, Sendable {
     func matches(key: String, kind: MetricKind) -> Bool {
         Self.category(for: key, kind: kind) == self
     }
+
+    /// Top-to-bottom anatomical order within each sheet category.
+    var anatomicalSortKeys: [String] {
+        switch self {
+        case .core:
+            return ["chest", "underbust", "highWaist", "navel", "waist", "hip"]
+        case .limbs:
+            return ["leftArm", "rightArm", "leftThigh", "thigh", "leftCalf", "rightCalf"]
+        case .other:
+            return ["head", "shoulderWidth", "shoulder", "wrist"]
+        }
+    }
+
+    private static let globalAnatomicalOrder: [String] = MetricInputCategory.allCases.flatMap(\.anatomicalSortKeys)
+
+    func sort(_ definitions: [MetricDefinition]) -> [MetricDefinition] {
+        let order = anatomicalSortKeys
+        return definitions.sorted { lhs, rhs in
+            Self.compare(lhs, rhs, order: order)
+        }
+    }
+
+    static func anatomicalSort(_ definitions: [MetricDefinition]) -> [MetricDefinition] {
+        definitions.sorted { lhs, rhs in
+            compare(lhs, rhs, order: globalAnatomicalOrder)
+        }
+    }
+
+    private static func compare(
+        _ lhs: MetricDefinition,
+        _ rhs: MetricDefinition,
+        order: [String]
+    ) -> Bool {
+        let leftIndex = order.firstIndex(of: lhs.key)
+        let rightIndex = order.firstIndex(of: rhs.key)
+        switch (leftIndex, rightIndex) {
+        case let (left?, right?):
+            if left != right { return left < right }
+        case (nil, nil):
+            break
+        case (nil, _?):
+            return false
+        case (_?, nil):
+            return true
+        }
+        if lhs.kind == .custom && rhs.kind == .custom {
+            return lhs.displayName.localizedCompare(rhs.displayName) == .orderedAscending
+        }
+        if lhs.sortOrder != rhs.sortOrder {
+            return lhs.sortOrder < rhs.sortOrder
+        }
+        return lhs.key < rhs.key
+    }
 }
 
 enum MetricCatalog {
