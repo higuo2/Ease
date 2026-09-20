@@ -3444,13 +3444,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chest"
+            "value" : "Upper bust"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "胸围"
+            "value" : "上胸围"
           }
         }
       }
@@ -3629,13 +3629,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Navel"
+            "value" : "Mid waist"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "肚脐"
+            "value" : "中腰"
           }
         }
       }
@@ -3746,13 +3746,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thigh"
+            "value" : "Right thigh"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "大腿围"
+            "value" : "右大腿"
           }
         }
       }
@@ -3763,7 +3763,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Underbust"
+            "value" : "Under bust"
           }
         },
         "zh-Hans" : {
@@ -3780,13 +3780,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Waist"
+            "value" : "Low waist"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "腰围"
+            "value" : "低腰"
           }
         }
       }
