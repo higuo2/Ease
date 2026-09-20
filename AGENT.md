@@ -17,7 +17,8 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
   - Meal photos: JPEG files live in Documents; `DailyRecord` stores filenames only. Keep unused legacy `breakfastPhotoData` / `lunchPhotoData` / `dinnerPhotoData` (`@Attribute(.externalStorage)`) on the schema forever if they ever shipped — never delete CloudKit attributes. Keep `breakfastPhotoFileName` / `lunchPhotoFileName` / `dinnerPhotoFileName` and `extraMealsJSON`. **No meal carousel, camera, or cutout UI.** On-device cutout sidecars may still exist from older builds; `resetAll` still clears them.
   - v1.2 models: `MetricDefinition` + `MetricLog`, split like weight vs day journal. No CloudKit `@Relationship`. No Unique Constraint. Enabled metrics appear in the Metric Sheet; disabled keys stay out of the entry form even if that day has `MetricLog`s. Home **measurements** tile is the daily entry; Settings only toggles definitions + secondary History.
   - `UserProfile.homeModulesRaw` persists which Morandi tiles are on the Weight tab.
-- Keep views modularized. Extract reusable UI components (cards, buttons, chart markers, health-detail sheets) into separate files. New `.swift` files must be registered in `Ease.xcodeproj/project.pbxproj`.
+- Keep views modularized. Extract reusable UI components (`EaseCard`, `EasePrimaryButton`, `EaseMetricIcon`, `EaseToolbarSaveButton`, chart markers, health-detail sheets) into separate files. New `.swift` files must be registered in `Ease.xcodeproj/project.pbxproj`.
+- Keyboard: `EaseKeyboard.dismiss()` + sheet `@FocusState` before save/dismiss (`UX.md` §6).
 
 # ⚠️ Design System & Visual Guidelines (Strictly Enforced)
 
@@ -47,7 +48,9 @@ Core feel: generous whitespace, soft hierarchy via fill color (not borders/shado
 - **Secondary Accent (gain / caution)**: Quiet mint / soft green for ↑ gain deltas when contrast is needed; keep saturation low.
 - **Primary Text**: Near-black (`Color.primary` / `#111111`). Hero numbers stay high contrast.
 - **Secondary Text**: Medium gray (`Color.secondary` / `#8E8E93`).
-- **Primary Button**: Capsule, solid black fill, white icon/text.
+- **Primary Button** (`EasePrimaryButton`): Capsule ~52pt。启用：`morandiRedDeep` / `usesAccent` 时 `morandiRed` 底 + 白字；禁用：`morandiOat` 底 + secondary 字色（勿用系统 `.disabled` 灰化）。Onboarding / 空态 CTA 同组件。
+- **Toolbar Save** (`EaseToolbarSaveButton`): 围度/体重 Sheet **trailing** Save 文案按钮，非底部大胶囊。
+- **Toolbar Close** (`EaseCloseToolbarButton`): `xmark.circle.fill` hierarchical secondary；`accessibilityLabel` = Close。
 - **Tooltip**: High-contrast black rounded rectangle, white text (chart point callout).
 - **Deprecated**: Vibrant purple progress rings, mint/pink/orange macaron health cards as the home language. Sleep / Period / Energy sheets may keep a quiet tint inside their own sheets only.
 
@@ -61,7 +64,7 @@ Core feel: generous whitespace, soft hierarchy via fill color (not borders/shado
 - **Icons**: STRICTLY single-color `SF Symbols` (`Image(systemName:)`).
   - DO NOT use emojis (NO 🩸, ✈️, 🚽 — use SF Symbols; delta arrows via SF Symbol or consistent localized glyphs).
   - Tabs: Weight (`scalemass`), Trend (`chart.xyaxis.line`), Calendar (`calendar`), Settings (`gearshape`).
-  - Built-in metrics (v1.2): circumferences use `ruler`. No water tracking.
+  - Built-in metrics (v1.2+): icons from `MetricCatalog`；列表行统一 **`EaseMetricIcon`**（32×32，`morandiOat` 底，8pt 圆角，symbol `morandiRedDeep` hierarchical）。胸围 `figure.cooldown`；腰高/中/低 `ruler`；臀 `figure.stand`；肢 `figure.arms.open` / `figure.walk`；肩宽 `arrow.left.and.right`；肩围 `tshirt`；腕 `hand.raised.fill`；头 `person.crop.circle`。No water tracking.
   - Home modules: Morandi squares — BMI, Measurements, Weight (+ optional Sleep / Period / Energy). Never show Diet.
 
 ## 4. Screen Layout — 4-Tab Root (match PRD §2)
@@ -73,9 +76,9 @@ Sheets (weight log, metrics, weight history, sleep, cycle, energy) remain modal 
 
 ### Tab 1 — 体重 (Dashboard)
 1. **Hero**：系统 Large Title（`tab.weight`，左对齐）下方居中巨幅当前体重（所选日最新 `WeightLog`，否则全局最新）。下方一行小字周增减（如 `▼1.8 kg 本周`），coral on loss / quiet green on gain.
-2. **阶段目标卡片**：recessed `#F2F3F5` / `#F5F5F7` rounded card — linear progress bar, start / target weight, optional **basic** pace ETA line (PRD §8.3.A). No purple ring.
+2. **阶段目标卡片** (`StageGoalCard`): recessed card — **16pt** progress track (`morandiOat` + coral gradient fill via `Rectangle` width + outer `Capsule` clip). Header `%` oat pill; footer start / remaining pill / target. Optional **basic** pace ETA (§8.3.A). No tooltip/thumb on bar. No purple ring.
 3. **可自定义莫兰迪方块**：默认 BMI / 围度 / 体重。BMI 格显示数字 + 灰色档名；点开 BMI 详情 Sheet。可新增睡眠、经期、活动消耗。虚线「添加」打开模块编辑。**Never show Diet。**
-4. **体重列表**：默认近 **30** 天；早（太阳）/ 晚（月亮）、相对昨日涨跌。点行编辑。点 **All** → 体重历史 Sheet（全部记录）。**不要**在本页原地折叠展开全部历史。
+4. **体重列表**：默认近 **30** 天；早（太阳）/ 晚（月亮）、相对昨日涨跌。点行编辑；上下文菜单删除。点 **All** → 体重历史 Sheet（全部记录，仍用 `List` + 左滑删除）。主 Tab 列表在 **`ScrollView`** 内（`WeightLogScrollSection`），**不要**给 `ScrollView` 本身加 horizontal padding（用 `easeTabScrollContent()` .pad 内容）。
 5. **无 FAB**；无右上角齿轮。
 
 ### Tab 2 — 趋势 (Trend)
@@ -98,11 +101,11 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 身高 / 生日（紧凑 DatePicker，未设置显示 Not set，用 trailing X 清除）/ 性别（secondary）/ 起止体重 / 睡眠目标 / 首页模块（系统绿 Toggle）/ 通知总开关（关则体重提醒行收起变淡）与体重提醒时刻 / CSV 导出导入（普通 Label 行，页脚说明文件名）/ 扩展指标（五条核心置顶，其余进 More；行尾 History chevron，`.buttonStyle(.borderless)`，点 History 不拨开关）/ **两次确认**的清除全部数据（独立 destructive section）。睡眠/经期/消耗 Sheet 从首页方块进，设置里不再做入口。
 
 ### Shared Sheets
-- **Weight Log Sheet**：可展开图形日历 → 体重 + OCR → 体脂 → 黑 Capsule Save。
+- **Weight Log Sheet** (`LogSheetView`)：toolbar Close + Save；`ScrollView` 表单；早/晚 `morandiRedDeep` 选中；Save 前收键盘。Delete 在内容区（编辑态）。
 - **Weight History Sheet**：全部体重日列表（与首页行同构）；点行编辑。
-- **Metrics Sheet**：日期 → 已启用围度 → Save → **历史列表**（无围度趋势图）。主入口 = 首页围度格。
+- **Metrics Sheet** (`MetricSheet`)：toolbar Close + Save；Core/Limbs/Other 分段；指标按 **解剖顺序** 排列；`EaseMetricIcon` 行；History chip + 列表。无围度趋势图。主入口 = 首页围度格。
 - **Sleep / Cycle / Energy / BMI Detail**：睡眠/经期/消耗只读 HealthKit；BMI 只读档案+体重。sheet 内可用安静 tint；Sleep/Energy 图需有轴。BMI 可用莫兰迪分段条，档名灰色胶囊，禁止绿黄红交通灯。Sleep / Energy 底部可附一条交叉对照（`HealthInsightNoteCard`），没有则整段不渲染。
-- **Onboarding**：三步不变；奶油底 + 黑 Capsule 主按钮。
+- **Onboarding**：三步不变；奶油底 + `EasePrimaryButton`（Morandi 胶囊 Continue）。
 
 ## 5. UI Components & Styling
 
@@ -114,9 +117,9 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 - **Accessibility**: `EaseCard` grows vertically with Dynamic Type. Rings (`EaseArcRing`) are decorative — put the spoken facts on the enclosing card (`accessibilityLabel`); hide the ring from VoiceOver. `StageGoalCard` must expose progress + remaining kg.
 
 ### Buttons
-- **Primary** (`Save`, `Continue`): Capsule, solid black, white bold text, height 50–56pt, corner ~24pt.
+- **Primary** (`EasePrimaryButton`): Onboarding / 空态 / 导入确认等全宽胶囊；Morandi 启用色（见 Color Palette）。**Sheet 保存动作用 toolbar `EaseToolbarSaveButton`，不用底部吸底条。**
 - **No FAB** on Weight tab.
-- **Segmented range control**: milk capsule track, selected segment high-contrast — no purple tint.
+- **Segmented range control** (trend range, metric category, weight daypart): recessed track；选中 `morandiRedDeep` 或高对比 — no purple tint.
 
 ### Progress
 - Prefer **linear** progress in the stage-goal card (coral fill on milk track).
@@ -141,7 +144,7 @@ Full-tab settings (not a sheet): no Close / Done. Edits auto-save. Native inset-
 
 # Execution Rules
 1. ALWAYS wrap primary content in Milk & Card surfaces (`#FFFFFF` / `#F2F3F5` on `#F7F8F9`). No purple brand chrome. No heavy card shadows.
-2. Never use default blue buttons; primary actions are black capsules.
+2. Never use default blue buttons; primary full-width actions use `EasePrimaryButton` (Morandi). Modal **Save** uses trailing toolbar text button.
 3. Do not overcomplicate the code. Provide complete, runnable SwiftUI views without omitting code blocks.
 4. If a compiler error is pasted, fix it directly without verbose explanations.
 5. When PRD and this file conflict on product rules, PRD wins; this file wins on visual styling.

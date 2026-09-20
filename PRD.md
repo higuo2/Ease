@@ -25,9 +25,9 @@
 自上而下：
 1. **导航**：系统 Large Title（`tab.weight` / 体重）。无 trailing 设置按钮；设置在第四 Tab。
 2. **Hero**：居中巨幅当前体重（所选日最新 `WeightLog`，否则全局最新；仍无则不可用态、不算进度）。下方一行周增减小字（如 `▼1.8 kg 本周`）。
-3. **阶段目标卡片**：浅灰圆角卡 — 线性进度条、起始体重、目标体重；可选一行 **基础 pace ETA**（§8.3.A）。进度公式不变：`(start - display) / (start - target)`，clamp `0...1`；达 100% 后冷淡展示目标，无庆祝。当前体重大于初始 → 0%。**不再使用紫色进度环。**
+3. **阶段目标卡片**（`StageGoalCard`）：浅灰圆角卡 — **16pt** 线性进度条（燕麦轨道 + 莫兰迪珊瑚渐变填充；填充为 `Rectangle` 宽度比例 + 外层 `Capsule` 裁剪，避免「双胶囊」弯角）；Header 百分比 oat 胶囊；Footer 起始 / 剩余 / 目标。可选一行 **基础 pace ETA**（§8.3.A）。无进度条 tooltip、无 thumb 圆点。进度公式不变：`(start - display) / (start - target)`，clamp `0...1`；达 100% 后冷淡展示目标，无庆祝。当前体重大于初始 → 0%。**不再使用紫色进度环。**
 4. **可配置莫兰迪方块**：默认 BMI（数字 + 灰色区间文案）、围度、体重。用户可追加睡眠、经期、活动消耗；虚线「添加」打开模块编辑。点 BMI → BMI 详情 Sheet；点体重 → 体重 Sheet；点围度 → 围度 Sheet；点睡眠 / 经期 / 消耗 → 对应详情 Sheet。**无饮食格。不做饮水。**
-5. **体重列表 (Weight log)**：默认只展示**近 30 天**；按日展示早（太阳）/ 晚（月亮）、相对昨日涨跌。点行编辑该日最新 `WeightLog`（或补录）。点 **All** 打开独立「体重历史」Sheet（全部日期，同一行样式），不在本页原地展开。
+5. **体重列表 (Weight log)**：默认只展示**近 30 天**；按日展示早（太阳）/ 晚（月亮）、相对昨日涨跌。点行编辑该日最新 `WeightLog`（或补录）。点 **All** 打开独立「体重历史」Sheet（全部日期，同一行样式），不在本页原地展开。主 Tab 用 **全宽 `ScrollView`** + 内容区 `EaseLayout` 水平 16pt 内边距（滚动条贴屏幕右缘，卡片不贴边）。
 
 ### 2.2 趋势 Tab（Trend）
 1. 顶部 segmented 胶囊：`7天 | 30天 | 90天 | 全部`（只改 X 可见范围）。
@@ -60,14 +60,29 @@
 * **清除全部数据**：须**两次确认**（先确认对话框「继续」，再 alert 最终清除）；清除后回到 Onboarding。
 
 ### 2.5 录入表单 (Log Sheets)
-仅 **体重 Sheet**（半屏 Modal）。可展开图形日历改日期（默认所选日 / 今天；不可未来）→ 体重 + 行内相册识图 → 体脂（可选）→ Save。新增 = **insert `WeightLog`**。编辑已有条可改或 Delete 该条。今天用当前时刻；补过去的日子用当天 08:00。
+实现文件：**`LogSheetView.swift`**（体重 Sheet）。
+
+半屏 Modal（`.easeSheetPresentation()`）。导航栏：**leading** `EaseCloseToolbarButton`（`xmark.circle.fill` + 本地化 Close）；**principal** 标题；**trailing** `EaseToolbarSaveButton`（启用 `morandiRed` 字色，禁用 secondary 40%）。**无底部吸底 Save、无 `.ultraThinMaterial` 底栏。**
+
+内容：`ScrollView` + `.scrollDismissesKeyboard(.interactively)`；点空白或 Save/关闭前先 `resignFirstResponder`（`@FocusState` + `EaseKeyboard.dismiss`），成功保存后短延迟再 `dismiss`，避免键盘与 Sheet 动画冲突。
+
+可展开图形日历改日期（默认所选日 / 今天；不可未来）→ 早/晚分段（选中 `morandiRedDeep`）→ 大号体重 → 体脂（可选）。编辑态 Delete 在滚动内容底部文本按钮。新增 = **insert `WeightLog`**。今天用当前时刻；补过去的日子用当天 08:00（或 evening 20:00）。
 
 **无饮食 Sheet。** 应用不再写入 `dietStatus` / `tags` / `note` / 餐图字段；旧值保留在 SwiftData 中，CSV 仍可导出/导入这些列。
 
 围度不在体重 Sheet，也不参与体重校验。
 
 ### 2.6 围度 Sheet (Metric Sheet)
-独立半屏 Modal。**主入口**：体重 Tab 围度方块。**次入口**：设置里某指标的 History。内部：日期 → 已启用指标数字行 → Save → 下方该指标**历史列表**（v1.2 不做围度趋势图；体重趋势只在 Trend Tab）。
+实现文件：**`MetricSheet.swift`**。
+
+独立半屏 Modal。**主入口**：体重 Tab 围度方块。**次入口**：设置里某指标的 History。导航与 Save 交互同 §2.5（toolbar Save + 关闭图标 + 键盘收起）。
+
+内部：`List`（inset grouped）→ 日期 → 可选 **Core / Limbs / Other** 分段 → 已启用指标行（**`EaseMetricIcon`** 32×32 燕麦底座 + SF Symbol）→ 下方该指标 **History**（chip 切换多指标时按解剖顺序排列）。**不做围度趋势图**（体重趋势只在 Trend Tab）。
+
+**录入区排序**（`MetricInputCategory` 解剖序，仅显示已启用项）：
+* **Core**：上胸围 → 下胸围 → 高腰 → 中腰 → 低腰 → 臀围（key：`chest`, `underbust`, `highWaist`, `navel`, `waist`, `hip`）。
+* **Limbs**：左臂 → 右臂 → 左大腿 → 右大腿（`thigh`）→ 左小腿 → 右小腿。
+* **Other**：头围 → 肩宽 → 肩围 → 手腕。
 
 保存规则：至少一行有效值；空行不写；任一行越界/无法解析则**整次零写入**并标红。不要求体重、不写 `DailyRecord`、不触发体重提醒。今天用当前时刻，补过去的日子用当天 08:00。删一条历史只删该次 `MetricLog`。
 
@@ -240,25 +255,24 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 * **模型（无 CloudKit `@Relationship`）**：`MetricDefinition` 与 `MetricLog` 用 `metricKey` 字符串对齐，禁止 `@Relationship`。
     * `MetricDefinition`：`key`、`kind`（`builtin` / `custom`）、`unit`（`cm` | `ml` | `count`）、`symbolName`、`displayName`、`isEnabled`、`sortOrder`、`updatedAt`。
     * `MetricLog`：`id`、`timestamp`、`metricKey`、`value`、`updatedAt`。一天可多条。无 Unique Constraint。
-* **内置目录**（首次 seed；默认关闭，设置里打开后才进入围度 Sheet 录入区）：
-    | key | 单位 | 精度 | 范围 | SF Symbol |
-    |-----|------|------|------|-----------|
-    | `waist` | cm | 0.1 | 40–200 | `ruler` | 低腰 |
-    | `hip` | cm | 0.1 | 40–200 | `ruler` | 臀围 |
-    | `chest` | cm | 0.1 | 40–200 | `ruler` | 上胸围 |
-    | `thigh` | cm | 0.1 | 20–120 | `ruler` | 右大腿 |
-    | `underbust` | cm | 0.1 | 40–200 | `ruler` | 下胸围 |
-    | `highWaist` | cm | 0.1 | 40–200 | `ruler` | 高腰 |
-    | `navel` | cm | 0.1 | 40–200 | `ruler` | 肚脐 |
-    | `leftArm` | cm | 0.1 | 15–60 | `ruler` | 左臂 |
-    | `rightArm` | cm | 0.1 | 15–60 | `ruler` | 右臂 |
-    | `leftThigh` | cm | 0.1 | 20–120 | `ruler` | 左大腿 |
-    | `leftCalf` | cm | 0.1 | 20–60 | `ruler` | 左小腿 |
-    | `rightCalf` | cm | 0.1 | 20–60 | `ruler` | 右小腿 |
-    | `shoulderWidth` | cm | 0.1 | 20–80 | `ruler` | 肩宽 |
-    | `shoulder` | cm | 0.1 | 50–160 | `ruler` | 肩围 |
-    | `wrist` | cm | 0.1 | 10–30 | `ruler` | 手腕 |
-    | `head` | cm | 0.1 | 40–70 | `ruler` | 头围 |
+* **内置目录**（首次 seed；默认关闭，设置里打开后才进入围度 Sheet 录入区）。**显示名**走 `Localizable.xcstrings`；**图标**以 `MetricCatalog` 为准（行 UI 统一 `EaseMetricIcon`）：
+    | key | 显示名（中 / en 要点） | SF Symbol |
+    |-----|------------------------|-----------|
+    | `chest` | 上胸围 / Upper bust | `figure.cooldown` |
+    | `underbust` | 下胸围 / Under bust | `figure.cooldown` |
+    | `highWaist` | 高腰 / High waist | `ruler` |
+    | `navel` | 中腰 / Mid waist | `ruler` |
+    | `waist` | 低腰 / Low waist | `ruler` |
+    | `hip` | 臀围 / Hip | `figure.stand` |
+    | `leftArm` / `rightArm` | 左臂 / 右臂 | `figure.arms.open` |
+    | `leftThigh` / `thigh` | 左大腿 / 右大腿 | `figure.walk` |
+    | `leftCalf` / `rightCalf` | 左小腿 / 右小腿 | `figure.walk` |
+    | `head` | 头围 | `person.crop.circle` |
+    | `shoulderWidth` | 肩宽 | `arrow.left.and.right` |
+    | `shoulder` | 肩围 | `tshirt` |
+    | `wrist` | 手腕 | `hand.raised.fill` |
+
+    单位均为 cm，精度 0.1；范围见 `MetricCatalog` 各 `MetricSpec.range`。
 * **自定义**：最多 **8** 条。单位只能三选一。图标只能从允许 SF Symbol 列表选。禁止 emoji、禁止自定义单位（kcal、% 宏量素等）。
 * **录入**：独立围度 Sheet（§2.6）。保存时对填了的指标 **insert `MetricLog`**。
 * **体重 Tab**：围度方块为日常主入口；设置只负责启用/自定义与次级 History（五条核心围度置顶，其余进「更多」）。关掉的指标不得出现在录入区读数；历史仍可在 History / Sheet 查看。全部禁用 → 方块可隐藏或仅作空入口（按实现：模块关掉则不显示）。

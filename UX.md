@@ -10,6 +10,8 @@
 
 Weight / Trend / Calendar / Settings 共用 `EaseLayout`：左右 16pt、块间距 16pt、指标网格 12pt、滚动底 inset 100pt。四个页都用系统 Large Title（Weight 用 `tab.weight`，不要居中 “Ease”）。设置页保持 inset-grouped，不要 Done。
 
+**Weight Tab 滚动**：主内容用 **edge-to-edge `ScrollView`**，水平 16pt 只加在内部 `easeTabScrollContent()`，勿给 `ScrollView` 包 horizontal padding（滚动条贴右缘）。
+
 ### 2. 触觉（确认，不是庆祝）
 
 只在「系统已经认定一次结果」时触发：
@@ -40,7 +42,15 @@ Weight / Trend / Calendar / Settings 共用 `EaseLayout`：左右 16pt、块间�
 
 ### 6. 录入 / 详情 Sheet
 
-体重、围度、BMI、Sleep、Cycle、Energy、日历日明细、导入预览：`.easeSheetPresentation()`（medium/large、可见拖条、内容可滚）。动画走系统 sheet spring。关闭用系统关闭控件，不要让「关闭」在 leading 折行。
+体重、围度、BMI、Sleep、Cycle、Energy、日历日明细、导入预览：`.easeSheetPresentation()`（medium/large、可见拖条、内容可滚）。动画走系统 sheet spring。
+
+**体重 / 围度录入**（`LogSheetView` / `MetricSheet`）：
+* **Save** 在导航栏 **trailing**（`EaseToolbarSaveButton`），禁用 secondary 40%、启用 `morandiRed` 字色；**无底部 Save 胶囊、无 `.ultraThinMaterial` 吸底条。**
+* **Close** 为 **`xmark.circle.fill`**（`EaseCloseToolbarButton`），勿用文字胶囊 Close。
+* Save / 关闭 / Delete 前先 **`@FocusState` 清焦点 + `EaseKeyboard.dismiss`**；体重 Sheet 成功保存后 **~80ms** 再 `dismiss`，避免键盘与 Sheet 动画打架。
+* `ScrollView` / `List` 加 `.scrollDismissesKeyboard(.interactively)`；背景点按收键盘。
+
+其它 Sheet 关闭控件可与上保持一致或沿用各页现有样式；不要让 leading 关闭文案折行。
 
 Sleep / Energy 日柱与 Cycle 时间轴：横向 `chartScrollableAxes`，约 7 天（经期约 14 天）清楚可见，默认停在最近日期。
 
@@ -58,7 +68,7 @@ Sleep / Energy 日柱与 Cycle 时间轴：横向 `chartScrollableAxes`，约 7 
 
 * `WeightHistorySheet` 空态「去记录」→ 今天体重 Sheet。已有 CTA 的空态不要叠第二颗按钮。禁止「同步 HealthKit」。
 * 首页方块说明最多 2 行，不要固定 11–13pt 截成 `…`。
-* `StageGoalCard` 进度条 `accessibilityLabel` 含百分比与剩余 kg。
+* `StageGoalCard` 进度条 `accessibilityLabel` 含百分比与剩余 kg。进度条 16pt、无 tooltip/thumb；填充为矩形宽比例 + 外层 Capsule 裁剪。
 * 睡眠 / 经期环所在卡读时长或周期事实；环本身 `accessibilityHidden`。
 
 ### 10. 日历（近期落地）
@@ -73,7 +83,7 @@ Sleep / Energy 日柱与 Cycle 时间轴：横向 `chartScrollableAxes`，约 7 
 
 * 去掉 List 级 `.tint(EasePalette.coral)`。Toggle 用 `Color(.systemGreen)`；Export/Import 主色；性别/生日/时刻 `.secondary`；仅 Delete 为 destructive。
 * 提醒总开关关闭：`withAnimation(.easeInOut(duration: 0.2))` 收起体重时刻行，`.disabled` + `.opacity(0.5)`。
-* 扩展指标：`waist` / `hip` / `chest` / `thigh` / `underbust` 置顶；其余 + 自定义 +「添加指标」进 `settings.metrics.more`。区头 `settings.metrics.enabled_count`。
+* 扩展指标：设置里五条核心 key 仍置顶（`waist`/`hip`/`chest`/`thigh`/`underbust` — 文案已本地化：低腰/臀围/上胸围/右大腿/下胸围等）；围度 **Sheet 内**按 Core/Limbs/Other **解剖序** 展示（见 PRD §2.6）。行图标 **`EaseMetricIcon`** 32×32 燕麦底。其余 + 自定义 +「添加指标」进 `settings.metrics.more`。区头 `settings.metrics.enabled_count`。
 * Import 就是一行 `Button` + `Label`，不要 trailing `(i)` 叠在「CSV」上。说明进 `settings.import.footer`。
 * History chevron：`.buttonStyle(.borderless)`，点 History 不拨 Toggle。左滑仍可打开 History。
 
@@ -85,7 +95,7 @@ Sleep / Energy 日柱与 Cycle 时间轴：横向 `chartScrollableAxes`，约 7 
 
 * WidgetKit / App Intent / 锁屏组件 / 从 Widget 拍照。
 * 趋势图第二轴、Tooltip 体脂、双指缩放。
-* 首页 `ultraThinMaterial`、卡片 drop shadow（含 0.04）。
+* 首页与录入 Sheet 底部 **`ultraThinMaterial` 吸底 Save 条**、卡片 drop shadow（含 0.04）。
 * `Task.detached` 包 `HealthKitReader` 或 SwiftData。
 * 全局 skeleton、庆祝式 haptic、进度 100% 动效。
 * 「一键同步 HealthKit」、空状态里的假同步。
