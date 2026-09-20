@@ -729,7 +729,7 @@ private struct SettingsMetricToggleRow: View {
         HStack(spacing: 12) {
             Button(action: onHistory) {
                 HStack(spacing: 12) {
-                    SettingsRowIcon(systemName: spec.symbolName)
+                    EaseMetricIcon(systemName: spec.symbolName)
                     Text(verbatim: spec.resolvedTitle)
                         .font(.body)
                         .foregroundStyle(EasePalette.primaryText)

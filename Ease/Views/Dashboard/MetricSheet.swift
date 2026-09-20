@@ -405,15 +405,7 @@ private struct MeasurementInputRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: spec.symbolName)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(EasePalette.secondaryText)
-                .frame(width: 28, height: 28)
-                .background(
-                    EasePalette.recessed,
-                    in: RoundedRectangle(cornerRadius: 7, style: .continuous)
-                )
-                .accessibilityHidden(true)
+            EaseMetricIcon(systemName: spec.symbolName)
 
             Text(verbatim: spec.resolvedTitle)
                 .font(.body.weight(.medium))
