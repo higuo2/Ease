@@ -230,6 +230,22 @@
         }
       }
     },
+    "bmi.metric.age" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Age"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "年龄"
+          }
+        }
+      }
+    },
     "bmi.input.ageUnknown" : {
       "localizations" : {
         "en" : {
@@ -452,13 +468,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ideal range"
+            "value" : "Ideal Weight Range"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "理想区间"
+            "value" : "理想体重区间"
           }
         }
       }
@@ -2221,6 +2237,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld years old"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 岁"
+          }
+        }
+      }
+    },
+    "format.ageYears.yrs" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld yrs"
           }
         },
         "zh-Hans" : {
