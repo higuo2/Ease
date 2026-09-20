@@ -20,10 +20,6 @@ struct StageGoalCard: View {
         Int((clampedProgress * 100).rounded())
     }
 
-    private var currentWeight: Double {
-        startWeight + (targetWeight - startWeight) * clampedProgress
-    }
-
     var body: some View {
         Button {
             selectionTick += 1
@@ -80,74 +76,28 @@ struct StageGoalCard: View {
         }
     }
 
-    /// Tooltip sits in its own row; 22pt gap to the track — never overlaps the thumb.
     private var progressSection: some View {
-        VStack(spacing: 0) {
-            GeometryReader { geo in
-                let width = max(geo.size.width, 1)
-                let fraction = min(max(animatedProgress, 0), 1)
-                let thumbCenter = thumbCenterX(fraction: fraction, width: width)
-                let tipWidth: CGFloat = 64
-                let tipX = min(max(thumbCenter - tipWidth / 2, 0), max(width - tipWidth, 0))
+        GeometryReader { geo in
+            let fraction = min(max(animatedProgress, 0), 1)
 
-                Text(EaseFormatters.kg(currentWeight))
-                    .font(.caption2.bold())
-                    .monospacedDigit()
-                    .foregroundStyle(EasePalette.morandiRedDeep)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(EasePalette.morandiOat, in: Capsule())
-                    .overlay(alignment: .bottom) {
-                        TinyCaret()
-                            .fill(EasePalette.morandiOat)
-                            .frame(width: 8, height: 5)
-                            .offset(y: 4)
-                    }
-                    .frame(width: tipWidth, alignment: .center)
-                    .offset(x: tipX)
-            }
-            .frame(height: 22)
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(EasePalette.morandiOat)
 
-            Color.clear.frame(height: 22)
-
-            GeometryReader { geo in
-                let width = max(geo.size.width, 1)
-                let fraction = min(max(animatedProgress, 0), 1)
-                let thumbCenter = thumbCenterX(fraction: fraction, width: width)
-
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(EasePalette.morandiOat)
-                        .frame(height: 10)
-
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [EasePalette.morandiRed, EasePalette.morandiRedDeep],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [EasePalette.morandiRed, EasePalette.morandiRedDeep],
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                        .frame(height: 10)
-                        .scaleEffect(x: max(fraction, 0.0001), y: 1, anchor: .leading)
-
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 14, height: 14)
-                        .shadow(color: .black.opacity(0.08), radius: 3, y: 1)
-                        .offset(x: thumbCenter - 7)
-                }
-                .frame(maxHeight: .infinity, alignment: .center)
-                .drawingGroup()
+                    )
+                    .frame(width: max(0, geo.size.width * fraction))
             }
-            .frame(height: 14)
         }
+        .frame(height: 16)
+        .clipShape(Capsule())
         .animation(.snappy(duration: 0.4, extraBounce: 0.05), value: animatedProgress)
-    }
-
-    private func thumbCenterX(fraction: Double, width: CGFloat) -> CGFloat {
-        let inset: CGFloat = 7
-        return inset + CGFloat(fraction) * max(width - inset * 2, 0)
     }
 
     private var milestoneFooter: some View {
@@ -195,17 +145,6 @@ struct StageGoalCard: View {
             percentComplete,
             EaseFormatters.kg(remainingKg)
         )
-    }
-}
-
-private struct TinyCaret: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.closeSubpath()
-        return path
     }
 }
 
