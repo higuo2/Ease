@@ -6014,6 +6014,7 @@
       }
     },
     "trend.advanced.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6835,6 +6836,7 @@
       }
     },
     "trend.insights.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

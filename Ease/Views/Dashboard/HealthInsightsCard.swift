@@ -12,14 +12,23 @@ struct HealthInsightsCard: View, Equatable {
 
     var body: some View {
         if !insights.isEmpty {
-            VStack(spacing: 12) {
-                ForEach(insights) { insight in
-                    LifestyleInsightMetricCard(
-                        insight: insight,
-                        subtitle: subtitle,
-                        calendar: calendar
-                    ) {
-                        selectedInsight = insight
+            TrendPremiumCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    LifestyleInsightsCardHeader(subtitle: subtitle)
+
+                    VStack(spacing: 0) {
+                        ForEach(Array(insights.enumerated()), id: \.element.id) { index, insight in
+                            if index > 0 {
+                                Divider()
+                                    .padding(.vertical, 4)
+                            }
+                            LifestyleInsightActionRow(
+                                insight: insight,
+                                calendar: calendar
+                            ) {
+                                selectedInsight = insight
+                            }
+                        }
                     }
                 }
             }
@@ -48,44 +57,56 @@ struct HealthInsightsCard: View, Equatable {
     }
 }
 
-private struct LifestyleInsightMetricCard: View {
-    let insight: HealthInsight
+private struct LifestyleInsightsCardHeader: View {
     let subtitle: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("trend.insights.title")
+                .font(.headline)
+                .foregroundStyle(.primary)
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct LifestyleInsightActionRow: View {
+    let insight: HealthInsight
     var calendar: Calendar = .current
     let action: () -> Void
 
     var body: some View {
-        TrendHealthMetricCard(action: action, accessibilityHintKey: "trend.insights.openDetail.hint") {
-            HStack(alignment: .center, spacing: 12) {
-                TrendHealthIconBadge(
+        Button(action: action) {
+            HStack(alignment: .center, spacing: 10) {
+                TrendModuleGlyph(
                     systemName: insight.symbolName,
-                    tint: TrendInsightStyle.badgeTint(for: insight.kind)
+                    tint: TrendInsightStyle.iconTint(for: insight.kind)
                 )
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(insight.cardDisplayTitle(calendar: calendar))
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(insight.cardDisplayTitle(calendar: calendar))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 8)
                 Text(insight.deltaText())
-                    .font(.callout.weight(.bold))
+                    .font(.body.weight(.semibold))
                     .monospacedDigit()
-                    .foregroundStyle(TrendInsightStyle.valueColor(for: insight))
+                    .foregroundStyle(.primary)
                     .contentTransition(.numericText())
                     .lineLimit(1)
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.tertiary)
-                    .accessibilityHidden(true)
+                TrendEntryChevron()
             }
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(TrendCardRowButtonStyle())
         .accessibilityLabel(insight.accessibilitySummary(calendar: calendar))
+        .accessibilityHint(Text("trend.insights.openDetail.hint"))
         .accessibilityAddTraits(.isButton)
     }
 }
