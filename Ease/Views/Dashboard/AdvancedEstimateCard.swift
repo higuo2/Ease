@@ -13,7 +13,7 @@ struct AdvancedEstimateCard: View, Equatable {
     }
 
     var body: some View {
-        TrendPremiumCard {
+        TrendPremiumCard(fill: HomeModule.weight.fill) {
             VStack(alignment: .leading, spacing: 12) {
                 WeightForecastCardHeader()
 
@@ -63,8 +63,7 @@ private struct WeightForecastActionRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(alignment: .center, spacing: 10) {
-                TrendModuleGlyph(systemName: "scalemass.fill", fill: HomeModule.weight.fill)
+            HStack(alignment: .center, spacing: 8) {
                 Text("trend.advanced.horizon")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

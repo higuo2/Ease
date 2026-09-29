@@ -12,7 +12,7 @@ struct HealthInsightsCard: View, Equatable {
 
     var body: some View {
         if !insights.isEmpty {
-            TrendPremiumCard {
+            TrendPremiumCard(fill: HomeModule.sleep.fill) {
                 VStack(alignment: .leading, spacing: 12) {
                     LifestyleInsightsCardHeader(subtitle: subtitle)
 
@@ -81,11 +81,7 @@ private struct LifestyleInsightActionRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(alignment: .center, spacing: 10) {
-                TrendModuleGlyph(
-                    systemName: insight.symbolName,
-                    fill: TrendInsightStyle.moduleFill(for: insight.kind)
-                )
+            HStack(alignment: .center, spacing: 8) {
                 Text(insight.cardDisplayTitle(calendar: calendar))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
