@@ -270,6 +270,9 @@ struct TrendChartCard: View, Equatable {
                 interactionLayer(proxy: proxy, geometry: geometry)
             }
         }
+        .chartPlotStyle { plot in
+            plot.background(EasePalette.morandiRed.opacity(0.07))
+        }
         .frame(height: 260)
         .sensoryFeedback(.selection, trigger: scrubDayKey)
     }
@@ -462,7 +465,7 @@ private struct TrendRangePicker: View, Equatable {
                         .foregroundStyle(item == range ? Color.white : EasePalette.secondaryText)
                         .padding(.vertical, 8)
                         .padding(.horizontal, 12)
-                        .background(item == range ? Color.black : Color.clear, in: Capsule())
+                        .background(item == range ? EasePalette.morandiRedDeep : Color.clear, in: Capsule())
                 }
                 .buttonStyle(.plain)
             }

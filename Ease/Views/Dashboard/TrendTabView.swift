@@ -187,29 +187,34 @@ struct TrendStatsGrid: View, Equatable {
                 "trend.stats.high",
                 value: stats.high,
                 subtitle: stats.highDate.map { $0.formatted(EaseDateFormat.monthDayNumeric) },
+                fill: HomeModule.weight.fill,
                 focusDate: stats.highDate
             )
             weightStat(
                 "trend.stats.low",
                 value: stats.low,
                 subtitle: stats.lowDate.map { $0.formatted(EaseDateFormat.monthDayNumeric) },
+                fill: HomeModule.weight.fill,
                 focusDate: stats.lowDate
             )
             weightStat(
                 "trend.stats.avg",
                 value: stats.average,
-                subtitle: stats.averageCaption
+                subtitle: stats.averageCaption,
+                fill: HomeModule.bmi.fill
             )
             weightStat(
                 "trend.stats.change",
                 value: stats.change,
                 signed: true,
+                fill: EasePalette.morandiGreen,
                 valueColor: stats.change.map(EasePalette.semanticDelta),
                 focusDate: stats.lastDate
             )
             weightStat(
                 "trend.stats.toTarget",
                 value: stats.distanceToTarget,
+                fill: HomeModule.measurements.fill,
                 focusDate: stats.lastDate
             )
             statCell(
@@ -219,6 +224,7 @@ struct TrendStatsGrid: View, Equatable {
                     ? nil
                     : String(localized: "trend.stats.days.unit"),
                 subtitle: nil,
+                fill: HomeModule.bmi.fill,
                 valueColor: nil,
                 focusDate: nil
             )
@@ -231,6 +237,7 @@ struct TrendStatsGrid: View, Equatable {
         value: Double?,
         signed: Bool = false,
         subtitle: String? = nil,
+        fill: Color,
         valueColor: Color? = nil,
         focusDate: Date? = nil
     ) -> some View {
@@ -248,6 +255,7 @@ struct TrendStatsGrid: View, Equatable {
             number: number,
             unit: number == nil ? nil : String(localized: "unit.kg"),
             subtitle: subtitle,
+            fill: fill,
             valueColor: valueColor,
             focusDate: focusDate
         )
@@ -258,6 +266,7 @@ struct TrendStatsGrid: View, Equatable {
         number: String?,
         unit: String?,
         subtitle: String?,
+        fill: Color,
         valueColor: Color?,
         focusDate: Date?
     ) -> some View {
@@ -293,14 +302,7 @@ struct TrendStatsGrid: View, Equatable {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
-            .background(
-                EasePalette.card,
-                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.black.opacity(0.04), lineWidth: 1)
-            }
+            .background(fill, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityHint(focusDate == nil ? Text("trend.stats.chart.hint") : Text("trend.stats.focus.hint"))

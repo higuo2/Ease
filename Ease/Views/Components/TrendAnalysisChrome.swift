@@ -48,6 +48,34 @@ struct TrendTintIconTile: View {
     }
 }
 
+/// 28pt glyph on a Morandi module fill — matches Weight home / Calendar snapshot tiles.
+struct TrendModuleGlyph: View {
+    let systemName: String
+    let fill: Color
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(EasePalette.primaryText)
+            .frame(width: 28, height: 28)
+            .background(fill, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+enum TrendInsightStyle {
+    static func moduleFill(for kind: HealthInsight.Kind) -> Color {
+        switch kind {
+        case .shortSleepWeight, .weekdaySleep:
+            HomeModule.sleep.fill
+        case .periodWeight:
+            HomeModule.period.fill
+        case .lowEnergyWeight:
+            HomeModule.energy.fill
+        }
+    }
+}
+
 struct TrendAnalysisFootnote: View {
     var body: some View {
         TrendLegalFootnote("trend.insights.footnote")
