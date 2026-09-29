@@ -12,7 +12,7 @@ struct HealthInsightsCard: View, Equatable {
 
     var body: some View {
         if !insights.isEmpty {
-            TrendPremiumCard(fill: HomeModule.sleep.fill) {
+            TrendPremiumCard {
                 VStack(alignment: .leading, spacing: 12) {
                     LifestyleInsightsCardHeader(subtitle: subtitle)
 
@@ -64,7 +64,7 @@ private struct LifestyleInsightsCardHeader: View {
         VStack(alignment: .leading, spacing: 2) {
             Text("trend.insights.title")
                 .font(.headline)
-                .foregroundStyle(EasePalette.primaryText)
+                .foregroundStyle(.primary)
             Text(subtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

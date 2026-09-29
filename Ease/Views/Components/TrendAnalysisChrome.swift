@@ -50,7 +50,6 @@ struct TrendTintIconTile: View {
 
 struct TrendModuleGlyph: View {
     let systemName: String
-    var fill: Color = EasePalette.card
     var tint: Color = EasePalette.primaryText
 
     var body: some View {
@@ -58,7 +57,10 @@ struct TrendModuleGlyph: View {
             .font(.system(size: 13, weight: .semibold))
             .foregroundStyle(tint)
             .frame(width: 28, height: 28)
-            .background(fill, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(
+                tint.opacity(0.1),
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+            )
             .accessibilityHidden(true)
     }
 }
@@ -127,7 +129,6 @@ struct TrendCardRowButtonStyle: ButtonStyle {
 // MARK: - Premium Trend cards (compiled with TrendAnalysisChrome for target membership)
 
 struct TrendPremiumCard<Content: View>: View {
-    var fill: Color = EasePalette.card
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -135,8 +136,8 @@ struct TrendPremiumCard<Content: View>: View {
         content()
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(fill, in: shape)
-            .overlay(shape.strokeBorder(Color.black.opacity(fill == EasePalette.card ? 0.04 : 0), lineWidth: 1))
-            .shadow(color: .black.opacity(0.03), radius: 5, x: 0, y: 2)
+            .background(Color.white, in: shape)
+            .overlay(shape.strokeBorder(Color.black.opacity(0.04), lineWidth: 1))
+            .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
     }
 }

@@ -13,7 +13,7 @@ struct AdvancedEstimateCard: View, Equatable {
     }
 
     var body: some View {
-        TrendPremiumCard(fill: HomeModule.weight.fill) {
+        TrendPremiumCard {
             VStack(alignment: .leading, spacing: 12) {
                 WeightForecastCardHeader()
 
@@ -39,7 +39,7 @@ private struct WeightForecastCardHeader: View {
         VStack(alignment: .leading, spacing: 2) {
             Text("trend.advanced.title")
                 .font(.headline)
-                .foregroundStyle(EasePalette.primaryText)
+                .foregroundStyle(.primary)
             Text(windowCaption)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -64,7 +64,7 @@ private struct WeightForecastActionRow: View {
     var body: some View {
         Button(action: action) {
             HStack(alignment: .center, spacing: 10) {
-                TrendModuleGlyph(systemName: "scalemass.fill", tint: EasePalette.morandiSageDeep)
+                TrendModuleGlyph(systemName: "scalemass.fill", tint: EasePalette.mint)
                 Text("trend.advanced.horizon")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
