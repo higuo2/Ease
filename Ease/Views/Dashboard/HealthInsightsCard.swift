@@ -81,7 +81,11 @@ private struct LifestyleInsightActionRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(alignment: .center, spacing: 8) {
+            HStack(alignment: .center, spacing: 10) {
+                TrendModuleGlyph(
+                    systemName: insight.symbolName,
+                    tint: TrendInsightStyle.iconTint(for: insight.kind)
+                )
                 Text(insight.cardDisplayTitle(calendar: calendar))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

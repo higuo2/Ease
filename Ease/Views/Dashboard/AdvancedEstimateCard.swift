@@ -63,7 +63,8 @@ private struct WeightForecastActionRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(alignment: .center, spacing: 8) {
+            HStack(alignment: .center, spacing: 10) {
+                TrendModuleGlyph(systemName: "scalemass.fill", tint: EasePalette.morandiSageDeep)
                 Text("trend.advanced.horizon")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

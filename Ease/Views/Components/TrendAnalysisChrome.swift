@@ -48,6 +48,34 @@ struct TrendTintIconTile: View {
     }
 }
 
+struct TrendModuleGlyph: View {
+    let systemName: String
+    var fill: Color = EasePalette.card
+    var tint: Color = EasePalette.primaryText
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(tint)
+            .frame(width: 28, height: 28)
+            .background(fill, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+enum TrendInsightStyle {
+    static func iconTint(for kind: HealthInsight.Kind) -> Color {
+        switch kind {
+        case .shortSleepWeight, .weekdaySleep:
+            EasePalette.iconSleep
+        case .periodWeight:
+            EasePalette.iconPeriod
+        case .lowEnergyWeight:
+            EasePalette.iconEnergy
+        }
+    }
+}
+
 struct TrendAnalysisFootnote: View {
     var body: some View {
         TrendLegalFootnote("trend.insights.footnote")
