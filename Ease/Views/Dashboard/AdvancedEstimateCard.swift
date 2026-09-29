@@ -13,76 +13,52 @@ struct AdvancedEstimateCard: View, Equatable {
     }
 
     var body: some View {
-        TrendPremiumCard {
-            VStack(alignment: .leading, spacing: 12) {
-                WeightForecastCardHeader()
-
+        TrendHealthMetricCard(
+            action: estimate == nil ? nil : { isDetailPresented = true },
+            accessibilityHintKey: estimate == nil ? nil : "trend.forecast.openDetail.hint"
+        ) {
+            HStack(alignment: .center, spacing: 12) {
+                TrendHealthIconBadge(systemName: "scalemass.fill", tint: .green)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("trend.advanced.horizon")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    Text(windowCaption)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 if let estimate {
-                    WeightForecastActionRow(eta: estimate.eta) {
-                        isDetailPresented = true
-                    }
-                    .sheet(isPresented: $isDetailPresented) {
-                        WeightForecastDetailSheet(estimate: estimate)
-                    }
+                    Text(EaseFormatters.advancedPaceHorizon(estimate.eta))
+                        .font(.callout.weight(.bold))
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.85)
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
                 } else {
                     Text("trend.advanced.unavailable")
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
                 }
             }
         }
-    }
-}
-
-private struct WeightForecastCardHeader: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("trend.advanced.title")
-                .font(.headline)
-                .foregroundStyle(.primary)
-            Text(windowCaption)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        .sheet(isPresented: $isDetailPresented) {
+            if let estimate {
+                WeightForecastDetailSheet(estimate: estimate)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
     }
 
     private var windowCaption: String {
         String(
-            format: String(localized: "trend.insights.window"),
+            format: String(localized: "trend.forecast.basedOnWindow"),
             locale: .current,
             AdvancedPaceEstimator.lookbackDays
         )
-    }
-}
-
-private struct WeightForecastActionRow: View {
-    let eta: Date
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(alignment: .center, spacing: 10) {
-                TrendModuleGlyph(systemName: "scalemass.fill", tint: EasePalette.mint)
-                Text("trend.advanced.horizon")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.leading)
-                Spacer(minLength: 8)
-                Text(EaseFormatters.advancedPaceHorizon(eta))
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.primary)
-                    .multilineTextAlignment(.trailing)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.85)
-                TrendEntryChevron()
-            }
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(TrendCardRowButtonStyle())
-        .accessibilityHint(Text("trend.forecast.openDetail.hint"))
     }
 }

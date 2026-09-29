@@ -6045,6 +6045,22 @@
         }
       }
     },
+    "trend.forecast.basedOnWindow" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Based on last %lld days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基于近 %lld 天"
+          }
+        }
+      }
+    },
     "trend.forecast.detail.headline" : {
       "localizations" : {
         "en" : {

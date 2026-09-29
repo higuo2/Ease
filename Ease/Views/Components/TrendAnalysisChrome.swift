@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum TrendAnalysisMotion {
     static let accordion = Animation.spring(duration: 0.25)
@@ -48,33 +49,65 @@ struct TrendTintIconTile: View {
     }
 }
 
-struct TrendModuleGlyph: View {
+struct TrendHealthIconBadge: View {
     let systemName: String
-    var tint: Color = EasePalette.primaryText
+    let tint: Color
 
     var body: some View {
         Image(systemName: systemName)
-            .font(.system(size: 13, weight: .semibold))
+            .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(tint)
-            .frame(width: 28, height: 28)
+            .frame(width: 32, height: 32)
             .background(
-                tint.opacity(0.1),
+                tint.opacity(0.15),
                 in: RoundedRectangle(cornerRadius: 8, style: .continuous)
             )
             .accessibilityHidden(true)
     }
 }
 
+struct TrendHealthMetricCard<Content: View>: View {
+    let action: (() -> Void)?
+    var accessibilityHintKey: LocalizedStringKey? = nil
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+        let card = content()
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(uiColor: .secondarySystemGroupedBackground), in: shape)
+            .overlay(shape.stroke(Color.primary.opacity(0.04), lineWidth: 1))
+            .contentShape(shape)
+
+        if let action {
+            Button(action: action) { card }
+                .buttonStyle(TrendCardRowButtonStyle())
+                .modifier(OptionalAccessibilityHint(key: accessibilityHintKey))
+        } else {
+            card
+        }
+    }
+}
+
 enum TrendInsightStyle {
-    static func iconTint(for kind: HealthInsight.Kind) -> Color {
+    static func badgeTint(for kind: HealthInsight.Kind) -> Color {
         switch kind {
         case .shortSleepWeight, .weekdaySleep:
-            EasePalette.iconSleep
+            Color.indigo
         case .periodWeight:
-            EasePalette.iconPeriod
+            Color.pink
         case .lowEnergyWeight:
-            EasePalette.iconEnergy
+            Color.orange
         }
+    }
+
+    static func valueColor(for insight: HealthInsight) -> Color {
+        if insight.comparesWeight {
+            return EasePalette.semanticDelta(insight.delta)
+        }
+        return Color.orange
     }
 }
 
@@ -112,6 +145,19 @@ struct TrendEntryChevron: View {
     }
 }
 
+private struct OptionalAccessibilityHint: ViewModifier {
+    var key: LocalizedStringKey?
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if let key {
+            content.accessibilityHint(Text(key))
+        } else {
+            content
+        }
+    }
+}
+
 /// Subtle press feedback only — no static row fill.
 struct TrendCardRowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -132,12 +178,6 @@ struct TrendPremiumCard<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
-        content()
-            .padding(24)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white, in: shape)
-            .overlay(shape.strokeBorder(Color.black.opacity(0.04), lineWidth: 1))
-            .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
+        TrendHealthMetricCard(action: nil, content: content)
     }
 }
