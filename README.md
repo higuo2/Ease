@@ -2,7 +2,7 @@
 
 个人用的 iOS 减脂记录 App。只记事实和趋势：体重、围度，以及 HealthKit 里的睡眠 / 经期 / 活动消耗。BMI 用中国成人切点做灰色区间说明，不做卡路里、不做打卡火焰、不做社交。
 
-当前版本 **v1.3**。产品规则见 [`PRD.md`](PRD.md)，视觉与工程约束见 [`AGENT.md`](AGENT.md)，体感规格见 [`UX.md`](UX.md)。
+当前版本 **v1.3**。下列文档与**已上线界面**对齐：产品规则 [`PRD.md`](PRD.md)，视觉与工程约束 [`AGENT.md`](AGENT.md)，体感规格 [`UX.md`](UX.md)。
 
 ## 能做什么
 
@@ -10,14 +10,16 @@
 
 | Tab | 内容 |
 |---|---|
-| **体重** | 大号当前体重、阶段目标卡（16pt 线性进度）、可配置首页方块（BMI / 围度 / 体重，可选睡眠、经期、消耗）、近 30 天体重列表（全宽 ScrollView） |
-| **趋势** | 7 / 30 / 90 / 全部折线、区间统计、旬区间达标估算、睡眠/消耗/经期与体重的交叉对照 |
-| **日历** | 月历（体重 + 涨跌）、月份 Overview（月均 / 净变化 / 周均 / 打卡 / 减重 / 增重）、选中日再点打开明细 |
+| **体重** | 大号当前体重、阶段目标卡（16pt 线性进度）、可配置莫兰迪方块（BMI / 围度 / 体重，可选睡眠、经期、消耗）、近 30 天体重列表（全宽 ScrollView） |
+| **趋势** | 7 / 30 / 90 / 全部折线、区间统计、**Weight Forecast**（旬区间 + 详情 Sheet）、**Lifestyle Insights**（最多 3 条交叉对照 + 详情 Sheet） |
+| **日历** | 月历（日号 + 体重 + 体重/经期/睡眠色点）、选中日 **Daily Snapshot**（体重 / 睡眠 / 消耗 / 经期莫兰迪格）、**Overview**（净变化 + 打卡圆环 + 月均/周均 footer） |
 | **设置** | 档案（含生日/性别/睡眠目标）、提醒、首页模块、围度开关（五条核心 + 更多）、CSV 导入导出、清数据 |
 
 录入拆成独立 Sheet：**体重**（`LogSheetView`：导航栏 Save/关闭、相册识图 OCR）、**围度**（`MetricSheet`：Core/Limbs/Other + 解剖排序 + 统一指标图标）。一天可以有多条体重。睡眠、经期、消耗只读 HealthKit，不从 CSV 导入。饮食 / 标签 / 备注 / 餐图只留在 SwiftData 与 CSV 列里，界面不再录入。
 
 单位固定 kg / cm。界面仅 Light Mode。文案为英文 + 简体中文（跟系统语言，应用内不切换）。文案不用间隔号「·」。
+
+涨跌语义色：体重下降为莫兰迪绿，上升为莫兰迪珊瑚红（`EasePalette.semanticDelta`）。阶段进度条仍用珊瑚渐变填充。
 
 ## 技术栈
 
@@ -27,6 +29,8 @@
 - Bundle ID：`com.higuo2.Ease`
 
 体重写在 `WeightLog`；`DailyRecord` 每个日历日至多一条（legacy 体重快照 + 日记列保留）；围度是 `MetricDefinition` + `MetricLog`。模型之间不用 CloudKit `@Relationship`。
+
+Tab 主查询窗口：`DailyRecord` 近 180 天，`WeightLog` / `MetricLog` 近 365 天。设置里 CSV 导出/导入用完整 `FetchDescriptor`，不受该窗口截断。
 
 ## 在 Xcode 里跑
 
@@ -54,7 +58,7 @@ open Ease.xcodeproj
 Ease/          App 源码（Models / Data / Views）
 EaseTests/     单元测试
 Import/        样例 CSV
-PRD.md         产品规格
+PRD.md         产品规格（与当前 UI 一致）
 AGENT.md       设计系统与实现约束
 UX.md          体感：当前已落地与明确不做
 ```
