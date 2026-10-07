@@ -11,7 +11,22 @@ enum AdvancedPaceEstimator {
         var sleepHoursByDay: [String: Double]
         var energyKcalByDay: [String: Double]
         var periodDayKeys: Set<String>
+        var workoutDayKeys: Set<String>
         var sleepTargetHours: Double
+
+        init(
+            sleepHoursByDay: [String: Double],
+            energyKcalByDay: [String: Double],
+            periodDayKeys: Set<String>,
+            workoutDayKeys: Set<String> = [],
+            sleepTargetHours: Double
+        ) {
+            self.sleepHoursByDay = sleepHoursByDay
+            self.energyKcalByDay = energyKcalByDay
+            self.periodDayKeys = periodDayKeys
+            self.workoutDayKeys = workoutDayKeys
+            self.sleepTargetHours = sleepTargetHours
+        }
     }
 
     struct Result: Equatable {
@@ -22,9 +37,11 @@ enum AdvancedPaceEstimator {
         var sleepFactor: Double
         var energyFactor: Double
         var periodFactor: Double
+        var workoutFactor: Double
         var averageSleepHours: Double?
         var averageEnergyKcal: Double?
         var periodDaysInWindow: Int
+        var workoutDaysInWindow: Int
     }
 
     static func estimate(
@@ -84,9 +101,11 @@ enum AdvancedPaceEstimator {
             sleepFactor: round2(factors.sleep),
             energyFactor: round2(factors.energy),
             periodFactor: round2(factors.period),
+            workoutFactor: round2(factors.workout),
             averageSleepHours: factors.averageSleep,
             averageEnergyKcal: factors.averageEnergy,
-            periodDaysInWindow: factors.periodDays
+            periodDaysInWindow: factors.periodDays,
+            workoutDaysInWindow: factors.workoutDays
         )
     }
 
@@ -98,14 +117,18 @@ enum AdvancedPaceEstimator {
         var sleep: Double
         var energy: Double
         var period: Double
+        var workout: Double
         var averageSleep: Double?
         var averageEnergy: Double?
         var periodDays: Int
-        var combined: Double { sleep * energy * period }
+        var workoutDays: Int
+        var combined: Double { sleep * energy * period * workout }
     }
 
     /// Mild multipliers only — not calorie accounting.
-    /// Sleep below target slows expected pace; higher energy vs median speeds it; period days dampen slightly.
+    /// Sleep below target slows expected pace; higher energy vs median speeds it;
+    /// period days dampen slightly; logged training days lift slightly.
+    /// Workout kcal is never added to HealthKit energy.
     private static func softFactors(
         windowDays: [Date],
         context: Context,
@@ -116,6 +139,7 @@ enum AdvancedPaceEstimator {
         let sleepValues = keys.compactMap { context.sleepHoursByDay[$0] }
         let energyValues = keys.compactMap { context.energyKcalByDay[$0] }
         let periodDays = keys.filter { context.periodDayKeys.contains($0) }.count
+        let workoutDays = keys.filter { context.workoutDayKeys.contains($0) }.count
 
         let averageSleep: Double? = sleepValues.isEmpty
             ? nil
@@ -154,13 +178,25 @@ enum AdvancedPaceEstimator {
             periodFactor = 0.95
         }
 
+        var workoutFactor = 1.0
+        if workoutDays >= 8 {
+            workoutFactor = 1.06
+        } else if workoutDays >= 3 {
+            workoutFactor = 1.03
+        }
+        if context.workoutDayKeys.contains(todayKey) {
+            workoutFactor = max(workoutFactor, 1.04)
+        }
+
         return SoftFactors(
             sleep: sleepFactor,
             energy: energyFactor,
             period: periodFactor,
+            workout: workoutFactor,
             averageSleep: averageSleep,
             averageEnergy: averageEnergy,
-            periodDays: periodDays
+            periodDays: periodDays,
+            workoutDays: workoutDays
         )
     }
 

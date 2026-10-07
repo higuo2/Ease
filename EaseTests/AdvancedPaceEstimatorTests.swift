@@ -23,7 +23,9 @@ final class AdvancedPaceEstimatorTests: XCTestCase {
         XCTAssertEqual(result!.sleepFactor, 1, accuracy: 0.001)
         XCTAssertEqual(result!.energyFactor, 1, accuracy: 0.001)
         XCTAssertEqual(result!.periodFactor, 1, accuracy: 0.001)
+        XCTAssertEqual(result!.workoutFactor, 1, accuracy: 0.001)
         XCTAssertEqual(result!.periodDaysInWindow, 0)
+        XCTAssertEqual(result!.workoutDaysInWindow, 0)
         XCTAssertNil(result!.averageSleepHours)
         XCTAssertNil(result!.averageEnergyKcal)
         let horizon = CalendarDay.addingDays(730, to: now, calendar: calendar)
@@ -164,6 +166,71 @@ final class AdvancedPaceEstimatorTests: XCTestCase {
         }
         XCTAssertEqual(result.periodFactor, 0.95, accuracy: 0.001)
         XCTAssertEqual(result.periodDaysInWindow, 4)
+    }
+
+    func test_窗口内训练满8天_训练系数1_06() {
+        let start = calendar.testDate(2026, 7, 1)
+        let samples = consecutive(from: start, count: 40) {
+            MeasurementBounds.roundedToTenth(80 - 0.2 * Double($0))
+        }
+        let now = samples.last!.date
+        let today = CalendarDay.startOfDay(now, calendar: calendar)
+        let workoutKeys = Set((1...8).compactMap { offset -> String? in
+            calendar.date(byAdding: .day, value: -offset, to: today).map {
+                CalendarDay.dayKey(from: $0, calendar: calendar)
+            }
+        })
+        let result = AdvancedPaceEstimator.estimate(
+            samples: samples,
+            targetWeight: 70,
+            displayWeight: samples.last?.weight,
+            progress: WeightMetrics.progress(start: 80, target: 70, display: samples.last!.weight),
+            context: AdvancedPaceEstimator.Context(
+                sleepHoursByDay: [:],
+                energyKcalByDay: [:],
+                periodDayKeys: [],
+                workoutDayKeys: workoutKeys,
+                sleepTargetHours: 8
+            ),
+            now: now,
+            calendar: calendar
+        )
+        guard let result else {
+            return XCTFail("expected estimate")
+        }
+        XCTAssertEqual(result.workoutFactor, 1.06, accuracy: 0.001)
+        XCTAssertEqual(result.workoutDaysInWindow, 8)
+        XCTAssertEqual(result.sleepFactor, 1, accuracy: 0.001)
+        XCTAssertEqual(result.energyFactor, 1, accuracy: 0.001)
+    }
+
+    func test_当天有训练且窗口不足3天_训练系数1_04() {
+        let start = calendar.testDate(2026, 7, 1)
+        let samples = consecutive(from: start, count: 40) {
+            MeasurementBounds.roundedToTenth(80 - 0.2 * Double($0))
+        }
+        let now = samples.last!.date
+        let todayKey = CalendarDay.dayKey(from: now, calendar: calendar)
+        let result = AdvancedPaceEstimator.estimate(
+            samples: samples,
+            targetWeight: 70,
+            displayWeight: samples.last?.weight,
+            progress: WeightMetrics.progress(start: 80, target: 70, display: samples.last!.weight),
+            context: AdvancedPaceEstimator.Context(
+                sleepHoursByDay: [:],
+                energyKcalByDay: [:],
+                periodDayKeys: [],
+                workoutDayKeys: [todayKey],
+                sleepTargetHours: 8
+            ),
+            now: now,
+            calendar: calendar
+        )
+        guard let result else {
+            return XCTFail("expected estimate")
+        }
+        XCTAssertEqual(result.workoutFactor, 1.04, accuracy: 0.001)
+        XCTAssertEqual(result.workoutDaysInWindow, 1)
     }
 
     private func emptyContext() -> AdvancedPaceEstimator.Context {

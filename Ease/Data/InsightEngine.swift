@@ -6,6 +6,7 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
         case periodWeight
         case weekdaySleep
         case lowEnergyWeight
+        case workoutWeight
     }
 
     var kind: Kind
@@ -24,6 +25,7 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
         case .shortSleepWeight, .weekdaySleep: "moon.fill"
         case .periodWeight: "drop.fill"
         case .lowEnergyWeight: "bolt.fill"
+        case .workoutWeight: "figure.run"
         }
     }
 
@@ -43,6 +45,10 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
             return inMean >= outMean
                 ? "trend.insights.lowEnergyWeight.title.up"
                 : "trend.insights.lowEnergyWeight.title.down"
+        case .workoutWeight:
+            return inMean >= outMean
+                ? "trend.insights.workoutWeight.title.up"
+                : "trend.insights.workoutWeight.title.down"
         }
     }
 
@@ -60,7 +66,7 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
                 locale: locale,
                 weekdayHeadlineName(locale: locale, calendar: calendar)
             )
-        case .shortSleepWeight, .periodWeight, .lowEnergyWeight:
+        case .shortSleepWeight, .periodWeight, .lowEnergyWeight, .workoutWeight:
             return String(localized: String.LocalizationValue(titleKey), locale: locale)
         }
     }
@@ -77,6 +83,8 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
             return String(localized: "trend.insights.periodWeight.in", locale: locale)
         case .lowEnergyWeight:
             return String(localized: "trend.insights.lowEnergyWeight.in", locale: locale)
+        case .workoutWeight:
+            return String(localized: "trend.insights.workoutWeight.in", locale: locale)
         case .weekdaySleep:
             return String(
                 format: String(localized: "trend.insights.weekdaySleep.in", locale: locale),
@@ -94,6 +102,8 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
             return String(localized: "trend.insights.periodWeight.out", locale: locale)
         case .lowEnergyWeight:
             return String(localized: "trend.insights.lowEnergyWeight.out", locale: locale)
+        case .workoutWeight:
+            return String(localized: "trend.insights.workoutWeight.out", locale: locale)
         case .weekdaySleep:
             return String(localized: "trend.insights.weekdaySleep.out", locale: locale)
         }
@@ -183,6 +193,8 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
             return String(localized: "trend.insights.cardTitle.period", locale: locale)
         case .lowEnergyWeight:
             return String(localized: "trend.insights.cardTitle.energy", locale: locale)
+        case .workoutWeight:
+            return String(localized: "trend.insights.cardTitle.workout", locale: locale)
         }
     }
 
@@ -196,6 +208,8 @@ struct HealthInsight: Equatable, Identifiable, Sendable {
             return String(localized: "trend.insights.advice.period", locale: locale)
         case .lowEnergyWeight:
             return String(localized: "trend.insights.advice.energy", locale: locale)
+        case .workoutWeight:
+            return String(localized: "trend.insights.advice.workout", locale: locale)
         }
     }
 }
@@ -218,6 +232,10 @@ struct HealthInsightReport: Equatable, Sendable {
     var energyNote: HealthInsight? {
         first(of: .lowEnergyWeight)
     }
+
+    var workoutNote: HealthInsight? {
+        first(of: .workoutWeight)
+    }
 }
 
 /// Cross-series facts for Trend. Association only — not cause, not medical advice.
@@ -234,13 +252,28 @@ enum HealthInsightEngine {
         var sleepHoursByDay: [String: Double]
         var energyKcalByDay: [String: Double]
         var periodDayKeys: Set<String>
+        var workoutDayKeys: Set<String>
+
+        init(
+            sleepHoursByDay: [String: Double],
+            energyKcalByDay: [String: Double],
+            periodDayKeys: Set<String>,
+            workoutDayKeys: Set<String> = []
+        ) {
+            self.sleepHoursByDay = sleepHoursByDay
+            self.energyKcalByDay = energyKcalByDay
+            self.periodDayKeys = periodDayKeys
+            self.workoutDayKeys = workoutDayKeys
+        }
     }
 
     static func series(
         healthByDay: [String: HealthDaySnapshot],
         sleepHistory: SleepHistory,
         energyHistory: EnergyHistory,
-        cycleHistory: CycleHistory
+        cycleHistory: CycleHistory,
+        workoutLogs: [WorkoutLog] = [],
+        calendar: Calendar = .current
     ) -> Series {
         var sleep: [String: Double] = [:]
         for night in sleepHistory.nights {
@@ -271,10 +304,16 @@ enum HealthInsightEngine {
             period.insert(key)
         }
 
+        var workout: Set<String> = []
+        for log in workoutLogs {
+            workout.insert(CalendarDay.dayKey(from: log.timestamp, calendar: calendar))
+        }
+
         return Series(
             sleepHoursByDay: sleep,
             energyKcalByDay: energy,
-            periodDayKeys: period
+            periodDayKeys: period,
+            workoutDayKeys: workout
         )
     }
 
@@ -285,6 +324,7 @@ enum HealthInsightEngine {
         sleepHistory: SleepHistory,
         energyHistory: EnergyHistory,
         cycleHistory: CycleHistory,
+        workoutLogs: [WorkoutLog] = [],
         now: Date = .now,
         calendar: Calendar = .current
     ) -> HealthInsightReport {
@@ -294,7 +334,9 @@ enum HealthInsightEngine {
                 healthByDay: healthByDay,
                 sleepHistory: sleepHistory,
                 energyHistory: energyHistory,
-                cycleHistory: cycleHistory
+                cycleHistory: cycleHistory,
+                workoutLogs: workoutLogs,
+                calendar: calendar
             ),
             now: now,
             calendar: calendar
@@ -345,6 +387,13 @@ enum HealthInsightEngine {
             }
         ) {
             found.append(energy)
+        }
+        if let workout = splitWeight(
+            kind: .workoutWeight,
+            deltas: deltas,
+            inGroup: { series.workoutDayKeys.contains($0.previousKey) }
+        ) {
+            found.append(workout)
         }
         found.sort { lhs, rhs in
             if lhs.score != rhs.score { return lhs.score > rhs.score }

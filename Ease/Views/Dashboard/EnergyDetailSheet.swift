@@ -11,6 +11,7 @@ struct EnergyDetailSheet: View {
     let workoutLogs: [WorkoutLog]
     var isPlaceholder = false
     var insight: HealthInsight?
+    var workoutInsight: HealthInsight?
 
     @State private var isWorkoutSheetPresented = false
     @State private var editingWorkoutID: UUID?
@@ -120,10 +121,14 @@ struct EnergyDetailSheet: View {
                             }
                         }
 
-                        workoutSection
-
                         if let insight {
                             HealthInsightNoteCard(insight: insight)
+                        }
+
+                        workoutSection
+
+                        if let workoutInsight {
+                            HealthInsightNoteCard(insight: workoutInsight)
                         }
                     }
                     .padding(20)

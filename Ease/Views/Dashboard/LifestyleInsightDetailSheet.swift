@@ -104,7 +104,7 @@ struct LifestyleInsightDetailSheet: View {
             return EasePalette.iconSleep
         case .periodWeight:
             return EasePalette.iconPeriod
-        case .lowEnergyWeight:
+        case .lowEnergyWeight, .workoutWeight:
             return EasePalette.iconEnergy
         }
     }

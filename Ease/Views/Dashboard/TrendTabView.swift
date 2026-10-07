@@ -6,6 +6,7 @@ struct TrendTabView: View {
     let profile: UserProfile?
     let records: [DailyRecord]
     let logs: [WeightLog]
+    let workoutLogs: [WorkoutLog]
 
     @State private var chartFocusDate: Date?
     @State private var chartFocusNonce = 0
@@ -104,6 +105,12 @@ struct TrendTabView: View {
         hasher.combine(viewModel.sleepHistory.nights.count)
         hasher.combine(viewModel.energyHistory.days.count)
         hasher.combine(viewModel.cycleHistory.periodDayKeys.count)
+        hasher.combine(workoutLogs.count)
+        if let lastWorkout = workoutLogs.last {
+            hasher.combine(lastWorkout.id)
+            hasher.combine(lastWorkout.kcal)
+            hasher.combine(lastWorkout.updatedAt.timeIntervalSinceReferenceDate)
+        }
         hasher.combine(profile?.sleepTargetHours ?? 8)
         hasher.combine(profile?.targetWeight ?? 0)
         hasher.combine(profile?.startWeight ?? 0)
@@ -143,7 +150,8 @@ struct TrendTabView: View {
             healthByDay: viewModel.healthByDay,
             sleepHistory: viewModel.sleepHistory,
             energyHistory: viewModel.energyHistory,
-            cycleHistory: viewModel.cycleHistory
+            cycleHistory: viewModel.cycleHistory,
+            workoutLogs: workoutLogs
         )
         insights = HealthInsightEngine.evaluate(
             samples: samples,
@@ -158,6 +166,7 @@ struct TrendTabView: View {
                 sleepHoursByDay: series.sleepHoursByDay,
                 energyKcalByDay: series.energyKcalByDay,
                 periodDayKeys: series.periodDayKeys,
+                workoutDayKeys: series.workoutDayKeys,
                 sleepTargetHours: profile?.sleepTargetHours ?? 8.0
             )
         )

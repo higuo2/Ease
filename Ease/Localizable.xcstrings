@@ -6065,6 +6065,38 @@
         }
       }
     },
+    "trend.advanced.workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workouts"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练"
+          }
+        }
+      }
+    },
+    "trend.advanced.workoutDays" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld days in window"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "窗口内 %lld 天"
+          }
+        }
+      }
+    },
     "trend.forecast.basedOnWindow" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6258,6 +6290,22 @@
         }
       }
     },
+    "trend.insights.advice.workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logged training days can correlate with short-term weight shifts. Keep a steady session rhythm rather than chasing a single workout."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练日可能与短期体重波动相关。尽量保持稳定的训练节奏，不必盯着单次训练。"
+          }
+        }
+      }
+    },
     "trend.insights.cardSubtitle.many" : {
       "localizations" : {
         "en" : {
@@ -6350,6 +6398,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@睡眠偏少"
+          }
+        }
+      }
+    },
+    "trend.insights.cardTitle.workout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training Weight Pattern"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练相关体重模式"
           }
         }
       }
@@ -6983,6 +7047,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "基于近 %lld 个日历日中样本足够的对照。"
+          }
+        }
+      }
+    },
+    "trend.insights.workoutWeight.in" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After training"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练后"
+          }
+        }
+      }
+    },
+    "trend.insights.workoutWeight.out" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息日"
+          }
+        }
+      }
+    },
+    "trend.insights.workoutWeight.title.down" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight down after training"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练后体重偏低"
+          }
+        }
+      }
+    },
+    "trend.insights.workoutWeight.title.up" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight up after training"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练后体重偏高"
           }
         }
       }

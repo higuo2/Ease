@@ -183,7 +183,7 @@ struct HealthInsightNoteCard: View {
         switch insight.kind {
         case .shortSleepWeight, .weekdaySleep: EasePalette.iconSleep
         case .periodWeight: EasePalette.iconPeriod
-        case .lowEnergyWeight: EasePalette.iconEnergy
+        case .lowEnergyWeight, .workoutWeight: EasePalette.iconEnergy
         }
     }
 }

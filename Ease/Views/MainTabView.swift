@@ -79,7 +79,8 @@ struct MainTabView: View {
                 viewModel: viewModel,
                 profile: profile,
                 records: records,
-                logs: weightLogs
+                logs: weightLogs,
+                workoutLogs: workoutLogs
             )
             .tabItem { Label("tab.trend", systemImage: "chart.xyaxis.line") }
             .tag(AppTab.trend)
@@ -116,7 +117,8 @@ struct MainTabView: View {
                 viewModel: viewModel,
                 profile: profile,
                 records: records,
-                logs: weightLogs
+                logs: weightLogs,
+                workoutLogs: workoutLogs
             )
         }
         .sheet(isPresented: $viewModel.isCyclePresented) {
@@ -191,6 +193,7 @@ private struct SleepSheetHost: View {
     let profile: UserProfile?
     let records: [DailyRecord]
     let logs: [WeightLog]
+    let workoutLogs: [WorkoutLog]
 
     var body: some View {
         SleepDetailSheet(
@@ -210,7 +213,8 @@ private struct SleepSheetHost: View {
             healthByDay: viewModel.healthByDay,
             sleepHistory: viewModel.sleepHistory,
             energyHistory: viewModel.energyHistory,
-            cycleHistory: viewModel.cycleHistory
+            cycleHistory: viewModel.cycleHistory,
+            workoutLogs: workoutLogs
         )
     }
 }
@@ -228,7 +232,8 @@ private struct EnergySheetHost: View {
             focusKcal: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.activeEnergyKcal,
             workoutLogs: workoutLogs,
             isPlaceholder: !viewModel.hasLoadedHealth,
-            insight: insightReport.energyNote
+            insight: insightReport.energyNote,
+            workoutInsight: insightReport.workoutNote
         )
         .easeSheetPresentation()
     }
@@ -240,7 +245,8 @@ private struct EnergySheetHost: View {
             healthByDay: viewModel.healthByDay,
             sleepHistory: viewModel.sleepHistory,
             energyHistory: viewModel.energyHistory,
-            cycleHistory: viewModel.cycleHistory
+            cycleHistory: viewModel.cycleHistory,
+            workoutLogs: workoutLogs
         )
     }
 }

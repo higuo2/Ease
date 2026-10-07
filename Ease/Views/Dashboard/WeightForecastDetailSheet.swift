@@ -32,6 +32,12 @@ struct WeightForecastDetailSheet: View {
                                     value: energyValue
                                 )
                                 factorRow(
+                                    symbol: "figure.run",
+                                    tint: EasePalette.iconEnergy,
+                                    title: "trend.advanced.workout",
+                                    value: workoutValue
+                                )
+                                factorRow(
                                     symbol: "drop.fill",
                                     tint: EasePalette.iconPeriod,
                                     title: "trend.advanced.period",
@@ -118,6 +124,18 @@ struct WeightForecastDetailSheet: View {
             )
         }
         return factorLabel(for: estimate.periodFactor)
+    }
+
+    private var workoutValue: String {
+        if estimate.workoutDaysInWindow > 0 {
+            let days = String(
+                format: String(localized: "trend.advanced.workoutDays"),
+                locale: .current,
+                estimate.workoutDaysInWindow
+            )
+            return "\(factorLabel(for: estimate.workoutFactor)) · \(days)"
+        }
+        return factorLabel(for: estimate.workoutFactor)
     }
 
     private func factorDetail(measurement: String?, factor: Double) -> String {

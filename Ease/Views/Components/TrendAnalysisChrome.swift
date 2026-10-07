@@ -72,7 +72,7 @@ enum TrendInsightStyle {
             EasePalette.iconSleep
         case .periodWeight:
             EasePalette.iconPeriod
-        case .lowEnergyWeight:
+        case .lowEnergyWeight, .workoutWeight:
             EasePalette.iconEnergy
         }
     }

@@ -223,6 +223,61 @@ final class InsightEngineTests: XCTestCase {
         XCTAssertEqual(series.sleepHoursByDay[key], 7.2)
         XCTAssertEqual(series.energyKcalByDay[key], 400)
         XCTAssertTrue(series.periodDayKeys.contains(key))
+        XCTAssertTrue(series.workoutDayKeys.isEmpty)
+    }
+
+    func test_前一日训练_对照次日体重变化() {
+        let start = calendar.testDate(2026, 7, 1)
+        var samples: [WeightSample] = []
+        var workout: Set<String> = []
+        var weight = 80.0
+        for offset in 0..<31 {
+            let date = calendar.date(byAdding: .day, value: offset, to: start)!
+            let key = CalendarDay.dayKey(from: date, calendar: calendar)
+            if offset.isMultiple(of: 2) {
+                workout.insert(key)
+            }
+            if offset > 0 {
+                let previous = calendar.date(byAdding: .day, value: offset - 1, to: start)!
+                let previousKey = CalendarDay.dayKey(from: previous, calendar: calendar)
+                weight += workout.contains(previousKey) ? -0.3 : 0.2
+            }
+            samples.append(WeightSample(date: date, weight: MeasurementBounds.roundedToTenth(weight)))
+        }
+        let report = HealthInsightEngine.evaluate(
+            samples: samples,
+            series: .init(
+                sleepHoursByDay: [:],
+                energyKcalByDay: [:],
+                periodDayKeys: [],
+                workoutDayKeys: workout
+            ),
+            now: samples.last!.date,
+            calendar: calendar
+        )
+        let insight = report.first(of: .workoutWeight)
+        guard let insight else {
+            return XCTFail("expected workoutWeight")
+        }
+        XCTAssertEqual(insight.inMean, -0.3, accuracy: 0.001)
+        XCTAssertEqual(insight.outMean, 0.2, accuracy: 0.001)
+        XCTAssertEqual(insight.titleKey, "trend.insights.workoutWeight.title.down")
+        XCTAssertEqual(insight.cardDisplayTitle(locale: Locale(identifier: "en")), "Training Weight Pattern")
+    }
+
+    func test_series合并_训练日来自WorkoutLog时间戳() {
+        let day = calendar.testDate(2026, 8, 10, hour: 19)
+        let key = CalendarDay.dayKey(from: day, calendar: calendar)
+        let log = WorkoutLog(timestamp: day, kcal: 320, durationMinutes: 40)
+        let series = HealthInsightEngine.series(
+            healthByDay: [:],
+            sleepHistory: .empty,
+            energyHistory: .empty,
+            cycleHistory: .empty,
+            workoutLogs: [log],
+            calendar: calendar
+        )
+        XCTAssertTrue(series.workoutDayKeys.contains(key))
     }
 
     func test_展示字段_短睡眠含样本数与标题键() {
