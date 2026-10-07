@@ -88,6 +88,9 @@
 		A100000000000000000000E5 /* HistoryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D5 /* HistoryTabView.swift */; };
 		A100000000000000000000E6 /* HomeModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D6 /* HomeModule.swift */; };
 		A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D7 /* EnergyDetailSheet.swift */; };
+		A10000000000000000000310 /* WorkoutLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000300 /* WorkoutLog.swift */; };
+		A10000000000000000000311 /* WorkoutLogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000301 /* WorkoutLogRepository.swift */; };
+		A10000000000000000000312 /* WorkoutLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000302 /* WorkoutLogSheet.swift */; };
 		A100000000000000000000E8 /* AdvancedPaceEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D8 /* AdvancedPaceEstimator.swift */; };
 		A10000000000000000000113 /* InsightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000112 /* InsightEngine.swift */; };
 		A10000000000000000000115 /* HealthInsightsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000114 /* HealthInsightsCard.swift */; };
@@ -125,6 +128,7 @@
 		T10000000000000000000044 /* HealthKitCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000034 /* HealthKitCacheTests.swift */; };
 		T10000000000000000000045 /* AdvancedPaceEstimatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000035 /* AdvancedPaceEstimatorTests.swift */; };
 		T10000000000000000000047 /* InsightEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000037 /* InsightEngineTests.swift */; };
+		T10000000000000000000048 /* WorkoutLogRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000038 /* WorkoutLogRepositoryTests.swift */; };
 		T10000000000000000000046 /* MealCutoutPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T10000000000000000000036 /* MealCutoutPreferencesTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -222,6 +226,9 @@
 		A100000000000000000000D5 /* HistoryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTabView.swift; sourceTree = "<group>"; };
 		A100000000000000000000D6 /* HomeModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModule.swift; sourceTree = "<group>"; };
 		A100000000000000000000D7 /* EnergyDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnergyDetailSheet.swift; sourceTree = "<group>"; };
+		A10000000000000000000300 /* WorkoutLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLog.swift; sourceTree = "<group>"; };
+		A10000000000000000000301 /* WorkoutLogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLogRepository.swift; sourceTree = "<group>"; };
+		A10000000000000000000302 /* WorkoutLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLogSheet.swift; sourceTree = "<group>"; };
 		A100000000000000000000D8 /* AdvancedPaceEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedPaceEstimator.swift; sourceTree = "<group>"; };
 		A10000000000000000000112 /* InsightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightEngine.swift; sourceTree = "<group>"; };
 		A10000000000000000000114 /* HealthInsightsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthInsightsCard.swift; sourceTree = "<group>"; };
@@ -263,6 +270,7 @@
 		T10000000000000000000035 /* AdvancedPaceEstimatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedPaceEstimatorTests.swift; sourceTree = "<group>"; };
 		T10000000000000000000037 /* InsightEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightEngineTests.swift; sourceTree = "<group>"; };
 		T10000000000000000000036 /* MealCutoutPreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCutoutPreferencesTests.swift; sourceTree = "<group>"; };
+		T10000000000000000000038 /* WorkoutLogRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLogRepositoryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -346,6 +354,7 @@
 				T10000000000000000000035 /* AdvancedPaceEstimatorTests.swift */,
 				T10000000000000000000037 /* InsightEngineTests.swift */,
 				T10000000000000000000036 /* MealCutoutPreferencesTests.swift */,
+				T10000000000000000000038 /* WorkoutLogRepositoryTests.swift */,
 			);
 			path = EaseTests;
 			sourceTree = "<group>";
@@ -362,6 +371,7 @@
 				A100000000000000000000D6 /* HomeModule.swift */,
 				A100000000000000000000B0 /* MetricDefinition.swift */,
 				A100000000000000000000B1 /* MetricLog.swift */,
+				A10000000000000000000300 /* WorkoutLog.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -379,6 +389,7 @@
 				A10000000000000000000100 /* ImageCutoutService.swift */,
 				A10000000000000000000102 /* MealCutoutPreferences.swift */,
 				A1000000000000000000009C /* WeightLogRepository.swift */,
+				A10000000000000000000301 /* WorkoutLogRepository.swift */,
 				A1000000000000000000009D /* LegacyWeightMigrator.swift */,
 				A1000000000000000000004A /* UserProfileRepository.swift */,
 				A1000000000000000000004B /* EaseModelContainer.swift */,
@@ -486,6 +497,7 @@
 				A100000000000000000000B6 /* ImportPreviewSheet.swift */,
 				A100000000000000000000B7 /* MetricSheet.swift */,
 				A100000000000000000000D7 /* EnergyDetailSheet.swift */,
+				A10000000000000000000302 /* WorkoutLogSheet.swift */,
 				A100000000000000000000F2 /* BMIDetailSheet.swift */,
 				A100000000000000000000F8 /* BMIRangeBar.swift */,
 				A100000000000000000000D9 /* WeightHistorySheet.swift */,
@@ -667,6 +679,9 @@
 				A100000000000000000000E5 /* HistoryTabView.swift in Sources */,
 				A100000000000000000000E6 /* HomeModule.swift in Sources */,
 				A100000000000000000000E7 /* EnergyDetailSheet.swift in Sources */,
+				A10000000000000000000310 /* WorkoutLog.swift in Sources */,
+				A10000000000000000000311 /* WorkoutLogRepository.swift in Sources */,
+				A10000000000000000000312 /* WorkoutLogSheet.swift in Sources */,
 				A100000000000000000000F3 /* BMIDetailSheet.swift in Sources */,
 				A100000000000000000000F9 /* BMIRangeBar.swift in Sources */,
 				A100000000000000000000FB /* EaseFlowLayout.swift in Sources */,
@@ -718,6 +733,7 @@
 				T10000000000000000000045 /* AdvancedPaceEstimatorTests.swift in Sources */,
 				T10000000000000000000047 /* InsightEngineTests.swift in Sources */,
 				T10000000000000000000046 /* MealCutoutPreferencesTests.swift in Sources */,
+				T10000000000000000000048 /* WorkoutLogRepositoryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -111,6 +111,7 @@ struct UserProfileRepository {
     func resetAll() throws {
         try MetricRepository(context: context, calendar: calendar).deleteAll()
         try WeightLogRepository(context: context, calendar: calendar).deleteAll()
+        try WorkoutLogRepository(context: context, calendar: calendar).deleteAll()
         try DailyRecordRepository(context: context, calendar: calendar).deleteAll()
         for profile in try fetchAll() {
             context.delete(profile)

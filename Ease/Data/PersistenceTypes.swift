@@ -60,6 +60,7 @@ enum EaseDataError: Error, Equatable {
     case invalidProfile
     case invalidMetric
     case tooManyCustomMetrics
+    case invalidWorkout
 }
 
 struct MetricLogDraft: Sendable, Equatable {

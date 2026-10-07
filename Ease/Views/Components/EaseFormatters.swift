@@ -58,6 +58,10 @@ enum EaseFormatters {
         String(format: String(localized: "format.kcal"), locale: .current, value)
     }
 
+    static func minutes(_ value: Int) -> String {
+        String(format: String(localized: "format.minutes"), locale: .current, value)
+    }
+
     static func hours(_ value: Double) -> String {
         String(format: String(localized: "format.hours"), locale: .current, value)
     }

@@ -84,6 +84,11 @@ final class UserProfileRepositoryTests: EaseStoreTestCase {
             metricKey: "waist",
             value: 68
         )
+        try workouts.insert(
+            timestamp: calendar.testDate(2026, 8, 10, hour: 8),
+            kcal: 320,
+            durationMinutes: 40
+        )
 
         try profiles.resetAll()
 
@@ -92,6 +97,7 @@ final class UserProfileRepositoryTests: EaseStoreTestCase {
         XCTAssertTrue(try fetchAll(UserProfile.self).isEmpty)
         XCTAssertTrue(try fetchAll(MetricDefinition.self).isEmpty)
         XCTAssertTrue(try fetchAll(MetricLog.self).isEmpty)
+        XCTAssertTrue(try fetchAll(WorkoutLog.self).isEmpty)
 
         let restored = try profiles.profile()
         XCTAssertFalse(restored.hasCompletedOnboarding)

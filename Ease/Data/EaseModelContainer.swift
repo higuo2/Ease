@@ -7,7 +7,8 @@ enum EaseModelContainer {
         UserProfile.self,
         WeightLog.self,
         MetricDefinition.self,
-        MetricLog.self
+        MetricLog.self,
+        WorkoutLog.self
     ]
 
     static func make() -> ModelContainer {

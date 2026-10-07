@@ -8,6 +8,7 @@ struct WeightTabView: View {
     let logs: [WeightLog]
     let metricDefinitions: [MetricDefinition]
     let metricLogs: [MetricLog]
+    let workoutLogs: [WorkoutLog]
     @State private var isModuleEditorPresented = false
     @State private var isWeightHistoryPresented = false
     @State private var logEntries: [WeightLogEntry] = []
@@ -27,6 +28,9 @@ struct WeightTabView: View {
     }
     private var selectedHealth: HealthDaySnapshot? {
         viewModel.healthByDay[CalendarDay.dayKey(from: selectedDate)]
+    }
+    private var hasWorkoutOnSelectedDate: Bool {
+        workoutLogs.contains { Calendar.current.isDate($0.timestamp, inSameDayAs: selectedDate) }
     }
     private var paceLine: String? {
         guard let eta = PaceEstimator.estimate(
@@ -86,6 +90,7 @@ struct WeightTabView: View {
                                 isPeriodDay: selectedHealth?.isMenstrual == true
                                     || selectedRecord?.variableTags.contains(.period) == true,
                                 energyKcal: selectedHealth?.activeEnergyKcal,
+                                hasWorkout: hasWorkoutOnSelectedDate,
                                 canAddMore: !unusedModules.isEmpty,
                                 onOpenMetrics: {
                                     viewModel.openMetrics(on: selectedDate, key: metricsFocusKey)

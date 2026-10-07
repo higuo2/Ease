@@ -7,6 +7,7 @@ struct MainTabView: View {
         static let recordDays = 180
         static let weightLogDays = 365
         static let metricLogDays = 365
+        static let workoutLogDays = 365
     }
 
     @Environment(\.scenePhase) private var scenePhase
@@ -15,6 +16,7 @@ struct MainTabView: View {
     @Query private var weightLogs: [WeightLog]
     @Query private var metricDefinitions: [MetricDefinition]
     @Query private var metricLogs: [MetricLog]
+    @Query private var workoutLogs: [WorkoutLog]
     @State private var viewModel = DashboardViewModel()
     @State private var selectedTab: AppTab = .weight
 
@@ -23,6 +25,7 @@ struct MainTabView: View {
         let recordsCutoff = CalendarDay.addingDays(-QueryWindow.recordDays, to: now)
         let weightLogsCutoff = CalendarDay.addingDays(-QueryWindow.weightLogDays, to: now)
         let metricLogsCutoff = CalendarDay.addingDays(-QueryWindow.metricLogDays, to: now)
+        let workoutLogsCutoff = CalendarDay.addingDays(-QueryWindow.workoutLogDays, to: now)
 
         _profiles = Query(sort: \UserProfile.updatedAt, order: .reverse)
         _records = Query(
@@ -45,6 +48,11 @@ struct MainTabView: View {
             sort: \MetricLog.timestamp,
             order: .forward
         )
+        _workoutLogs = Query(
+            filter: #Predicate<WorkoutLog> { $0.timestamp >= workoutLogsCutoff },
+            sort: \WorkoutLog.timestamp,
+            order: .forward
+        )
     }
 
     private var profile: UserProfile? { profiles.first }
@@ -61,7 +69,8 @@ struct MainTabView: View {
                 records: records,
                 logs: weightLogs,
                 metricDefinitions: enabledMetrics,
-                metricLogs: metricLogs
+                metricLogs: metricLogs,
+                workoutLogs: workoutLogs
             )
             .tabItem { Label("tab.weight", systemImage: "scalemass") }
             .tag(AppTab.weight)
@@ -121,7 +130,8 @@ struct MainTabView: View {
             EnergySheetHost(
                 viewModel: viewModel,
                 records: records,
-                logs: weightLogs
+                logs: weightLogs,
+                workoutLogs: workoutLogs
             )
         }
         .sheet(isPresented: $viewModel.isBMIPresented) {
@@ -209,11 +219,14 @@ private struct EnergySheetHost: View {
     @Bindable var viewModel: DashboardViewModel
     let records: [DailyRecord]
     let logs: [WeightLog]
+    let workoutLogs: [WorkoutLog]
 
     var body: some View {
         EnergyDetailSheet(
             history: viewModel.energyHistory,
+            focusDate: viewModel.selectedDate,
             focusKcal: viewModel.healthByDay[CalendarDay.dayKey(from: viewModel.selectedDate)]?.activeEnergyKcal,
+            workoutLogs: workoutLogs,
             isPlaceholder: !viewModel.hasLoadedHealth,
             insight: insightReport.energyNote
         )

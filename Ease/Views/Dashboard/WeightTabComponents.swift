@@ -155,6 +155,7 @@ struct HomeModuleGrid: View {
     let sleepHours: Double?
     let isPeriodDay: Bool
     let energyKcal: Double?
+    var hasWorkout: Bool = false
     let canAddMore: Bool
     let onOpenMetrics: () -> Void
     let onOpenWeight: () -> Void
@@ -249,11 +250,14 @@ struct HomeModuleGrid: View {
                         .foregroundStyle(EasePalette.primaryText)
                         .minimumScaleFactor(0.7)
                         .lineLimit(2)
+                    if hasWorkout {
+                        tileCaption("workout.logged")
+                    }
                 } else {
                     Image(systemName: module.symbolName)
                         .font(.system(size: 26, weight: .regular))
                         .foregroundStyle(EasePalette.primaryText)
-                    tileCaption("module.noData")
+                    tileCaption(hasWorkout ? "workout.logged" : "module.noData")
                 }
             }
         }

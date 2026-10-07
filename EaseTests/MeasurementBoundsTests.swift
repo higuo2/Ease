@@ -93,6 +93,30 @@ final class MeasurementBoundsTests: XCTestCase {
         }
     }
 
+    func test_validatedWorkoutKcal_取整并限制范围() throws {
+        XCTAssertEqual(try MeasurementBounds.validatedWorkoutKcal(249.6), 250)
+        XCTAssertEqual(try MeasurementBounds.validatedWorkoutKcal(10), 10)
+        XCTAssertEqual(try MeasurementBounds.validatedWorkoutKcal(2000), 2000)
+        XCTAssertThrowsError(try MeasurementBounds.validatedWorkoutKcal(9.4)) { error in
+            XCTAssertEqual(error as? EaseDataError, .invalidWorkout)
+        }
+        XCTAssertThrowsError(try MeasurementBounds.validatedWorkoutKcal(2000.5)) { error in
+            XCTAssertEqual(error as? EaseDataError, .invalidWorkout)
+        }
+    }
+
+    func test_validatedWorkoutDuration_可选且限制范围() throws {
+        XCTAssertNil(try MeasurementBounds.validatedWorkoutDuration(nil))
+        XCTAssertEqual(try MeasurementBounds.validatedWorkoutDuration(1), 1)
+        XCTAssertEqual(try MeasurementBounds.validatedWorkoutDuration(300), 300)
+        XCTAssertThrowsError(try MeasurementBounds.validatedWorkoutDuration(0)) { error in
+            XCTAssertEqual(error as? EaseDataError, .invalidWorkout)
+        }
+        XCTAssertThrowsError(try MeasurementBounds.validatedWorkoutDuration(301)) { error in
+            XCTAssertEqual(error as? EaseDataError, .invalidWorkout)
+        }
+    }
+
     func test_roundedToStep_与时刻钳制() {
         XCTAssertEqual(MeasurementBounds.roundedToStep(1230, step: 50), 1250)
         XCTAssertEqual(MeasurementBounds.roundedToStep(68.04, step: 0.1), 68.0)

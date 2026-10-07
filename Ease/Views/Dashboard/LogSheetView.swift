@@ -355,7 +355,7 @@ struct LogSheetView: View {
             switch error {
             case .emptyRecord, .emptyPatch:
                 presentError("log.error.empty")
-            case .invalidWeight, .invalidBodyFat, .invalidProfile, .invalidMetric, .tooManyCustomMetrics:
+            case .invalidWeight, .invalidBodyFat, .invalidProfile, .invalidMetric, .tooManyCustomMetrics, .invalidWorkout:
                 presentError("onboarding.error.invalid")
             case .futureDate:
                 presentError("log.error.future")

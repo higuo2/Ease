@@ -1,14 +1,26 @@
 import SwiftUI
+import SwiftData
 import Charts
 
 struct EnergyDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     let history: EnergyHistory
+    let focusDate: Date
     let focusKcal: Double?
+    let workoutLogs: [WorkoutLog]
     var isPlaceholder = false
     var insight: HealthInsight?
 
+    @State private var isWorkoutSheetPresented = false
+    @State private var editingWorkoutID: UUID?
+
     private var loggedDays: [EnergyDay] { history.loggedDays }
+    private var dayWorkouts: [WorkoutLog] {
+        workoutLogs
+            .filter { Calendar.current.isDate($0.timestamp, inSameDayAs: focusDate) }
+            .sorted { $0.timestamp < $1.timestamp }
+    }
     private var chartDays: [EnergyDay] { Array(loggedDays.suffix(HealthDetailChart.chartPointLimit)) }
     private var latestChartDate: Date { chartDays.last?.date ?? history.endingOn }
 
@@ -108,6 +120,8 @@ struct EnergyDetailSheet: View {
                             }
                         }
 
+                        workoutSection
+
                         if let insight {
                             HealthInsightNoteCard(insight: insight)
                         }
@@ -124,7 +138,99 @@ struct EnergyDetailSheet: View {
                 }
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)
+            .sheet(isPresented: $isWorkoutSheetPresented) {
+                WorkoutLogSheet(date: focusDate, editingLogID: editingWorkoutID)
+                    .easeSheetPresentation()
+                    .onDisappear { editingWorkoutID = nil }
+            }
         }
         .preferredColorScheme(.light)
+    }
+
+    private var workoutSection: some View {
+        EaseCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("workout.section")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(EasePalette.primaryText)
+                Text("workout.caption")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(EasePalette.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if dayWorkouts.isEmpty {
+                    Text("workout.empty")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(EasePalette.secondaryText)
+                } else {
+                    VStack(spacing: 8) {
+                        ForEach(dayWorkouts, id: \.id) { log in
+                            workoutRow(log)
+                        }
+                    }
+                }
+
+                Button {
+                    editingWorkoutID = nil
+                    isWorkoutSheetPresented = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("workout.add")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundStyle(EasePalette.primaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(
+                        EasePalette.recessed,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("workout.add"))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func workoutRow(_ log: WorkoutLog) -> some View {
+        HStack(spacing: 10) {
+            Button {
+                editingWorkoutID = log.id
+                isWorkoutSheetPresented = true
+            } label: {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(EaseFormatters.kcal(log.kcal))
+                        .font(.body.monospacedDigit())
+                        .foregroundStyle(EasePalette.primaryText)
+                    if let minutes = log.durationMinutes {
+                        Text("·")
+                            .foregroundStyle(EasePalette.secondaryText)
+                        Text(EaseFormatters.minutes(minutes))
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundStyle(EasePalette.secondaryText)
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                try? WorkoutLogRepository(context: modelContext).delete(log)
+            } label: {
+                Image(systemName: "trash")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(EasePalette.secondaryText)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("log.delete"))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(EasePalette.recessed, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }

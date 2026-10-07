@@ -5,6 +5,8 @@ enum MeasurementBounds {
     static let bodyFatPercent = 5.0...50.0
     static let heightCm = 100.0...250.0
     static let sleepTargetHours = 4.0...12.0
+    static let workoutKcal = 10.0...2000.0
+    static let workoutDurationMinutes = 1...300
     static let maxAgeYears = 120
 
     static func roundedToTenth(_ value: Double) -> Double {
@@ -65,5 +67,17 @@ enum MeasurementBounds {
         }
         guard birth >= calendar.startOfDay(for: oldest) else { throw EaseDataError.invalidProfile }
         return birth
+    }
+
+    static func validatedWorkoutKcal(_ value: Double) throws -> Double {
+        let rounded = value.rounded()
+        guard workoutKcal.contains(rounded) else { throw EaseDataError.invalidWorkout }
+        return rounded
+    }
+
+    static func validatedWorkoutDuration(_ minutes: Int?) throws -> Int? {
+        guard let minutes else { return nil }
+        guard workoutDurationMinutes.contains(minutes) else { throw EaseDataError.invalidWorkout }
+        return minutes
     }
 }

@@ -93,6 +93,10 @@ class EaseStoreTestCase: XCTestCase {
         MetricRepository(context: context, calendar: calendar)
     }
 
+    var workouts: WorkoutLogRepository {
+        WorkoutLogRepository(context: context, calendar: calendar)
+    }
+
     func fetchAll<T: PersistentModel>(_ type: T.Type) throws -> [T] {
         try context.fetch(FetchDescriptor<T>())
     }
