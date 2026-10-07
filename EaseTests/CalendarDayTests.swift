@@ -72,3 +72,40 @@ final class CalendarDayTests: XCTestCase {
         XCTAssertEqual(CalendarDay.dayKey(from: utcAfternoon, calendar: calendar), "2026-08-21")
     }
 }
+
+final class MonthWorkoutStatsTests: XCTestCase {
+    private let calendar = EaseTestCalendar.make()
+
+    func test_按月汇总天数时长与消耗_同日多次只计一天() {
+        let month = calendar.testDate(2026, 8, 1)
+        let logs = [
+            WorkoutLog(timestamp: calendar.testDate(2026, 8, 10, hour: 8), kcal: 200, durationMinutes: 20),
+            WorkoutLog(timestamp: calendar.testDate(2026, 8, 10, hour: 19), kcal: 300, durationMinutes: 40),
+            WorkoutLog(timestamp: calendar.testDate(2026, 8, 12, hour: 8), kcal: 180),
+            WorkoutLog(timestamp: calendar.testDate(2026, 9, 1, hour: 8), kcal: 400, durationMinutes: 50)
+        ]
+        let stats = MonthWorkoutStats.make(
+            logs: logs,
+            monthContaining: month,
+            calendar: calendar,
+            now: calendar.testDate(2026, 8, 20)
+        )
+        XCTAssertEqual(stats.days, 2)
+        XCTAssertEqual(stats.sessions, 3)
+        XCTAssertEqual(stats.totalKcal, 680)
+        XCTAssertEqual(stats.totalMinutes, 60)
+        XCTAssertEqual(stats.daysWithDuration, 1)
+        XCTAssertEqual(stats.averageKcal, 340)
+        XCTAssertEqual(stats.averageMinutes, 60)
+    }
+
+    func test_无训练记录_返回empty() {
+        let stats = MonthWorkoutStats.make(
+            logs: [],
+            monthContaining: calendar.testDate(2026, 8, 1),
+            calendar: calendar,
+            now: calendar.testDate(2026, 8, 20)
+        )
+        XCTAssertEqual(stats, .empty)
+    }
+}

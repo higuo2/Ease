@@ -70,10 +70,9 @@ struct CalendarTabView: View {
         hasher.combine(viewModel.sleepHistory.nights.count)
         hasher.combine(viewModel.cycleHistory.periodDayKeys.count)
         hasher.combine(workoutLogs.count)
-        if let lastWorkout = workoutLogs.last {
-            hasher.combine(lastWorkout.id)
-            hasher.combine(lastWorkout.updatedAt.timeIntervalSinceReferenceDate)
-        }
+        hasher.combine(workoutLogs.map(\.updatedAt.timeIntervalSinceReferenceDate).max() ?? 0)
+        hasher.combine(workoutLogs.reduce(0) { $0 + $1.kcal })
+        hasher.combine(workoutLogs.reduce(0) { $0 + ($1.durationMinutes ?? 0) })
         DashboardComputeToken.mixWeightLogTail(logs.last, into: &hasher)
         DashboardComputeToken.mixDailyRecordCalendarTail(records.last, into: &hasher)
         return hasher.finalize()
@@ -306,6 +305,7 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
     var leadingEmpty: Int
     var days: [CalendarDaySnapshot]
     var stats: MonthWeightStats
+    var workoutStats: MonthWorkoutStats
     var lastWeightByDay: [String: Double]
 
     func day(for date: Date, calendar: Calendar = .current) -> CalendarDaySnapshot? {
@@ -349,6 +349,12 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
             leadingEmpty: CalendarDay.leadingEmptyDays(inMonthContaining: visibleMonth, calendar: calendar),
             days: days,
             stats: MonthWeightStats.make(weightIndex: weightIndex, monthContaining: visibleMonth, calendar: calendar),
+            workoutStats: MonthWorkoutStats.make(
+                logs: workoutLogs,
+                monthContaining: visibleMonth,
+                calendar: calendar,
+                now: now
+            ),
             lastWeightByDay: weightIndex.lastWeightByDay
         )
     }
@@ -495,6 +501,72 @@ struct MonthWeightStats: Equatable, Sendable {
             averageDelta: average,
             monthDelta: monthDelta,
             averageWeight: averageWeight
+        )
+    }
+}
+
+struct MonthWorkoutStats: Equatable, Sendable {
+    var days: Int
+    var sessions: Int
+    var totalKcal: Double
+    var totalMinutes: Int
+    var daysWithDuration: Int
+    var averageKcal: Double?
+    var averageMinutes: Int?
+
+    static let empty = MonthWorkoutStats(
+        days: 0,
+        sessions: 0,
+        totalKcal: 0,
+        totalMinutes: 0,
+        daysWithDuration: 0,
+        averageKcal: nil,
+        averageMinutes: nil
+    )
+
+    static func make(
+        logs: [WorkoutLog],
+        monthContaining date: Date,
+        calendar: Calendar = .current,
+        now: Date = .now
+    ) -> MonthWorkoutStats {
+        let monthDays = CalendarDay.daysInMonth(containing: date, calendar: calendar)
+        guard let monthStart = monthDays.first else { return .empty }
+        let monthEnd = CalendarDay.addingDays(1, to: CalendarDay.startOfDay(monthDays.last ?? monthStart, calendar: calendar), calendar: calendar)
+        let inMonth = logs.filter { log in
+            let stamp = log.timestamp
+            guard stamp >= monthStart, stamp < monthEnd else { return false }
+            return !CalendarDay.isFuture(stamp, now: now, calendar: calendar)
+        }
+        guard !inMonth.isEmpty else { return .empty }
+
+        var minutesByDay: [String: Int] = [:]
+        var kcalByDay: [String: Double] = [:]
+        for log in inMonth {
+            let key = CalendarDay.dayKey(from: log.timestamp, calendar: calendar)
+            kcalByDay[key, default: 0] += log.kcal
+            if let minutes = log.durationMinutes {
+                minutesByDay[key, default: 0] += minutes
+            }
+        }
+
+        let days = kcalByDay.count
+        let totalKcal = kcalByDay.values.reduce(0, +)
+        let totalMinutes = minutesByDay.values.reduce(0, +)
+        let daysWithDuration = minutesByDay.count
+        let averageKcal = days > 0 ? (totalKcal / Double(days)).rounded() : nil
+        let averageMinutes = daysWithDuration > 0
+            ? Int((Double(totalMinutes) / Double(daysWithDuration)).rounded())
+            : nil
+
+        return MonthWorkoutStats(
+            days: days,
+            sessions: inMonth.count,
+            totalKcal: totalKcal.rounded(),
+            totalMinutes: totalMinutes,
+            daysWithDuration: daysWithDuration,
+            averageKcal: averageKcal,
+            averageMinutes: averageMinutes
         )
     }
 }

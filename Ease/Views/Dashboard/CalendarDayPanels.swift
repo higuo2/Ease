@@ -203,6 +203,10 @@ struct MonthlyOverviewCard: View {
                     monthAverage: stats.averageWeight.map { EaseFormatters.kg($0) },
                     weekAverage: weekAverageWeight.map { EaseFormatters.kg($0) }
                 )
+
+                if snapshot.workoutStats.days > 0 {
+                    workoutOverview(snapshot.workoutStats)
+                }
             }
         }
     }
@@ -263,6 +267,58 @@ struct MonthlyOverviewCard: View {
                 elapsed
             )
         )
+    }
+
+    private func workoutOverview(_ stats: MonthWorkoutStats) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                TrendModuleGlyph(systemName: "figure.run", tint: EasePalette.iconEnergy)
+                VStack(alignment: .leading, spacing: 2) {
+                    overviewMetricLabel("calendar.overview.workoutDays")
+                    Text(
+                        String(
+                            format: String(localized: "calendar.overview.workoutDays.value"),
+                            locale: .current,
+                            stats.days
+                        )
+                    )
+                    .font(.system(.title2, design: .rounded).weight(.bold))
+                    .monospacedDigit()
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                }
+                Spacer(minLength: 0)
+            }
+
+            HStack(alignment: .top, spacing: Layout.footerColumnSpacing) {
+                averageFooterCell(
+                    title: "calendar.overview.totalDuration",
+                    value: stats.totalMinutes > 0 ? EaseFormatters.workoutDuration(stats.totalMinutes) : nil
+                )
+                averageFooterCell(
+                    title: "calendar.overview.totalKcal",
+                    value: stats.days > 0 ? EaseFormatters.kcal(stats.totalKcal) : nil
+                )
+            }
+            HStack(alignment: .top, spacing: Layout.footerColumnSpacing) {
+                averageFooterCell(
+                    title: "calendar.overview.avgDuration",
+                    value: stats.averageMinutes.map(EaseFormatters.workoutDuration)
+                )
+                averageFooterCell(
+                    title: "calendar.overview.avgKcal",
+                    value: stats.averageKcal.map { EaseFormatters.kcal($0) }
+                )
+            }
+        }
+        .padding(.horizontal, Layout.footerInsetH)
+        .padding(.vertical, Layout.footerInsetV)
+        .background(
+            Color(uiColor: .secondarySystemFill),
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
+        .accessibilityElement(children: .combine)
     }
 
     private func averagesFooter(monthAverage: String?, weekAverage: String?) -> some View {

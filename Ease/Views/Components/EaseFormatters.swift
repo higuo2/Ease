@@ -62,6 +62,13 @@ enum EaseFormatters {
         String(format: String(localized: "format.minutes"), locale: .current, value)
     }
 
+    static func workoutDuration(_ minutes: Int) -> String {
+        if minutes < 60 {
+            return Self.minutes(minutes)
+        }
+        return sleepDuration(Double(minutes) / 60.0)
+    }
+
     static func hours(_ value: Double) -> String {
         String(format: String(localized: "format.hours"), locale: .current, value)
     }
