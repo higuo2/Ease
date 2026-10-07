@@ -4,6 +4,7 @@ struct CalendarTabView: View {
     @Bindable var viewModel: DashboardViewModel
     let records: [DailyRecord]
     let logs: [WeightLog]
+    let workoutLogs: [WorkoutLog]
 
     @State private var visibleMonth = CalendarDay.startOfMonth(.now)
     @State private var snapshot: CalendarMonthSnapshot?
@@ -44,7 +45,8 @@ struct CalendarTabView: View {
                     visibleMonth: visibleMonth,
                     healthByDay: viewModel.healthByDay,
                     sleepHistory: viewModel.sleepHistory,
-                    cycleHistory: viewModel.cycleHistory
+                    cycleHistory: viewModel.cycleHistory,
+                    workoutLogs: workoutLogs
                 )
             }
         }
@@ -67,6 +69,11 @@ struct CalendarTabView: View {
         hasher.combine(viewModel.healthByDay.count)
         hasher.combine(viewModel.sleepHistory.nights.count)
         hasher.combine(viewModel.cycleHistory.periodDayKeys.count)
+        hasher.combine(workoutLogs.count)
+        if let lastWorkout = workoutLogs.last {
+            hasher.combine(lastWorkout.id)
+            hasher.combine(lastWorkout.updatedAt.timeIntervalSinceReferenceDate)
+        }
         DashboardComputeToken.mixWeightLogTail(logs.last, into: &hasher)
         DashboardComputeToken.mixDailyRecordCalendarTail(records.last, into: &hasher)
         return hasher.finalize()
@@ -222,6 +229,9 @@ private struct CalendarDayCell: View, Equatable {
                     if day.marks.contains(.sleep) {
                         Circle().fill(EasePalette.iconSleep).frame(width: 4, height: 4)
                     }
+                    if day.marks.contains(.workout) {
+                        Circle().fill(EasePalette.iconEnergy).frame(width: 4, height: 4)
+                    }
                 }
                 .frame(height: 4)
                 .opacity(day.marks.isEmpty ? 0 : 1)
@@ -262,6 +272,7 @@ struct CalendarDayMarks: OptionSet, Equatable, Sendable {
     static let weight = CalendarDayMarks(rawValue: 1 << 0)
     static let period = CalendarDayMarks(rawValue: 1 << 1)
     static let sleep = CalendarDayMarks(rawValue: 1 << 2)
+    static let workout = CalendarDayMarks(rawValue: 1 << 3)
 }
 
 struct CalendarDaySnapshot: Equatable, Identifiable, Sendable {
@@ -284,6 +295,7 @@ struct CalendarDaySnapshot: Equatable, Identifiable, Sendable {
             || sleepHours != nil
             || activeEnergyKcal != nil
             || marks.contains(.period)
+            || marks.contains(.workout)
             || note != nil
     }
 }
@@ -308,11 +320,15 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
         healthByDay: [String: HealthDaySnapshot],
         sleepHistory: SleepHistory,
         cycleHistory: CycleHistory,
+        workoutLogs: [WorkoutLog] = [],
         calendar: Calendar = .current,
         now: Date = .now
     ) -> CalendarMonthSnapshot {
         let weightIndex = WeightMetrics.DayIndex.make(records: records, logs: logs, calendar: calendar)
         let recordsByDay = WeightMetrics.recordsByDayKey(records)
+        let workoutDayKeys = Set(
+            workoutLogs.map { CalendarDay.dayKey(from: $0.timestamp, calendar: calendar) }
+        )
         let monthDays = CalendarDay.daysInMonth(containing: visibleMonth, calendar: calendar)
         let days: [CalendarDaySnapshot] = monthDays.map { day in
             makeDay(
@@ -322,6 +338,7 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
                 healthByDay: healthByDay,
                 sleepHistory: sleepHistory,
                 cycleHistory: cycleHistory,
+                workoutDayKeys: workoutDayKeys,
                 calendar: calendar,
                 now: now
             )
@@ -343,6 +360,7 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
         healthByDay: [String: HealthDaySnapshot],
         sleepHistory: SleepHistory,
         cycleHistory: CycleHistory,
+        workoutDayKeys: Set<String>,
         calendar: Calendar,
         now: Date
     ) -> CalendarDaySnapshot {
@@ -357,6 +375,8 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
             || recordsByDay[key]?.variableTags.contains(.period) == true
         if periodLogged { marks.insert(.period) }
         if sleep != nil { marks.insert(.sleep) }
+        let hasWorkout = workoutDayKeys.contains(key)
+        if hasWorkout { marks.insert(.workout) }
         let note = recordsByDay[key]?.note?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedNote = (note?.isEmpty == false) ? note : nil
@@ -377,6 +397,7 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
                 weight: weight,
                 period: periodLogged,
                 sleep: sleep != nil,
+                workout: hasWorkout,
                 isFuture: isFuture,
                 empty: marks.isEmpty && weight == nil
             )
@@ -388,6 +409,7 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
         weight: Double?,
         period: Bool,
         sleep: Bool,
+        workout: Bool,
         isFuture: Bool,
         empty: Bool
     ) -> String {
@@ -402,6 +424,9 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
         }
         if sleep {
             parts.append(String(localized: "calendar.detail.sleep"))
+        }
+        if workout {
+            parts.append(String(localized: "calendar.detail.workout"))
         }
         if empty {
             parts.append(String(localized: "calendar.cell.empty"))

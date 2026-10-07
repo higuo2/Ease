@@ -88,7 +88,8 @@ struct MainTabView: View {
             CalendarTabView(
                 viewModel: viewModel,
                 records: records,
-                logs: weightLogs
+                logs: weightLogs,
+                workoutLogs: workoutLogs
             )
             .tabItem { Label("tab.calendar", systemImage: "calendar") }
             .tag(AppTab.calendar)
