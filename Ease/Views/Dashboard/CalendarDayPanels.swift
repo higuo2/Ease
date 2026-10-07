@@ -262,7 +262,7 @@ struct MonthlyOverviewCard: View {
 
     private func workoutOverview(_ stats: MonthWorkoutStats) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
                 TrendModuleGlyph(systemName: "figure.run", tint: EasePalette.iconEnergy)
                 VStack(alignment: .leading, spacing: 2) {
                     overviewMetricLabel("calendar.overview.workoutDays")
@@ -282,34 +282,50 @@ struct MonthlyOverviewCard: View {
                 Spacer(minLength: 0)
             }
 
-            HStack(alignment: .top, spacing: Layout.footerColumnSpacing) {
-                averageFooterCell(
-                    title: "calendar.overview.totalDuration",
-                    value: stats.totalMinutes > 0 ? EaseFormatters.workoutDuration(stats.totalMinutes) : nil
+            // Two columns mirror the header row: left aligns with Net change, right with Logged days.
+            HStack(alignment: .top, spacing: Layout.middleColumnSpacing) {
+                workoutMetricColumn(
+                    totalTitle: "calendar.overview.totalDuration",
+                    totalValue: stats.totalMinutes > 0 ? EaseFormatters.workoutDuration(stats.totalMinutes) : nil,
+                    averageTitle: "calendar.overview.avgDuration",
+                    averageValue: stats.averageMinutes.map(EaseFormatters.workoutDuration)
                 )
-                averageFooterCell(
-                    title: "calendar.overview.totalKcal",
-                    value: stats.days > 0 ? EaseFormatters.kcal(stats.totalKcal) : nil
-                )
-            }
-            HStack(alignment: .top, spacing: Layout.footerColumnSpacing) {
-                averageFooterCell(
-                    title: "calendar.overview.avgDuration",
-                    value: stats.averageMinutes.map(EaseFormatters.workoutDuration)
-                )
-                averageFooterCell(
-                    title: "calendar.overview.avgKcal",
-                    value: stats.averageKcal.map { EaseFormatters.kcal($0) }
+                workoutMetricColumn(
+                    totalTitle: "calendar.overview.totalKcal",
+                    totalValue: stats.days > 0 ? EaseFormatters.kcal(stats.totalKcal) : nil,
+                    averageTitle: "calendar.overview.avgKcal",
+                    averageValue: stats.averageKcal.map { EaseFormatters.kcal($0) }
                 )
             }
         }
         .padding(.horizontal, Layout.footerInsetH)
         .padding(.vertical, Layout.footerInsetV)
-        .background(
-            Color(uiColor: .secondarySystemFill),
-            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .background {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(EasePalette.morandiEnergy.opacity(0.14))
+            }
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(EasePalette.iconEnergy.opacity(0.18), lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
+    }
+
+    private func workoutMetricColumn(
+        totalTitle: LocalizedStringKey,
+        totalValue: String?,
+        averageTitle: LocalizedStringKey,
+        averageValue: String?
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            averageFooterCell(title: totalTitle, value: totalValue)
+            averageFooterCell(title: averageTitle, value: averageValue)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func averageFooterCell(title: LocalizedStringKey, value: String?) -> some View {
