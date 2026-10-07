@@ -18,6 +18,7 @@ struct WorkoutLogSheet: View {
     @State private var errorKey: String?
     @State private var errorPulse = 0
     @State private var saveSuccessPulse = 0
+    @State private var isCalendarExpanded = false
     @FocusState private var focusedField: WorkoutSheetField?
 
     init(date: Date, editingLogID: UUID? = nil) {
@@ -36,26 +37,12 @@ struct WorkoutLogSheet: View {
                 ScrollView {
                     VStack(spacing: 16) {
                         EaseCard(radius: 16, padding: 18) {
-                            dateRow
+                            dateCard
                         }
 
-                        fieldCard(
-                            title: "workout.kcal",
-                            placeholder: "workout.kcal.placeholder",
-                            unit: "unit.kcal",
-                            text: $kcalText,
-                            field: .kcal,
-                            keyboard: .decimalPad
-                        )
+                        heroKcalCard
 
-                        fieldCard(
-                            title: "workout.duration",
-                            placeholder: "workout.duration.placeholder",
-                            unit: "unit.minutes",
-                            text: $durationText,
-                            field: .duration,
-                            keyboard: .numberPad
-                        )
+                        durationCard
 
                         if let errorKey {
                             Text(LocalizedStringKey(errorKey))
@@ -93,12 +80,6 @@ struct WorkoutLogSheet: View {
             }
             .toolbarBackground(EasePalette.background, for: .navigationBar)
             .onAppear(perform: hydrateFromExisting)
-            .onChange(of: selectedDate) { oldValue, newValue in
-                if !Calendar.current.isDate(oldValue, inSameDayAs: newValue) {
-                    editingLogID = nil
-                }
-                hydrateFromExisting()
-            }
             .sensoryFeedback(.error, trigger: errorPulse)
             .sensoryFeedback(.success, trigger: saveSuccessPulse)
         }
@@ -127,80 +108,132 @@ struct WorkoutLogSheet: View {
         return min(candidate, .now)
     }
 
-    private var dateRow: some View {
-        HStack {
-            Text("log.date")
-                .font(.body)
-                .foregroundStyle(EasePalette.primaryText)
-            Spacer(minLength: 12)
-            Text(EaseFormatters.numericDate(selectedDate))
-                .font(.body.monospacedDigit())
-                .foregroundStyle(EasePalette.primaryText)
-                .frame(minWidth: 120, minHeight: 32, alignment: .trailing)
-                .overlay {
-                    DatePicker(
-                        "log.date",
-                        selection: $selectedDate,
-                        in: ...Date.now,
-                        displayedComponents: .date
-                    )
-                    .datePickerStyle(.compact)
-                    .labelsHidden()
-                    .tint(EasePalette.accent)
-                    .opacity(0.02)
+    private var dateCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Button {
+                resignInputFocus()
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isCalendarExpanded.toggle()
                 }
+            } label: {
+                HStack(spacing: 12) {
+                    TrendModuleGlyph(systemName: "calendar", tint: EasePalette.iconEnergy)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("log.date")
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(EasePalette.primaryText)
+                        Text("log.date.hint")
+                            .font(.caption)
+                            .foregroundStyle(EasePalette.secondaryText)
+                    }
+                    Spacer(minLength: 8)
+                    Text(EaseFormatters.numericDate(selectedDate))
+                        .font(.body.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(EasePalette.primaryText)
+                    Image(systemName: isCalendarExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text("log.date.hint"))
+
+            if isCalendarExpanded {
+                DatePicker(
+                    "log.date",
+                    selection: $selectedDate,
+                    in: ...Date.now,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .tint(EasePalette.accent)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .accessibilityElement(children: .combine)
     }
 
-    private func fieldCard(
-        title: LocalizedStringKey,
-        placeholder: LocalizedStringKey,
-        unit: LocalizedStringKey,
-        text: Binding<String>,
-        field: WorkoutSheetField,
-        keyboard: UIKeyboardType
-    ) -> some View {
+    private var heroKcalCard: some View {
+        EaseCard(radius: 20, padding: 22) {
+            VStack(spacing: 14) {
+                HStack(spacing: 8) {
+                    TrendModuleGlyph(systemName: "flame.fill", tint: EasePalette.iconEnergy)
+                    Text("workout.kcal")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(EasePalette.primaryText)
+                    Spacer(minLength: 0)
+                }
+
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Spacer(minLength: 0)
+                    TextField("workout.kcal.placeholder", text: $kcalText)
+                        .focused($focusedField, equals: .kcal)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.center)
+                        .font(.system(size: 52, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.primary)
+                        .minimumScaleFactor(0.45)
+                        .frame(maxWidth: 220)
+                    Text("unit.kcal")
+                        .font(.title3.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 6)
+                    Spacer(minLength: 0)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(Text("workout.kcal"))
+            }
+        }
+    }
+
+    private var durationCard: some View {
         EaseCard(radius: 16, padding: 14) {
             HStack(spacing: 12) {
-                Text(title)
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(EasePalette.primaryText)
-                    .lineLimit(1)
+                TrendModuleGlyph(systemName: "clock", tint: EasePalette.iconEnergy)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("workout.duration")
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(EasePalette.primaryText)
+                        .lineLimit(1)
+                    Text("workout.duration.placeholder")
+                        .font(.caption)
+                        .foregroundStyle(EasePalette.secondaryText)
+                }
+
                 Spacer(minLength: 8)
+
                 HStack(spacing: 6) {
-                    TextField(placeholder, text: text)
-                        .focused($focusedField, equals: field)
-                        .keyboardType(keyboard)
+                    TextField("workout.duration.placeholder", text: $durationText)
+                        .focused($focusedField, equals: .duration)
+                        .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .font(.body.weight(.semibold).monospacedDigit())
                         .foregroundStyle(.primary)
-                        .frame(minWidth: 64, maxWidth: 88)
+                        .frame(minWidth: 52, maxWidth: 72)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 8)
                         .background(
                             EasePalette.recessed,
                             in: RoundedRectangle(cornerRadius: 10, style: .continuous)
                         )
-                    Text(unit)
+                    Text("unit.minutes")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize()
                 }
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(Text(title))
+            .accessibilityLabel(Text("workout.duration"))
         }
     }
 
     private func hydrateFromExisting() {
         let log = editingLog ?? loadEditingLog()
         if let log {
+            selectedDate = CalendarDay.startOfDay(log.timestamp)
             kcalText = String(Int(log.kcal.rounded()))
             durationText = log.durationMinutes.map(String.init) ?? ""
-        } else {
-            kcalText = ""
-            durationText = ""
         }
         errorKey = nil
     }

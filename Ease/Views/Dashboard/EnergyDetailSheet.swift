@@ -149,19 +149,27 @@ struct EnergyDetailSheet: View {
 
     private var workoutSection: some View {
         EaseCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("workout.section")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(EasePalette.primaryText)
-                Text("workout.caption")
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(EasePalette.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .top, spacing: 10) {
+                    TrendModuleGlyph(systemName: "figure.run", tint: EasePalette.iconEnergy)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("workout.section")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(EasePalette.primaryText)
+                        Text("workout.caption")
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundStyle(EasePalette.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
 
                 if dayWorkouts.isEmpty {
-                    Text("workout.empty")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(EasePalette.secondaryText)
+                    VStack(spacing: 8) {
+                        Text("workout.empty")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(EasePalette.secondaryText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 } else {
                     VStack(spacing: 8) {
                         ForEach(dayWorkouts, id: \.id) { log in
@@ -170,67 +178,83 @@ struct EnergyDetailSheet: View {
                     }
                 }
 
-                Button {
-                    editingWorkoutID = nil
-                    isWorkoutSheetPresented = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("workout.add")
-                            .font(.subheadline.weight(.semibold))
-                    }
-                    .foregroundStyle(EasePalette.primaryText)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 11)
-                    .background(
-                        EasePalette.recessed,
-                        in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    )
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("workout.add"))
+                addWorkoutButton
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
+    private var addWorkoutButton: some View {
+        Button {
+            editingWorkoutID = nil
+            isWorkoutSheetPresented = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.system(size: 13, weight: .semibold))
+                Text("workout.add")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(EasePalette.iconEnergy)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(
+                        EasePalette.iconEnergy.opacity(0.28),
+                        style: StrokeStyle(lineWidth: 1, dash: dayWorkouts.isEmpty ? [5, 4] : [])
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("workout.add"))
+        .accessibilityHint(Text("log.date.hint"))
+    }
+
     private func workoutRow(_ log: WorkoutLog) -> some View {
-        HStack(spacing: 10) {
-            Button {
+        Button {
+            editingWorkoutID = log.id
+            isWorkoutSheetPresented = true
+        } label: {
+            HStack(spacing: 12) {
+                TrendModuleGlyph(systemName: "flame.fill", tint: EasePalette.iconEnergy)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(EaseFormatters.kcal(log.kcal))
+                        .font(.body.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(EasePalette.primaryText)
+                    HStack(spacing: 6) {
+                        if let minutes = log.durationMinutes {
+                            Text(EaseFormatters.minutes(minutes))
+                            Text("·")
+                        }
+                        Text(log.timestamp, format: EaseDateFormat.hourMinute)
+                    }
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(EasePalette.secondaryText)
+                    .lineLimit(1)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(EasePalette.recessed, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .easeRecordContextMenu(
+            onEdit: {
                 editingWorkoutID = log.id
                 isWorkoutSheetPresented = true
-            } label: {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(EaseFormatters.kcal(log.kcal))
-                        .font(.body.monospacedDigit())
-                        .foregroundStyle(EasePalette.primaryText)
-                    if let minutes = log.durationMinutes {
-                        Text("·")
-                            .foregroundStyle(EasePalette.secondaryText)
-                        Text(EaseFormatters.minutes(minutes))
-                            .font(.subheadline.monospacedDigit())
-                            .foregroundStyle(EasePalette.secondaryText)
-                    }
-                    Spacer(minLength: 0)
-                }
-            }
-            .buttonStyle(.plain)
-
-            Button {
+            },
+            onDelete: {
                 try? WorkoutLogRepository(context: modelContext).delete(log)
-            } label: {
-                Image(systemName: "trash")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(EasePalette.secondaryText)
-                    .frame(width: 28, height: 28)
-                    .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("log.delete"))
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(EasePalette.recessed, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text("a11y.record.hint"))
     }
 }
