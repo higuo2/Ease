@@ -173,10 +173,6 @@ struct MonthlyOverviewCard: View {
     }
 
     var body: some View {
-        let weekAverageWeight = WeekWeightStats.averageWeight(
-            weightIndex: WeightMetrics.DayIndex(lastWeightByDay: snapshot.lastWeightByDay),
-            weekContaining: viewModel.selectedDate
-        )
         let stats = snapshot.stats
         let logProgress = stats.elapsedDays > 0
             ? Double(stats.checkinDays) / Double(stats.elapsedDays)
@@ -190,7 +186,7 @@ struct MonthlyOverviewCard: View {
 
                 HStack(alignment: .center, spacing: Layout.middleColumnSpacing) {
                     netChangeColumn(delta: stats.monthDelta)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .center)
                     logProgressColumn(
                         progress: logProgress,
                         checkins: stats.checkinDays,
@@ -198,11 +194,6 @@ struct MonthlyOverviewCard: View {
                     )
                     .frame(maxWidth: .infinity)
                 }
-
-                averagesFooter(
-                    monthAverage: stats.averageWeight.map { EaseFormatters.kg($0) },
-                    weekAverage: weekAverageWeight.map { EaseFormatters.kg($0) }
-                )
 
                 if snapshot.workoutStats.days > 0 {
                     workoutOverview(snapshot.workoutStats)
@@ -319,19 +310,6 @@ struct MonthlyOverviewCard: View {
             in: RoundedRectangle(cornerRadius: 12, style: .continuous)
         )
         .accessibilityElement(children: .combine)
-    }
-
-    private func averagesFooter(monthAverage: String?, weekAverage: String?) -> some View {
-        HStack(alignment: .top, spacing: Layout.footerColumnSpacing) {
-            averageFooterCell(title: "calendar.stat.monthAvg", value: monthAverage)
-            averageFooterCell(title: "calendar.stat.weekAvg", value: weekAverage)
-        }
-        .padding(.horizontal, Layout.footerInsetH)
-        .padding(.vertical, Layout.footerInsetV)
-        .background(
-            Color(uiColor: .secondarySystemFill),
-            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-        )
     }
 
     private func averageFooterCell(title: LocalizedStringKey, value: String?) -> some View {

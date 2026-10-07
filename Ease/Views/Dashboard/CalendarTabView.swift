@@ -448,7 +448,6 @@ struct MonthWeightStats: Equatable, Sendable {
     var gainDays: Int
     var averageDelta: Double?
     var monthDelta: Double?
-    var averageWeight: Double?
 
     static func make(
         weightIndex: WeightMetrics.DayIndex,
@@ -461,7 +460,6 @@ struct MonthWeightStats: Equatable, Sendable {
         var loss = 0
         var gain = 0
         var deltas: [Double] = []
-        var weights: [Double] = []
         var firstWeight: Double?
         var lastWeight: Double?
 
@@ -470,7 +468,6 @@ struct MonthWeightStats: Equatable, Sendable {
                 continue
             }
             checkins += 1
-            weights.append(weight)
             if firstWeight == nil { firstWeight = weight }
             lastWeight = weight
             if let delta = weightIndex.delta(on: day, calendar: calendar) {
@@ -489,18 +486,13 @@ struct MonthWeightStats: Equatable, Sendable {
         } else {
             monthDelta = nil
         }
-        let averageWeight = weights.isEmpty
-            ? nil
-            : MeasurementBounds.roundedToTenth(weights.reduce(0, +) / Double(weights.count))
-
         return MonthWeightStats(
             checkinDays: checkins,
             elapsedDays: days.count,
             lossDays: loss,
             gainDays: gain,
             averageDelta: average,
-            monthDelta: monthDelta,
-            averageWeight: averageWeight
+            monthDelta: monthDelta
         )
     }
 }
@@ -571,16 +563,4 @@ struct MonthWorkoutStats: Equatable, Sendable {
     }
 }
 
-enum WeekWeightStats {
-    static func averageWeight(
-        weightIndex: WeightMetrics.DayIndex,
-        weekContaining date: Date,
-        calendar: Calendar = .current
-    ) -> Double? {
-        let days = CalendarDay.weekDates(containing: date, calendar: calendar)
-            .filter { !CalendarDay.isFuture($0, calendar: calendar) }
-        let weights = days.compactMap { weightIndex.weight(on: $0, calendar: calendar) }
-        guard !weights.isEmpty else { return nil }
-        return MeasurementBounds.roundedToTenth(weights.reduce(0, +) / Double(weights.count))
-    }
-}
+// Calendar Overview no longer shows month/week weight averages — Trend owns that.

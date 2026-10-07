@@ -1437,22 +1437,6 @@
         }
       }
     },
-    "calendar.stat.monthAvg" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Month avg"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "月均"
-          }
-        }
-      }
-    },
     "calendar.stat.monthDelta" : {
       "localizations" : {
         "en" : {
@@ -1465,22 +1449,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "净变化"
-          }
-        }
-      }
-    },
-    "calendar.stat.weekAvg" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Week avg"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "周均"
           }
         }
       }
