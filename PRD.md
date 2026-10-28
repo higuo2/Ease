@@ -58,7 +58,7 @@
 * **CSV**：Export / Import 各占一行，不要在 Import 文字上叠 `(i)`。页脚说明一次一个文件：`ease-export.csv`（体重/饮食列）或 `ease-metrics.csv`（围度），表头须完全一致。
 * **清除全部数据**：须**两次确认**（先确认对话框「继续」，再 alert 最终清除）；清除后回到 Onboarding。
 
-Tab 主界面 `@Query` 窗口（`MainTabView`）：`DailyRecord` 近 **180** 天，`WeightLog` 与 `MetricLog` 近 **365** 天，仅已启用的 `MetricDefinition`。设置 CSV 导出/导入走完整仓库 fetch，避免窗口截断备份。
+Tab 主界面 `@Query` 窗口（`MainTabView`）：`DailyRecord` 近 **180** 天，`WeightLog`、`MetricLog` 与 `WorkoutLog` 近 **365** 天，仅已启用的 `MetricDefinition`。设置 CSV 导出/导入走完整仓库 fetch，避免窗口截断备份。`WorkoutLog` 不进 CSV。
 
 ### 2.5 录入表单 (Log Sheets)
 实现文件：**`LogSheetView.swift`**（体重 Sheet）。
@@ -112,7 +112,7 @@ Tab 主界面 `@Query` 窗口（`MainTabView`）：`DailyRecord` 近 **180** 天
 * 手动 `period` 标签可与 HK 当天合并去重用于展示；**预测只用 HealthKit 历史**，不用手动标签反推。
 
 ### 2.10 活动消耗详情 (Energy Detail Sheet)
-入口：首页消耗方块。HealthKit Active Energy 只读；展示当日值、近窗柱状图（带轴）、近期列表与平均。若引擎产出消耗相关对照，底部可附 **1** 条交叉事实。**不设热量目标、不据此给饮食建议。**
+入口：首页消耗方块。HealthKit Active Energy 只读；展示当日值、近窗柱状图（带轴）、近期列表与平均。同一 Sheet 里可手记 `WorkoutLog`（当天可多条：kcal、可选时长），日历格用锻炼色点标出有记录的日子。若引擎产出消耗或锻炼相关对照，底部可各附 **1** 条交叉事实。**不设热量目标、不据此给饮食建议。**
 
 ### 2.11 BMI 详情 (BMI Detail Sheet)
 入口：体重 Tab 的 BMI 方块。只读，不打开体重录入。当前 BMI 大数字 + **灰色**档名胶囊；安静莫兰迪分段条（偏瘦 / 正常 / 超重 / 肥胖）带指针。顶部 CN | WHO 分段切换只影响本 Sheet 的条带、档名和理想体重区间，**不改首页格**（首页永远中国成人切点）。身高 / 体重 / 年龄 / 性别做成 2×2 只读格。底部一张理想体重卡。公式、免责声明、未满 18 / 未填生日脚注放进 `info.circle`。未满 18 仍显示数字，档名为「未评价」，不套成人切点、不画指针。禁止绿黄红交通灯和彩色诊断 chip。
@@ -180,7 +180,12 @@ Tab 主界面 `@Query` 窗口（`MainTabView`）：`DailyRecord` 近 **180** 天
 ### 3.6 删除
 * 删一条 `WeightLog`：只删该次称重。
 * 删一日 `DailyRecord`：只删饮食/标签/备注，不动体重。
-* 设置「清除全部数据」：删除全部 `DailyRecord`、`WeightLog`、`MetricDefinition` / `MetricLog`，重置 `UserProfile`，回到 Onboarding。须两次确认。
+* 设置「清除全部数据」：删除全部 `DailyRecord`、`WeightLog`、`WorkoutLog`、`MetricDefinition` / `MetricLog`，重置 `UserProfile`，回到 Onboarding。须两次确认。
+
+### 3.7 `WorkoutLog`
+* 一次锻炼一条：`id`、`timestamp`、`kcal`、可选 `durationMinutes`、`updatedAt`。同一天可以有多条。无 Unique Constraint，不与 `DailyRecord` 建 `@Relationship`。
+* 只从消耗详情 Sheet 写入。不从 HealthKit 导入，不进 CSV。
+* 日历格有记录则加锻炼色点。Weight Forecast 用近窗锻炼天数做轻度乘数；Lifestyle Insights 可对照锻炼日与体重。
 
 不要在 `DailyRecord` ↔ `WeightLog` 之间建 CloudKit 同步的 `@Relationship`。用 `timestamp` 归入本地日历日查询。`WeightLog` 禁止 Unique Constraint。
 
@@ -213,7 +218,7 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 
 ## 7. 国际化、同步与数据安全 (Localization, Sync & Security)
 * **多语言**：简体中文与英文；`String Catalog` (.xcstrings)；跟随系统；无应用内切换。界面文案禁止用间隔号「·」做并列（易像生成文本）；用逗号、顿号或拆成两句。
-* **隐私**：无第三方服务器、无 Analytics。SwiftData 本地为主；CloudKit 仅同步到用户个人 iCloud。无网时本地照常读写，联网后静默合。
+* **隐私**：无第三方服务器、无 Analytics。数据在本机 SwiftData。启动仍会先尝试用户个人 iCloud（CloudKit）；当前 `Ease.entitlements` 只有 HealthKit，云容器打不开时改用本机库，联网也不会同步。Schema 仍按 CloudKit 约束保留字段（见 §3），以便以后补上 iCloud 权限。
 * **冲突**：
     * `DailyRecord`：同一 `dayKey` 保留 `updatedAt` 较新者。
     * `WeightLog`：同一 `id` 保留 `updatedAt` 较新者。同一天多条是合法数据，不得按日期去重成一条。
@@ -294,10 +299,10 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 * **禁止（仅对本层）**：写成「你将成功 / 落后计划」；用热量缺口反推；用睡眠/经期/消耗修正斜率；写成「还有 N 天」。
 
 #### 8.3.B Weight Forecast（仅趋势 Tab）
-* 在 8.3.A 同一套均线 + MAD + OLS 得到基础斜率后，用近期窗口内的睡眠（相对睡眠目标）、活动消耗（相对中位数）、经期日占比做**轻度乘数**（大致范围约 0.88…1.08），得到调整斜率，再推剩余天数与日期。
+* 在 8.3.A 同一套均线 + MAD + OLS 得到基础斜率后，用近期窗口内的睡眠（相对睡眠目标）、活动消耗（相对中位数）、经期日占比、锻炼天数做**轻度乘数**（大致范围约 0.88…1.08），得到调整斜率，再推剩余天数与日期。
 * 仍遵守同一隐藏护栏与 730 天上限。内部仍算精确 `eta` / `daysRemaining`（测试与隐藏条件用），UI **不**把天数或具体日号当主数字。
 * **文案**：主行与 8.3.A 同一套旬桶（如「预计 10 月中旬」）；因子读数放在详情 Sheet。冷淡事实语气，不写激励或医疗结论。UI 标题 **Weight Forecast** / 体重预测。
-* **交互**：趋势卡上只有一行可点（左标签、右旬区间、chevron）；无行内填色。详情 Sheet 展示旬区间 hero + 睡眠 / 消耗 / 经期 / 斜率。
+* **交互**：趋势卡上只有一行可点（左标签、右旬区间、chevron）；无行内填色。详情 Sheet 展示旬区间 hero + 睡眠 / 消耗 / 经期 / 锻炼天数 / 斜率。
 * **禁止**：与 8.3.A 合成一句；把消耗写成卡路里缺口目标；经期周期预测文案与本估算混排；大号倒计时天数。
 
 ### 8.4 自定义提醒时刻
@@ -311,7 +316,7 @@ HealthKit Reader 不写 SwiftData。首页可用按日快照；详情页用更�
 ### 8.5 交叉对照（Health Insights）
 目标：用已经在读的 HealthKit 序列对照体重，讲关联不讲故事。不是第二个健康 App，不是 XML 导出分析器。
 
-* **数据**：只读现有序列——按日最后一次 `WeightLog`、asleep 时长、Active Energy、经期日。HealthKit Reader 仍不写 SwiftData；洞察是派生结果，不进 CloudKit。
+* **数据**：只读现有序列——按日最后一次 `WeightLog`、asleep 时长、Active Energy、经期日，以及手记的 `WorkoutLog`。HealthKit Reader 仍不写 SwiftData；洞察是派生结果，不进 CloudKit。
 * **入口**：趋势 Tab，Weight Forecast 卡下方，标题 **Lifestyle Insights** / 生活方式洞察。睡眠 / 消耗详情 Sheet 最多各附 1 条本指标相关事实（`HealthInsightNoteCard`，与趋势主卡行样式不同）。首页方块、日历格、设置 **不加** 洞察卡。
 * **窗口**：近 **90** 个日历日。体重日变化只计**相邻日历日**都有 last-per-day 体重的配对。
 * **候选（模板化文案，禁止现场编原因）**：

@@ -12,7 +12,7 @@
 |---|---|
 | **体重** | 大号当前体重、阶段目标卡（16pt 线性进度）、可配置莫兰迪方块（BMI / 围度 / 体重，可选睡眠、经期、消耗）、近 30 天体重列表（全宽 ScrollView） |
 | **趋势** | 7 / 30 / 90 / 全部折线、区间统计、**Weight Forecast**（旬区间 + 详情 Sheet）、**Lifestyle Insights**（最多 3 条交叉对照 + 详情 Sheet） |
-| **日历** | 月历（日号 + 体重 + 体重/经期/睡眠色点）、选中日 **Daily Snapshot**（体重 / 睡眠 / 消耗 / 经期莫兰迪格）、**Overview**（净变化 + 打卡圆环 + 月均/周均 footer） |
+| **日历** | 月历（日号 + 体重 + 体重/经期/睡眠/锻炼色点）、选中日 **Daily Snapshot**（体重 / 睡眠 / 消耗 / 经期莫兰迪格）、**Overview**（净变化 + 打卡圆环 + 月均/周均 footer） |
 | **设置** | 档案（含生日/性别/睡眠目标）、提醒、首页模块、围度开关（五条核心 + 更多）、CSV 导入导出、清数据 |
 
 录入拆成独立 Sheet：**体重**（`LogSheetView`：导航栏 Save/关闭、相册识图 OCR）、**围度**（`MetricSheet`：Core/Limbs/Other + 解剖排序 + 统一指标图标）。一天可以有多条体重。睡眠、经期、消耗只读 HealthKit，不从 CSV 导入。饮食 / 标签 / 备注 / 餐图只留在 SwiftData 与 CSV 列里，界面不再录入。
@@ -24,24 +24,30 @@
 ## 技术栈
 
 - iOS 18+，SwiftUI，MVVM（`@Observable`）
-- SwiftData + CloudKit（本地优先，多设备同步）
+- SwiftData，本地优先。启动时会先试 CloudKit；当前 `Ease.entitlements` 只有 HealthKit，云库打不开就改存本机，所以现在不会同步到 iCloud
 - HealthKit、UserNotifications、Vision（体重秤 OCR）、Swift Charts
 - Bundle ID：`com.higuo2.Ease`
 
 体重写在 `WeightLog`；`DailyRecord` 每个日历日至多一条（legacy 体重快照 + 日记列保留）；围度是 `MetricDefinition` + `MetricLog`。模型之间不用 CloudKit `@Relationship`。
 
-Tab 主查询窗口：`DailyRecord` 近 180 天，`WeightLog` / `MetricLog` 近 365 天。设置里 CSV 导出/导入用完整 `FetchDescriptor`，不受该窗口截断。
+Tab 主查询窗口：`DailyRecord` 近 180 天，`WeightLog` / `MetricLog` / `WorkoutLog` 近 365 天。设置里 CSV 导出/导入用完整 `FetchDescriptor`，不受该窗口截断。锻炼记录不进 CSV，在消耗详情里手记（kcal、时长）。
 
 ## 在 Xcode 里跑
 
-需要一台 Mac，Xcode 16+，真机或 iOS 18 模拟器。
+需要一台 Mac，Xcode 26（工程按 26.6 升级过）。部署目标仍是 iOS 18+。CI 用的模拟器是 iPhone 17、iOS 26.5。
 
 ```bash
 git clone https://github.com/higuo2/Ease.git
 open Ease.xcodeproj
 ```
 
-选 **Ease** scheme，签好自己的 Team（HealthKit / CloudKit / 通知需要）。跑测试：`Cmd+U`（`EaseTests`，内存 SwiftData，日历钉在 `Asia/Hong_Kong`）。Windows 上不能 `xcodebuild`。
+选 **Ease** scheme，签名需要 HealthKit。跑测试：`Cmd+U`（`EaseTests`，内存 SwiftData，日历钉在 `Asia/Hong_Kong`）。Windows 上不能 `xcodebuild`。
+
+## 持续集成
+
+`.github/workflows/ci.yml`：push 到 `main`，或打开 pull request 时，在 `macos-26` 上用 iPhone 17 / iOS 26.5 跑 `EaseTests`。
+
+`.github/workflows/cd.yml`：只有推送 `v*` 标签，或在 Actions 里手动运行，才会签名打包并上传 TestFlight。需要付费的 Apple Developer 会员，以及三个 GitHub secret：`APPSTORE_API_KEY_ID`、`APPSTORE_API_ISSUER_ID`、`APPSTORE_API_KEY_P8`。不会自动提交 App Store 审核。没配密钥时这一步马上失败，不影响上面的测试。
 
 ## CSV
 
@@ -55,12 +61,13 @@ open Ease.xcodeproj
 ## 目录
 
 ```
-Ease/          App 源码（Models / Data / Views）
-EaseTests/     单元测试
-Import/        样例 CSV
-PRD.md         产品规格（与当前 UI 一致）
-AGENT.md       设计系统与实现约束
-UX.md          体感：当前已落地与明确不做
+Ease/                 App 源码（Models / Data / Views）
+EaseTests/            单元测试
+.github/workflows/    ci.yml 测试，cd.yml TestFlight
+Import/               样例 CSV
+PRD.md                产品规格（与当前 UI 一致）
+AGENT.md              设计系统与实现约束
+UX.md                 体感：当前已落地与明确不做
 ```
 
 ## 明确不做

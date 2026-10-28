@@ -12,7 +12,7 @@ Weight / Trend / Calendar / Settings 共用 `EaseLayout`：左右 16pt、块间�
 
 **Weight Tab 滚动**：主内容用 **edge-to-edge `ScrollView`**，水平 16pt 只加在内部 `easeTabScrollContent()`，勿给 `ScrollView` 包 horizontal padding（滚动条贴右缘）。
 
-**主查询窗口**（`MainTabView`）：`DailyRecord` 180 天，`WeightLog` / `MetricLog` 365 天。设置 CSV 用完整 fetch，不要用 Tab 窗口截断导出。
+**主查询窗口**（`MainTabView`）：`DailyRecord` 180 天，`WeightLog` / `MetricLog` / `WorkoutLog` 365 天。设置 CSV 用完整 fetch，不要用 Tab 窗口截断导出。`WorkoutLog` 不进 CSV。
 
 ### 2. 触觉（确认，不是庆祝）
 
@@ -77,7 +77,7 @@ Sleep / Energy 日柱与 Cycle 时间轴：横向 `chartScrollableAxes`，约 7 
 ### 10. 日历（当前 UI）
 
 * 月份选择器在 **ScrollView 内容顶部**（`CalendarMonthHeader`），奶油底，不是 `safeAreaInset` 钉栏。不可翻到未来月。
-* 月历格：日号 + 色点（体重 / 经期 / 睡眠）+ 体重数字。**格内无涨跌。** 动态字号格子约 64 / 92pt。
+* 月历格：日号 + 色点（体重 / 经期 / 睡眠 / 锻炼）+ 体重数字。**格内无涨跌。** 动态字号格子约 64 / 92pt。
 * 今天未选中：`EasePalette.accent.opacity(0.12)` 日号圆填；选中：1.5pt 珊瑚细环。不是白字实心红圆。
 * 点格只选中日期。选中日后的 **Daily Snapshot** 点整卡打开体重 Sheet；无记录则虚线 CTA。消耗格图标 `flame.fill`，填色 `HomeModule.energy.fill`。
 * **Overview**：等宽两列净变化 + Logged days 圆环；footer 月均 / 周均（`secondarySystemFill`，无垂直 `Divider`）。标签 `.caption` + `primary.opacity(0.8)`；净变化 / 圆环数字 rounded title2 bold。**不要**改回「月均+净变化 / 四列打卡减重增重」。

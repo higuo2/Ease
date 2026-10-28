@@ -7,11 +7,12 @@ You must strictly follow the Design System defined below. DO NOT use default Swi
 - Frameworks: SwiftUI, HealthKit, SwiftData, Swift Charts, Vision, UserNotifications.
 - Architecture: MVVM with `@Observable` macro.
 - Platform: iOS 18+, Light Mode ONLY. Units are kg / cm. No in-app language or unit toggle.
-- Local First: SwiftData + CloudKit.
+- Local First: SwiftData. `EaseModelContainer.make()` tries CloudKit, then a local store. `Ease.entitlements` currently has HealthKit only, so the cloud open fails and data stays on device. Keep the CloudKit-safe schema rules below so a later iCloud entitlement does not require a migration.
 - Two models, split by duty:
   - Exactly one `DailyRecord` per local calendar day. Keep `dietStatus`, `tags`, `note`, meal filenames, and `extraMealsJSON` on the schema forever. The UI no longer reads or writes them (CSV import still may).
   - **Keep** `DailyRecord.weight` and `DailyRecord.bodyFat` on the SwiftData schema as `Double?` forever (CloudKit). Never delete these properties, never change them to non-optional, never assign `nil` just to “clean up”. Treat them as legacy read-only snapshots. After v1.1, new weigh-ins never write these fields.
   - `WeightLog`: one row per weigh-in (`id`, `timestamp`, `weight`, `bodyFat?`). Many per day. Insert on save; do not overwrite the day's other logs. No Unique Constraint. No CloudKit `@Relationship` to `DailyRecord`. Runtime source of truth for weight.
+  - `WorkoutLog`: one row per logged workout (`id`, `timestamp`, `kcal`, `durationMinutes?`). Many per day. Written only from the energy detail sheet. Not in CSV. No Unique Constraint. No CloudKit `@Relationship`. Calendar marks the day; Weight Forecast and Lifestyle Insights may read it.
   - Startup migrator (idempotent, `UserProfile.hasMigratedWeightLogs`): copy each `DailyRecord` that still has `weight` into a `WeightLog` only if that `dayKey` has no `WeightLog` yet. Leave the old optional fields populated.
 - CloudKit conflicts: same `DailyRecord.dayKey` or same `WeightLog.id` → keep the newer `updatedAt`. Multiple `WeightLog`s on one day are valid — never collapse them by date.
   - Meal photos: JPEG files live in Documents; `DailyRecord` stores filenames only. Keep unused legacy `breakfastPhotoData` / `lunchPhotoData` / `dinnerPhotoData` (`@Attribute(.externalStorage)`) on the schema forever if they ever shipped — never delete CloudKit attributes. Keep `breakfastPhotoFileName` / `lunchPhotoFileName` / `dinnerPhotoFileName` and `extraMealsJSON`. **No meal carousel, camera, or cutout UI.** On-device cutout sidecars may still exist from older builds; `resetAll` still clears them.
