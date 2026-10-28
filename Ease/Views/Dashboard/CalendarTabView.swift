@@ -371,7 +371,7 @@ struct CalendarMonthSnapshot: Equatable, Sendable {
         now: Date
     ) -> CalendarDaySnapshot {
         let key = CalendarDay.dayKey(from: day, calendar: calendar)
-        let isFuture = CalendarDay.isFuture(day, calendar: calendar)
+        let isFuture = CalendarDay.isFuture(day, now: now, calendar: calendar)
         let weight = weightIndex.weight(on: day, calendar: calendar)
         let sleep = healthByDay[key]?.previousNightSleepHours ?? sleepHistory.hours(on: day, calendar: calendar)
         var marks: CalendarDayMarks = []
