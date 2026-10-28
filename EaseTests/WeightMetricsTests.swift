@@ -361,3 +361,57 @@ final class WeightMetricsTests: EaseStoreTestCase {
         XCTAssertNil(index.weight(on: calendar.testDate(2026, 8, 11), calendar: calendar))
     }
 }
+
+final class TrendChartModelTests: XCTestCase {
+    private let calendar = EaseTestCalendar.make()
+
+    func test_7日窗口_同日只留最后一次_有log则忽略legacy_窗口外不进点() {
+        let now = calendar.testDate(2026, 8, 20, hour: 18)
+        let legacyInRange = DailyRecord(date: calendar.testDate(2026, 8, 15), calendar: calendar)
+        legacyInRange.weight = 71
+        let legacySameDay = DailyRecord(date: calendar.testDate(2026, 8, 20), calendar: calendar)
+        legacySameDay.weight = 10
+        let logs = [
+            WeightLog(timestamp: calendar.testDate(2026, 8, 13, hour: 21), weight: 80),
+            WeightLog(timestamp: calendar.testDate(2026, 8, 14, hour: 8), weight: 72),
+            WeightLog(timestamp: calendar.testDate(2026, 8, 20, hour: 8), weight: 73),
+            WeightLog(timestamp: calendar.testDate(2026, 8, 20, hour: 21), weight: 70)
+        ]
+        let model = TrendChartModel.make(
+            records: [legacyInRange, legacySameDay],
+            logs: logs,
+            range: .days7,
+            targetWeight: 60,
+            now: now,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(model.rangeStart, calendar.testDate(2026, 8, 14, hour: 0))
+        XCTAssertEqual(model.rangeEnd, calendar.testDate(2026, 8, 20, hour: 0))
+        XCTAssertEqual(model.points.map(\.weight), [72, 71, 73, 70])
+        XCTAssertEqual(model.daily.map(\.weight), [72, 71, 70])
+        XCTAssertEqual(model.dailyPoint(on: now, calendar: calendar)?.weight, 70)
+        XCTAssertEqual(model.nearestLog(to: now, calendar: calendar)?.weight, 70)
+        XCTAssertNil(model.nearestLog(to: calendar.testDate(2026, 8, 16), calendar: calendar))
+
+        let stats = TrendRangeStats.make(daily: model.daily, range: .days7, targetWeight: 60)
+        XCTAssertEqual(stats.high, 72)
+        XCTAssertEqual(stats.low, 70)
+        XCTAssertEqual(stats.average, 71)
+        XCTAssertEqual(stats.change, -2)
+        XCTAssertEqual(stats.distanceToTarget, 10)
+        XCTAssertEqual(stats.recordedDays, 3)
+        XCTAssertNotNil(stats.averageCaption)
+    }
+
+    func test_区间统计_没有日点时全部为空_目标为0不算距离() {
+        let stats = TrendRangeStats.make(daily: [], range: .all, targetWeight: 0)
+        XCTAssertNil(stats.high)
+        XCTAssertNil(stats.low)
+        XCTAssertNil(stats.average)
+        XCTAssertNil(stats.averageCaption)
+        XCTAssertNil(stats.change)
+        XCTAssertNil(stats.distanceToTarget)
+        XCTAssertNil(stats.recordedDays)
+    }
+}

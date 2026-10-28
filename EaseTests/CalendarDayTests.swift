@@ -109,3 +109,128 @@ final class MonthWorkoutStatsTests: XCTestCase {
         XCTAssertEqual(stats, .empty)
     }
 }
+
+final class MonthWeightStatsTests: XCTestCase {
+    private let calendar = EaseTestCalendar.make()
+
+    func test_月内首尾差_涨跌只计相邻两天_同日取最后一次() {
+        let records = [
+            daily(2026, 8, 3, weight: 10),
+            daily(2026, 8, 5, weight: 68.2)
+        ]
+        let logs = [
+            WeightLog(timestamp: calendar.testDate(2026, 8, 1, hour: 8), weight: 70.0),
+            WeightLog(timestamp: calendar.testDate(2026, 8, 2, hour: 8), weight: 69.5),
+            WeightLog(timestamp: calendar.testDate(2026, 8, 3, hour: 8), weight: 80.0),
+            WeightLog(timestamp: calendar.testDate(2026, 8, 3, hour: 20), weight: 69.8),
+            WeightLog(timestamp: calendar.testDate(2026, 8, 10, hour: 8), weight: 69.0)
+        ]
+        let stats = MonthWeightStats.make(
+            weightIndex: WeightMetrics.DayIndex.make(records: records, logs: logs, calendar: calendar),
+            monthContaining: calendar.testDate(2026, 8, 1),
+            calendar: calendar
+        )
+        XCTAssertEqual(stats.checkinDays, 5)
+        XCTAssertEqual(stats.elapsedDays, 31)
+        XCTAssertEqual(stats.lossDays, 1)
+        XCTAssertEqual(stats.gainDays, 1)
+        XCTAssertEqual(stats.averageDelta, -0.1)
+        XCTAssertEqual(stats.monthDelta, -1.0)
+    }
+
+    func test_未来日不计入打卡和月差() {
+        let today = CalendarDay.startOfDay(.now, calendar: calendar)
+        let tomorrow = CalendarDay.addingDays(1, to: today, calendar: calendar)
+        let logs = [
+            WeightLog(timestamp: calendar.date(bySettingHour: 8, minute: 0, second: 0, of: today)!, weight: 70),
+            WeightLog(timestamp: calendar.date(bySettingHour: 8, minute: 0, second: 0, of: tomorrow)!, weight: 50)
+        ]
+        let stats = MonthWeightStats.make(
+            weightIndex: WeightMetrics.DayIndex.make(records: [], logs: logs, calendar: calendar),
+            monthContaining: today,
+            calendar: calendar
+        )
+        XCTAssertEqual(stats.checkinDays, 1)
+        XCTAssertEqual(stats.monthDelta, 0)
+    }
+
+    private func daily(_ year: Int, _ month: Int, _ day: Int, weight: Double) -> DailyRecord {
+        let record = DailyRecord(date: calendar.testDate(year, month, day), calendar: calendar)
+        record.weight = weight
+        return record
+    }
+}
+
+final class CalendarMonthSnapshotTests: XCTestCase {
+    private let calendar = EaseTestCalendar.make()
+
+    func test_格子标记_健康睡眠优先于睡眠史_空白备注不算记录() {
+        let now = calendar.testDate(2026, 8, 20, hour: 12)
+        let noted = DailyRecord(date: calendar.testDate(2026, 8, 10), calendar: calendar)
+        noted.note = "  hello  "
+        noted.variableTags = [.period]
+        let logs = [WeightLog(timestamp: calendar.testDate(2026, 8, 10, hour: 8), weight: 69.0)]
+        let workouts = [WorkoutLog(timestamp: calendar.testDate(2026, 8, 12, hour: 8), kcal: 200)]
+        let snapshot = CalendarMonthSnapshot.make(
+            records: [noted],
+            logs: logs,
+            visibleMonth: calendar.testDate(2026, 8, 15),
+            healthByDay: [
+                "2026-08-10": HealthDaySnapshot(
+                    dayKey: "2026-08-10",
+                    activeEnergyKcal: 320,
+                    previousNightSleepHours: 6.5
+                )
+            ],
+            sleepHistory: SleepHistory.make(
+                hoursByDay: ["2026-08-10": 9.0, "2026-08-11": 8.0],
+                nights: 31,
+                endingOn: now,
+                calendar: calendar
+            ),
+            cycleHistory: CycleMetrics.make(
+                periodDayKeys: ["2026-08-11"],
+                endingOn: now,
+                calendar: calendar
+            ),
+            workoutLogs: workouts,
+            calendar: calendar,
+            now: now
+        )
+
+        XCTAssertEqual(snapshot.days.count, 31)
+        XCTAssertEqual(
+            snapshot.leadingEmpty,
+            CalendarDay.leadingEmptyDays(inMonthContaining: now, calendar: calendar)
+        )
+
+        let tenth = snapshot.day(for: calendar.testDate(2026, 8, 10), calendar: calendar)
+        XCTAssertEqual(tenth?.weight, 69)
+        XCTAssertEqual(tenth?.sleepHours, 6.5)
+        XCTAssertEqual(tenth?.activeEnergyKcal, 320)
+        XCTAssertEqual(tenth?.note, "hello")
+        XCTAssertNil(tenth?.periodDayNumber)
+        XCTAssertEqual(tenth?.marks, [.weight, .period, .sleep])
+        XCTAssertEqual(tenth?.hasLogs, true)
+
+        let eleventh = snapshot.day(for: calendar.testDate(2026, 8, 11), calendar: calendar)
+        XCTAssertEqual(eleventh?.sleepHours, 8)
+        XCTAssertEqual(eleventh?.marks, .sleep.union(.period))
+        XCTAssertEqual(eleventh?.periodDayNumber, 1)
+        XCTAssertNil(eleventh?.note)
+
+        let twelfth = snapshot.day(for: calendar.testDate(2026, 8, 12), calendar: calendar)
+        XCTAssertEqual(twelfth?.marks, .workout)
+        XCTAssertTrue(twelfth?.hasLogs == true)
+
+        let empty = snapshot.day(for: calendar.testDate(2026, 8, 4), calendar: calendar)
+        XCTAssertEqual(empty?.marks, [])
+        XCTAssertEqual(empty?.hasLogs, false)
+
+        let today = snapshot.day(for: now, calendar: calendar)
+        XCTAssertTrue(today?.isToday == true)
+        XCTAssertFalse(today?.isFuture == true)
+        let future = snapshot.day(for: calendar.testDate(2026, 8, 21), calendar: calendar)
+        XCTAssertTrue(future?.isFuture == true)
+    }
+}
