@@ -95,3 +95,27 @@ final class WeightLogRepositoryTests: EaseStoreTestCase {
         XCTAssertEqual(log.bodyFat, 18.3)
     }
 }
+
+final class WeightLogEntryTests: XCTestCase {
+    private let calendar = EaseTestCalendar.make()
+
+    func test_build_按时间倒序_涨跌相对上一条_有log的日子忽略legacy() {
+        let legacy = DailyRecord(date: calendar.testDate(2026, 8, 1), calendar: calendar)
+        legacy.weight = 70
+        let sameDayLegacy = DailyRecord(date: calendar.testDate(2026, 8, 2), calendar: calendar)
+        sameDayLegacy.weight = 10
+        let entries = WeightLogEntry.build(
+            records: [legacy, sameDayLegacy],
+            logs: [
+                WeightLog(timestamp: calendar.testDate(2026, 8, 2, hour: 21), weight: 69.9),
+                WeightLog(timestamp: calendar.testDate(2026, 8, 2, hour: 8), weight: 69.4)
+            ],
+            calendar: calendar
+        )
+        XCTAssertEqual(entries.map(\.weight), [69.9, 69.4, 70])
+        XCTAssertEqual(entries.map(\.delta), [0.5, -0.6, nil])
+        XCTAssertEqual(entries.map(\.isMorning), [false, true, true])
+        XCTAssertNotNil(entries[0].logID)
+        XCTAssertNil(entries[2].logID)
+    }
+}
