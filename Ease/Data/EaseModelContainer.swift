@@ -12,6 +12,12 @@ enum EaseModelContainer {
     ]
 
     static func make() -> ModelContainer {
+        // XCTest launches Ease as the host. The simulator sandbox rejects
+        // Application Support/default.store; tests open their own in-memory stores.
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            return preview()
+        }
+
         let schema = Schema(models)
 
         // Prefer CloudKit; fall back to local if the cloud config cannot open.
