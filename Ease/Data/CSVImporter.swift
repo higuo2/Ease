@@ -176,7 +176,7 @@ enum CSVImporter {
             return text
         }
         var end = data.count
-        while end > 0 {
+        while end > 1 {
             end -= 1
             if let text = String(data: data.prefix(end), encoding: .utf8) {
                 return text

@@ -8,7 +8,7 @@ final class CSVImporterTests: EaseStoreTestCase {
         let csv = """
         \(CSVImporter.journalHeader)
         2026-08-10,07:05,71.0,18.2,clean,period;travel,hello
-        2026-08-10,21:10,70.4,,,
+        2026-08-10,21:10,70.4,,,,
         2026-08-11,,,,cheat,bowel,diet only
         """
         let preview = try CSVImporter.preview(

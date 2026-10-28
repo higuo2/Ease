@@ -29,8 +29,8 @@ final class SleepHistoryTests: XCTestCase {
             endingOn: ending,
             calendar: calendar
         )
-        XCTAssertNil(history.ringProgress(targetHours: 8))
-        XCTAssertNil(history.lastNightHours)
+        XCTAssertNil(history.ringProgress(on: ending, targetHours: 8, calendar: calendar))
+        XCTAssertNil(history.hours(on: ending, calendar: calendar))
         XCTAssertEqual(history.hours(on: calendar.testDate(2026, 8, 19), calendar: calendar), 7.5)
     }
 
@@ -42,10 +42,9 @@ final class SleepHistoryTests: XCTestCase {
             endingOn: ending,
             calendar: calendar
         )
-        XCTAssertEqual(history.ringProgress(targetHours: 8), 1)
         XCTAssertEqual(history.ringProgress(on: ending, targetHours: 8, calendar: calendar), 1)
-        XCTAssertEqual(history.ringProgress(targetHours: 10), 1)
-        XCTAssertEqual(history.ringProgress(targetHours: 20), 0.5)
+        XCTAssertEqual(history.ringProgress(on: ending, targetHours: 10, calendar: calendar), 1)
+        XCTAssertEqual(history.ringProgress(on: ending, targetHours: 20, calendar: calendar), 0.5)
     }
 
     func test_ringProgress_目标为0返回nil() {
